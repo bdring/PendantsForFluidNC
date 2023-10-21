@@ -36,4 +36,5 @@ uint32_t get_STM_pin(uint32_t fnc_pin)
             return m.stm_pin_num;
         }
     }
+    // TO DO return fail code
 }

@@ -37,22 +37,63 @@ class Displayer : public GrblParser
 
         level = level.substring(0, pos);
 
-        body = message.substring(5 + level.length());
+        body = message.substring(6 + level.length());
         body.remove(body.length() - 1);
 
-        if (level == "INIT")
+        // if this is an IO op then get the pin number.
+        // [MSG:INI io.1=inp,low,pu]
+        if (level == "INI" || level == "GET" || level == "SET")
         {
-            return;
-        }
+            int pin_num;
+            int STM_pin_num;
+            String param_list;
+            Serial_Pendant.println(body);
+            if (!body.startsWith("io."))
+            {
+                return;
+            }
+            pos = body.indexOf(".");
+            int nextpos = body.indexOf("=");
+            if (pos == -1 or nextpos == -1)
+            {
+                return;
+            }
 
-        if (level == "GET")
-        {
-            return;
-        }
+            pin_num = body.substring(pos + 1, nextpos).toInt();
+            param_list = body.substring(nextpos + 1);
 
-        if (level == "SET")
-        {
-            return;
+            STM_pin_num = get_STM_pin(pin_num);
+
+            Serial_Pendant.println(pin_num);
+            Serial_Pendant.println(param_list);
+
+            if (level == "INI")
+            {
+                if (param_list.indexOf("out")) {
+                    // TO DO Initial value
+                    pinMode(STM_pin_num, OUTPUT);
+                }
+                else if (param_list.indexOf("inp")) {
+
+                } else {
+                    // fail
+                    return;
+                }
+
+            }
+
+            if (level == "SET") {
+                // [MSG:SET io.1=1]
+                // TO DO 
+                //    Some basic validation that this is an output pin, pwm, etc
+                //    Allow for other params
+                //    check that a val exists
+                int val = param_list.toInt();
+                digitalWrite(STM_pin_num, val);
+                return;
+            }
+
+                return;
         }
 
         Serial_Pendant.println(message);
