@@ -2,11 +2,9 @@
 #include "GrblParser.h"
 #include <io_controller.h>
 
-// for use on STM32 Only !!!! for now
-
 // https://github.com/stm32duino/Arduino_Core_STM32/wiki/
 
-// STM Pin Reference
+// STM UART Reference
 // HardwareSerial Serial1(); PA10, PA9
 // HardwareSerial Serial2(PA3, PA2);
 // HardwareSerial Serial3(PB11, PB10);
@@ -45,9 +43,8 @@ class Displayer : public GrblParser
         if (level == "INI" || level == "GET" || level == "SET")
         {
             int pin_num;
-            int STM_pin_num;
             String param_list;
-            Serial_Pendant.println(body);
+
             if (!body.startsWith("io."))
             {
                 return;
@@ -62,41 +59,31 @@ class Displayer : public GrblParser
             pin_num = body.substring(pos + 1, nextpos).toInt();
             param_list = body.substring(nextpos + 1);
 
-            STM_pin_num = get_STM_pin(pin_num);
-
-            Serial_Pendant.println(pin_num);
-            Serial_Pendant.println(param_list);
-
             if (level == "INI")
             {
-                if (param_list.indexOf("out")) {
-                    // TO DO Initial value
-                    pinMode(STM_pin_num, OUTPUT);
-                }
-                else if (param_list.indexOf("inp")) {
-
-                } else {
-                    // fail
+                if (pins[pin_num].init(param_list) != 0)
+                {
+                    debug_message("IN Error");
                     return;
+
                 }
-
             }
 
-            if (level == "SET") {
-                // [MSG:SET io.1=1]
-                // TO DO 
-                //    Some basic validation that this is an output pin, pwm, etc
-                //    Allow for other params
-                //    check that a val exists
-                int val = param_list.toInt();
-                digitalWrite(STM_pin_num, val);
+            if (level == "SET")
+            {
+                float val = param_list.toFloat();
+                if (pins[pin_num].set_output(val) != 0)
+                {
+                    debug_message("Set Error");
+
+                }
                 return;
             }
 
-                return;
+            return;
         }
 
-        Serial_Pendant.println(message);
+        Serial_Pendant.println(message); // prints unhandled messages
     }
 
     void show_state(const String &state)
@@ -153,6 +140,8 @@ class Displayer : public GrblParser
 void setup()
 {
 
+    io_init();
+
     Serial_FNC.begin(115200);     // PA10, PA9
     Serial_Pendant.begin(115200); // PA3, PA2
 
@@ -186,6 +175,12 @@ void loop()
 
     delay(5);
     digitalWrite(PC13, HIGH);
+}
+
+void debug_message(String message)
+{
+    Serial_Pendant.print("DEBUG:");
+    Serial_Pendant.println(message);
 }
 
 extern "C" void SystemClock_Config(void)
