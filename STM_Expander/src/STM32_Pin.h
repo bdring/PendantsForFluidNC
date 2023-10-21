@@ -7,19 +7,20 @@ class STM32_Pin
     enum class Mode : uint8_t
     {
         None = 0,
-        Input = 1, 
+        Input = 1,
         Output = 2,
-        PWM  = 3,
+        PWM = 3,
     };
 
 public:
     uint32_t stm_pin_num;
     bool pwm_capable = false;
     bool initialized = false;
-    Mode pin_mode = Mode::None; 
+    Mode pin_mode = Mode::None;
 
     int init(String mode);
     int set_output(float val);
 
 private:
+    void pin_change();
 };

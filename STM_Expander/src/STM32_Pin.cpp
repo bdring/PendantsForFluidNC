@@ -9,9 +9,10 @@ int STM32_Pin::set_output(float val)
 
     if (pin_mode == Mode::Output)
     {
-        if (val > 0) {
+        if (val > 0)
+        {
             val = 1.0;
-        }            
+        }
         digitalWrite(stm_pin_num, (uint32_t)val);
     }
     else
@@ -45,11 +46,29 @@ int STM32_Pin::init(String params)
     }
     if (params.indexOf("inp") != -1)
     {
-        pinMode(stm_pin_num, INPUT);
+        if (params.indexOf("pu"))
+        {
+            pinMode(stm_pin_num, INPUT_PULLUP);
+        }
+        else if (params.indexOf("pd"))
+        {
+            pinMode(stm_pin_num, INPUT_PULLDOWN);
+        }
+        else
+        {
+            pinMode(stm_pin_num, INPUT);
+        }
+
+        //attachInterrupt(digitalPinToInterrupt(stm_pin_num), pin_change, CHANGE);
+
         pin_mode = Mode::Input;
         initialized = true;
         return 0;
     }
 
     return -1;
+}
+
+void STM32_Pin::pin_change() {
+
 }

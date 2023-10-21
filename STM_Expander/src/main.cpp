@@ -80,6 +80,8 @@ class Displayer : public GrblParser
                 return;
             }
 
+            
+
             return;
         }
 
@@ -106,34 +108,7 @@ class Displayer : public GrblParser
     {
     }
 
-    //  io.1=inp,low,pu]
-    void process_ini_message(String message)
-    {
-        String pin_id;
-        String params;
-
-        auto eq = message.indexOf("=");
-        if (eq == -1)
-        {
-            pin_id = message.substring(0, eq);
-            params = message.substring(eq + 1);
-        }
-        uint32_t pin_num = get_STM_pin(pin_id.substring(2).toInt());
-
-        // setup pin type
-        if (params.indexOf("out") != -1)
-        {
-            pinMode(pin_num, OUTPUT);
-        }
-        else if (params.indexOf("pwm") != -1)
-        {
-            pinMode(pin_num, OUTPUT);
-        }
-        else // assume input
-        {
-            pinMode(pin_num, INPUT);
-        }
-    }
+    
 
 } displayer;
 
