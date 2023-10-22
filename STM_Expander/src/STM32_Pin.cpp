@@ -1,10 +1,10 @@
 #include "STM32_Pin.h"
 
-int STM32_Pin::set_output(float val)
+STM32_Pin::FailCodes STM32_Pin::set_output(float val)
 {
     if (!initialized)
     {
-        return -1;
+        return FailCodes::NotInitialized;
     }
 
     if (pin_mode == Mode::Output)
@@ -21,11 +21,11 @@ int STM32_Pin::set_output(float val)
         analogWrite(stm_pin_num, pwm_val);
     }
 
-    return 0;
+    return FailCodes::None;
 }
 
 bool STM32_Pin::read_pin()
-{ // return true if new value read
+{ // return true if value has changed
     int new_value;
     if (pin_mode == Mode::Input)
     {
@@ -43,25 +43,26 @@ bool STM32_Pin::read_pin()
     return false;
 }
 
-int STM32_Pin::init(String params)
+STM32_Pin::FailCodes STM32_Pin::init(String params)
 {
+    // for now we assume all pins can input and output. Some can do PWM
     if (params.indexOf("out") != -1)
     {
         pinMode(stm_pin_num, OUTPUT);
         pin_mode = Mode::Output;
         initialized = true;
-        return 0;
+        return FailCodes::None;
     }
     if (params.indexOf("pwm") != -1)
     {
         if (!pwm_capable)
         {
-            return -1;
+            return FailCodes::NotCapable;
         }
         pinMode(stm_pin_num, OUTPUT);
         pin_mode = Mode::PWM;
         initialized = true;
-        return 0;
+        return FailCodes::None;
     }
     if (params.indexOf("inp") != -1)
     {
@@ -84,8 +85,8 @@ int STM32_Pin::init(String params)
 
         pin_mode = Mode::Input;
         initialized = true;
-        return 0;
+        return FailCodes::None;
     }
 
-    return -1;
+    return FailCodes::UnknownParameter;
 }

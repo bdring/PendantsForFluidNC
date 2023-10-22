@@ -6,6 +6,7 @@ void io_init()
 {
 
     // map the pins to the FNC numbers
+    // This order can be any way, but this matches my extender
     pins[0].stm_pin_num = PA4;
     pins[1].stm_pin_num = PA5;
     pins[2].stm_pin_num = PA8;
@@ -28,6 +29,11 @@ void io_init()
     pins[19].stm_pin_num = PB1;
 
     // Which ones are pwm capable
+    pins[2].pwm_capable = true;
+    pins[5].pwm_capable = true;
+    pins[6].pwm_capable = true;
+    pins[7].pwm_capable = true;
+    pins[8].pwm_capable = true;
     pins[14].pwm_capable = true;
     pins[15].pwm_capable = true;
     pins[16].pwm_capable = true;

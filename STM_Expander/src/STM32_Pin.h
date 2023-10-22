@@ -14,16 +14,25 @@ public:
         PWM = 3,
     };
 
+    enum class FailCodes : uint8_t
+    {
+        None = 0, // no problem
+        NotInitialized = 1,
+        NotCapable = 2, // Pin cannot be initialized this way
+        Range = 3,      // set value out of range
+        UnknownParameter = 4,
+    };
+
     uint32_t stm_pin_num;
     bool pwm_capable = false;
     bool initialized = false;
     Mode pin_mode = Mode::None;
-    int last_value = -1; // unknown
+    int last_value = -1;   // unknown
     int debounce_ms = 100; // default
     uint32_t last_change_millis = 0;
 
-    int init(String mode);
-    int set_output(float val);
+    FailCodes init(String mode);
+    FailCodes set_output(float val);
 
     bool read_pin();
 

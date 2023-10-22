@@ -61,7 +61,7 @@ class Displayer : public GrblParser
 
             if (level == "INI")
             {
-                if (pins[pin_num].init(param_list) != 0)
+                if (pins[pin_num].init(param_list) != STM32_Pin::FailCodes::None)
                 {
                     debug_message("IN Error");
                     return;
@@ -72,16 +72,13 @@ class Displayer : public GrblParser
             if (level == "SET")
             {
                 float val = param_list.toFloat();
-                if (pins[pin_num].set_output(val) != 0)
+                if (pins[pin_num].set_output(val) != STM32_Pin::FailCodes::None)
                 {
                     debug_message("Set Error");
 
                 }
                 return;
             }
-
-
-
             return;
         }
 
