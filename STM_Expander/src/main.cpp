@@ -80,7 +80,7 @@ class Displayer : public GrblParser
                 return;
             }
 
-            
+
 
             return;
         }
@@ -108,8 +108,6 @@ class Displayer : public GrblParser
     {
     }
 
-    
-
 } displayer;
 
 void setup()
@@ -123,11 +121,6 @@ void setup()
     pinMode(PC13, OUTPUT); // for rx/tx activity LED
     Serial_Pendant.println("\r\nHello pendant");
     Serial_FNC.println("Hello FNC");
-
-    pinMode(PA7, OUTPUT);
-    digitalWrite(PA7, HIGH);
-    delay(100);
-    digitalWrite(PA7, LOW);
 }
 
 void loop()
@@ -135,9 +128,8 @@ void loop()
     while (Serial_FNC.available()) // From Terminal
     {
         char c = Serial_FNC.read();
-        Serial.write(c);
+        Serial_Pendant.write(c);
         // displayer.write(c);  // for production
-        digitalToggle(PC13);
     }
 
     while (Serial_Pendant.available()) // From FNC
@@ -145,12 +137,14 @@ void loop()
         char c = Serial_Pendant.read();
         Serial_FNC.write(c);
         displayer.write(c); // for testing from terminal
-        digitalToggle(PC13);
     }
 
-    delay(5);
-    digitalWrite(PC13, HIGH);
+    //delay(5);
+
+    read_all_pins();
+
 }
+
 
 void debug_message(String message)
 {

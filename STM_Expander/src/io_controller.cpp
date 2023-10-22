@@ -1,35 +1,9 @@
 #include <io_controller.h>
 
-static struct PinMapper
+STM32_Pin pins[PIN_COUNT];
+
+void io_init()
 {
-    uint32_t fnc_pin_num;
-    uint32_t stm_pin_num;
-} pin_map[] = {
-    {0, PA4},
-    {1, PA5},
-    {2, PA8},
-    {3, PA11},
-    {5, PA12},
-    {5, PB6},
-    {6, PB7},
-    {7, PB8},
-    {8, PB9},
-    {9, PB10},
-    {10, PB11},
-    {11, PB14},
-    {12, PB15},
-    {13, PC13},
-    {14, PA0},
-    {15, PA1},
-    {16, PA6},
-    {17, PA7},
-    {18, PB0},
-    {19, PB1},
-};
-
-STM32_Pin pins[64];
-
-void io_init() {
 
     // map the pins to the FNC numbers
     pins[0].stm_pin_num = PA4;
@@ -60,18 +34,21 @@ void io_init() {
     pins[17].pwm_capable = true;
     pins[18].pwm_capable = true;
     pins[19].pwm_capable = true;
-
 }
 
-uint32_t get_STM_pin(uint32_t fnc_pin)
+void read_all_pins()
 {
-    for (auto m : pin_map)
+    for (int i = 0; i < PIN_COUNT; i++)
     {
-        if (fnc_pin == m.fnc_pin_num)
+        if (pins[i].pin_mode == STM32_Pin::Mode::Input)
         {
-            return m.stm_pin_num;
+            if (pins[i].read_pin())
+            {
+                Serial_Pendant.print("Change on pin:");
+                Serial_Pendant.print(i);
+                Serial_Pendant.print(" to:");
+                Serial_Pendant.println(pins[i].last_value); // TO DO not the best name here                 
+            }
         }
     }
-    // TO DO return fail code
-    return 0;  
 }

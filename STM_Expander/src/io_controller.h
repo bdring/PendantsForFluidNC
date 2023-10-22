@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "STM32_Pin.h"
 
+#define PIN_COUNT 20
 
-extern STM32_Pin pins[64];;
+extern STM32_Pin pins[PIN_COUNT];;
 
 void io_init();
 
-uint32_t get_STM_pin(uint32_t fnc_pin);
+void read_all_pins();
