@@ -24,9 +24,12 @@ TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite sprite1 = TFT_eSprite(&tft); // Used to prevent flickering
 
 // local copies so we can do one update function
-String myState = "Idle";
+String myState = "No data...";
 float myAxes[MAX_N_AXIS] = {0};
-int my_n_axis;
+int my_n_axis =3;
+bool myLimits[MAX_N_AXIS] = {false};
+bool myProbe = false;
+bool use_mm = true;
 
 void updateDisplay();
 
@@ -79,6 +82,9 @@ class Displayer : public GrblParser
       for (int i = 0; i < MAX_N_AXIS; i++) {
         myAxes[i] = axes[i];
       }
+      for (int i=0; i< MAX_N_AXIS; i++) {
+        myLimits[i] = limits[i];  
+      }
       updateDisplay();  // TO DO reduce the number of these
     }
 
@@ -95,6 +101,14 @@ class Displayer : public GrblParser
     void process_set_message(String message)
     {
 
+    }
+
+    void show_limits(bool probe, const bool *limits) {      
+      // limits done with DROs
+      if (myProbe != probe) {
+        myProbe = probe;
+      }
+      updateDisplay();
     }
 
 } displayer;
@@ -146,7 +160,13 @@ void setup()
   tft.fillRect(0, 0, DISP_WIDTH, DISP_HEIGHT, TFT_BLACK);
   tft.drawString("FluidNC Channel pendant", 0 , 0, 4);
   delay(1000);
+
+  updateDisplay();
+  
   Serial1.write('?'); // force a status update
+
+
+  
 }
 
 void loop()
@@ -191,10 +211,12 @@ void updateDisplay() {
   }
   
   sprite1.drawString(myState, 0, 0, 4);
+  drawCheckbox(150, 0, 18, myProbe, "Probe");
+  
   for (int i = 0; i < my_n_axis; i++)
-  {   
-    sprintf(buf, "%s: %4.2f", axesNames.substring(i, i + 1), myAxes[i]); // Grrr %04.2f is broken on Arduinos
-    sprite1.drawString(buf, 0 , 40 + i * 26, 4);
+  {       
+    sprite1.drawString(DRO_format(i, myAxes[i]), 0 , 26 + i * 24, 4);
+    drawCheckbox(150, 26 + i * 24, 18, myLimits[i], "Limit");      
   }
 
   sprite1.pushSprite(0, 0);
@@ -210,10 +232,44 @@ void readButtons() {
       Serial.write("~");
       Serial1.write("~");
     }
-
     delay(50);
     while (!digitalRead(PIN_BUTTON_2)) {
     }
     delay(50);
   }
+}
+
+String DRO_format(int axis, float val){
+   String format; 
+   char buf[12];
+   int len;
+   String DRO;
+   String axesNames = "XYZABC";
+   
+   if (use_mm) {
+     format = "% 4.2f";
+   } else {
+     format = "% 3.3f";
+   }
+
+   len = sprintf(buf, format.c_str(), val);
+
+   DRO = buf;
+
+   while(DRO.length() < 9) {
+    DRO = " " + DRO;
+   }
+
+   DRO = axesNames.substring(axis, axis + 1) + DRO;
+   return DRO;
+}
+
+void drawCheckbox(int x, int y, int width, bool checked, String label) {
+  if (checked) {
+      sprite1.fillRect(x, y, width,width,TFT_GREEN);
+    } else {
+      sprite1.drawRect(x, y, width,width,TFT_GREEN);
+    }
+
+    sprite1.drawString(label, x +width + 5 ,y, 4);
 }

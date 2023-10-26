@@ -22,7 +22,7 @@ class Displayer : public GrblParser
 
     void parse_message(String message)
     {
-        String level;
+        String level; // message level
         String body;
 
         level = message.substring(5); // // trim [MSG:
@@ -33,9 +33,9 @@ class Displayer : public GrblParser
             return;
         }
 
-        level = level.substring(0, pos);
+        level = level.substring(0, pos-1);  // remove the colon
 
-        body = message.substring(6 + level.length());
+        body = message.substring(6 + level.length()+1);
         body.remove(body.length() - 1);
 
         // if this is an IO op then get the pin number.
@@ -116,8 +116,8 @@ void setup()
     Serial_Pendant.begin(115200); // PA3, PA2
 
     pinMode(PC13, OUTPUT); // for rx/tx activity LED
-    Serial_Pendant.println("\r\nHello pendant");
-    Serial_FNC.println("Hello FNC");
+    Serial_Pendant.println("\r\n[MSG:INFO: Hello pendant]");
+    //Serial_FNC.println("Hello FNC");
 }
 
 void loop()
@@ -126,14 +126,14 @@ void loop()
     {
         char c = Serial_FNC.read();
         Serial_Pendant.write(c);
-        // displayer.write(c);  // for production
+        displayer.write(c);  // for production
     }
 
     while (Serial_Pendant.available()) // From FNC
     {
         char c = Serial_Pendant.read();
         Serial_FNC.write(c);
-        displayer.write(c); // for testing from terminal
+        // displayer.write(c); // for testing from pendant terminal
     }
 
     //delay(5);
