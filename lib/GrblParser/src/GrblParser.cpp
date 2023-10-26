@@ -17,6 +17,10 @@ void GrblParser::parse_report()
         parse_gcode_report();
         return;
     }
+    if (_report.startsWith("[MSG:"))
+    {
+        parse_message(_report);
+    }
     if (_report.startsWith("error:"))
     {
         parse_error();
@@ -26,6 +30,7 @@ void GrblParser::parse_report()
         show_ok();
     }
 }
+
 void GrblParser::parse_error()
 {
     _last_error = _report.substring(strlen("error:")).toInt();
@@ -33,6 +38,7 @@ void GrblParser::parse_error()
 }
 void GrblParser::parse_status_report()
 {
+    // example <Idle|MPos:151.000,149.000,-1.000|Pn:XP|FS:0,0|WCO:12.000,28.000,78.000>
     if (_report.endsWith(">"))
     {
         _report.remove(_report.length() - 1);
@@ -256,6 +262,7 @@ void GrblParser::lookup_mode(const String &tag, gcode_modes &modes)
 
 void GrblParser::parse_gcode_report()
 {
+    // [GC:G0 G54 G17 G21 G90 G94 M5 M9 T0 F0.0 S0]
     int pos = 0;
     int nextpos = _report.indexOf(":", pos);
     if (nextpos == -1)
@@ -268,6 +275,7 @@ void GrblParser::parse_gcode_report()
         return;
     }
     _report.remove(_report.length() - 1); // Remove trailing ]
+    _report = _report.substring(nextpos + 1); // remove leadin
     pos = nextpos + 1;
     do
     {
@@ -321,10 +329,10 @@ void GrblParser::parse_gcode_report()
     } while (nextpos != -1);
     if (memcmp(&new_gcode_modes, &old_gcode_modes, sizeof(new_gcode_modes)) == 0)
     {
-        printf("New\n");
         old_gcode_modes = new_gcode_modes;
-        show_gcode_modes(new_gcode_modes);
+        //show_gcode_modes(new_gcode_modes);
     }
+    show_gcode_modes(new_gcode_modes);
 }
 
 void GrblParser::parse_axes(String s, float *axes)
