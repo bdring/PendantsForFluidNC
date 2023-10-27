@@ -9,6 +9,7 @@
 #include "TFT_eSPI.h" /* Please use the TFT library provided by LilyGo. */
 #include "pin_config.h"
 #include "GrblParser.h"  // be sure to move the files into the library folder for Arduino
+#include "fnc.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5,0,0)
 #error  "The current version is not supported for the time being, please use a version below Arduino ESP32 3.0"
@@ -158,8 +159,10 @@ void setup()
 #endif
 
   tft.fillRect(0, 0, DISP_WIDTH, DISP_HEIGHT, TFT_BLACK);
-  tft.drawString("FluidNC Channel pendant", 0 , 0, 4);
-  delay(1000);
+  //tft.drawString("FluidNC Channel pendant", 0 , 0, 4);
+
+  tft.pushImage(0,0,320,170,logo);
+  delay(2000);
 
   updateDisplay();
   
