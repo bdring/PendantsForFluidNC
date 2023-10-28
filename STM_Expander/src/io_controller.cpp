@@ -48,12 +48,9 @@ void read_all_pins()
     {
         if (pins[i].pin_mode == STM32_Pin::Mode::Input)
         {
-            if (pins[i].read_pin())
+            if (pins[i].read_pin()) // returns true for a value change
             {
-                Serial_Pendant.print("Change on pin:");
-                Serial_Pendant.print(i);
-                Serial_Pendant.print(" to:");
-                Serial_Pendant.println(pins[i].last_value); // TO DO not the best name here                 
+                Serial_Pendant.printf("Change on pin:%d to %d\r\n", i, pins[i].last_value);          
             }
         }
     }

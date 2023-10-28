@@ -2,6 +2,9 @@
 
 STM32_Pin::FailCodes STM32_Pin::set_output(float val)
 {
+    Serial_Pendant.printf("Set out pin:%d to:", stm_pin_num);
+    Serial_Pendant.println(val);
+
     if (!initialized)
     {
         return FailCodes::NotInitialized;
@@ -46,6 +49,7 @@ bool STM32_Pin::read_pin()
 STM32_Pin::FailCodes STM32_Pin::init(String params)
 {
     // for now we assume all pins can input and output. Some can do PWM
+
     if (params.indexOf("out") != -1)
     {
         pinMode(stm_pin_num, OUTPUT);

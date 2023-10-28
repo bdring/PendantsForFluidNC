@@ -17,7 +17,7 @@ class Displayer : public GrblParser
 
     void debug_message(String message)
     {
-        Serial_Pendant.print(message);
+        //Serial_Pendant.print(message);
     }
 
     void parse_message(String message)
@@ -37,6 +37,9 @@ class Displayer : public GrblParser
 
         body = message.substring(6 + level.length()+1);
         body.remove(body.length() - 1);
+
+        //Serial_Pendant.print("level:");
+        //Serial_Pendant.println(level);
 
         // if this is an IO op then get the pin number.
         // [MSG:INI io.1=inp,low,pu]
@@ -65,7 +68,6 @@ class Displayer : public GrblParser
                 {
                     debug_message("IN Error");
                     return;
-
                 }
             }
 
@@ -81,24 +83,21 @@ class Displayer : public GrblParser
             }
             return;
         }
-
-        Serial_Pendant.println(message); // prints unhandled messages
     }
 
     void show_state(const String &state)
     {
-        Serial_Pendant.print(state);
+    
     }
 
     void show_gcode_modes(const gcode_modes &modes)
     {
-        Serial_Pendant.print("Got modes");
+        
     }
 
     void show_info_message(String message)
     {
-        Serial_Pendant.println("Got message");
-        Serial_Pendant.println(message);
+        
     }
 
     void process_set_message(String message)
@@ -116,8 +115,7 @@ void setup()
     Serial_Pendant.begin(115200); // PA3, PA2
 
     pinMode(PC13, OUTPUT); // for rx/tx activity LED
-    Serial_Pendant.println("\r\n[MSG:INFO: Hello pendant]");
-    //Serial_FNC.println("Hello FNC");
+    Serial_Pendant.println("\r\n[MSG:INFO: Hello pendant]");    
 }
 
 void loop()
@@ -125,7 +123,7 @@ void loop()
     while (Serial_FNC.available()) // From Terminal
     {
         char c = Serial_FNC.read();
-        Serial_Pendant.write(c);
+        Serial_Pendant.write(c);  // just for debuging
         displayer.write(c);  // for production
     }
 
@@ -135,8 +133,6 @@ void loop()
         Serial_FNC.write(c);
         // displayer.write(c); // for testing from pendant terminal
     }
-
-    //delay(5);
 
     read_all_pins();
 
