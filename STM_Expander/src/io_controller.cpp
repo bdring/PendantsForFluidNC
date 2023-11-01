@@ -44,12 +44,18 @@ void io_init()
 
 void read_all_pins()
 {
-    for (int i = 0; i < PIN_COUNT; i++)
+    for (uint8_t i = 0; i < PIN_COUNT; i++)
     {
         if (pins[i].pin_mode == STM32_Pin::Mode::Input)
         {
             if (pins[i].read_pin()) // returns true for a value change
             {
+                if (pins[i].last_value == 1) {
+                    Serial_FNC.write(PinHigh);
+                } else {
+                    Serial_FNC.write(PinLow);
+                }
+                Serial_FNC.write(i);
                 Serial_Pendant.printf("Change on pin:%d to %d\r\n", i, pins[i].last_value);          
             }
         }

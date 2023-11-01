@@ -26,6 +26,7 @@ public:
     uint32_t stm_pin_num;
     bool pwm_capable = false;
     bool initialized = false;
+    bool activeLow = false;
     Mode pin_mode = Mode::None;
     int last_value = -1;   // unknown
     int debounce_ms = 100; // default

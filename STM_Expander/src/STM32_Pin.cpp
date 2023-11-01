@@ -16,7 +16,12 @@ STM32_Pin::FailCodes STM32_Pin::set_output(float val)
         {
             val = 1.0;
         }
-        digitalWrite(stm_pin_num, (uint32_t)val);
+        bool bitValue = (val == 0.0);
+        if (activeLow)
+        {
+            bitValue = !bitValue;
+        }
+        digitalWrite(stm_pin_num, bitValue);
     }
     else
     {
@@ -50,11 +55,17 @@ STM32_Pin::FailCodes STM32_Pin::init(String params)
 {
     // for now we assume all pins can input and output. Some can do PWM
 
+    activeLow = (params.indexOf("low") != -1);
+
     if (params.indexOf("out") != -1)
     {
         pinMode(stm_pin_num, OUTPUT);
         pin_mode = Mode::Output;
         initialized = true;
+        if (activeLow)
+        {
+            digitalWrite(stm_pin_num, true);
+        }
         return FailCodes::None;
     }
     if (params.indexOf("pwm") != -1)

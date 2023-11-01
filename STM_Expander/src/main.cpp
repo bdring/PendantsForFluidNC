@@ -17,7 +17,7 @@ class Displayer : public GrblParser
 
     void debug_message(String message)
     {
-        //Serial_Pendant.print(message);
+
     }
 
     void parse_message(String message)
@@ -37,9 +37,6 @@ class Displayer : public GrblParser
 
         body = message.substring(6 + level.length()+1);
         body.remove(body.length() - 1);
-
-        //Serial_Pendant.print("level:");
-        //Serial_Pendant.println(level);
 
         // if this is an IO op then get the pin number.
         // [MSG:INI io.1=inp,low,pu]
