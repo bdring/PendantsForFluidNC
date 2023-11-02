@@ -10,4 +10,4 @@ extern STM32_Pin pins[PIN_COUNT];
 
 void io_init();
 
-void read_all_pins();
+void read_all_pins(bool forceUpdate);

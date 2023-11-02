@@ -45,10 +45,17 @@ class Displayer : public GrblParser
             int pin_num;
             String param_list;
 
+            if (level == "GET")
+            {
+                read_all_pins(true);
+                return;
+            }
+
             if (!body.startsWith("io."))
             {
                 return;
             }
+
             pos = body.indexOf(".");
             int nextpos = body.indexOf("=");
             if (pos == -1 or nextpos == -1)
@@ -78,6 +85,9 @@ class Displayer : public GrblParser
                 }
                 return;
             }
+
+            
+
             return;
         }
     }
@@ -131,7 +141,7 @@ void loop()
         // displayer.write(c); // for testing from pendant terminal
     }
 
-    read_all_pins();
+    read_all_pins(false);
 
 }
 

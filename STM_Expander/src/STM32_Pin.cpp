@@ -32,13 +32,13 @@ STM32_Pin::FailCodes STM32_Pin::set_output(float val)
     return FailCodes::None;
 }
 
-bool STM32_Pin::read_pin()
-{ // return true if value has changed
+bool STM32_Pin::read_pin(bool forceUpdate)
+{ // return true if value has changed    
     int new_value;
     if (pin_mode == Mode::Input)
     {
-        new_value = digitalRead(stm_pin_num);
-        if (new_value != last_value)
+        new_value = digitalRead(stm_pin_num);        
+        if (forceUpdate | new_value != last_value)
         {
             if (millis() - last_change_millis > debounce_ms)
             {
@@ -100,6 +100,7 @@ STM32_Pin::FailCodes STM32_Pin::init(String params)
 
         pin_mode = Mode::Input;
         initialized = true;
+        //read_pin(true);  //did not work
         return FailCodes::None;
     }
 
