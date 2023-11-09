@@ -59,3 +59,11 @@ void read_all_pins(bool forceUpdate)
         }
     }
 }
+
+void protocolRespond(bool ACK) {
+    if (ACK) {
+        Serial_FNC.write(ACK);
+    } else {
+        Serial_FNC.write(NAK);
+    }
+}

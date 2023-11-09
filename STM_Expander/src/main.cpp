@@ -71,7 +71,8 @@ class Displayer : public GrblParser
             {
                 if (pins[pin_num].init(param_list) != STM32_Pin::FailCodes::None)
                 {
-                    debug_message("IN Error");
+                    debug_message("INI Error");
+                    protocolRespond(false);
                     return;
                 }
             }
@@ -141,9 +142,10 @@ void loop()
 
 void debug_message(String message)
 {
-    Serial_Pendant.print("DEBUG:");
-    Serial_Pendant.println(message);
+    Serial_Pendant.printf("[MSG:INFO: Controller debug:%s", message);    
 }
+
+
 
 // 8 MHz external Crystal with 2x PLL = 16MHz
 // Built from the Clock Configurator in STMCubeIDE
