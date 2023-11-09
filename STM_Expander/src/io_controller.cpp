@@ -4,7 +4,6 @@ STM32_Pin pins[PIN_COUNT];
 
 void io_init()
 {
-
     // map the pins to the FNC numbers
     // This order can be any way, but this matches my extender
     pins[0].stm_pin_num = PA4;
@@ -56,7 +55,6 @@ void read_all_pins(bool forceUpdate)
                     Serial_FNC.write(PinLow);
                 }
                 Serial_FNC.write(i);
-                //Serial_Pendant.printf("Change on pin:%d to %d\r\n", i, pins[i].last_value);          
             }
         }
     }

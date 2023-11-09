@@ -34,7 +34,6 @@ public:
 
     FailCodes init(String mode);
     FailCodes set_output(float val);
-
     bool read_pin(bool forceUpdate);
 
 private:

@@ -2,8 +2,8 @@
 
 STM32_Pin::FailCodes STM32_Pin::set_output(float val)
 {
-    Serial_Pendant.printf("Set out pin:%d to:", stm_pin_num);
-    Serial_Pendant.println(val);
+    //Serial_Pendant.printf("Set out pin:%d to:", stm_pin_num);
+    //Serial_Pendant.println(val);
 
     if (!initialized)
     {
@@ -12,15 +12,13 @@ STM32_Pin::FailCodes STM32_Pin::set_output(float val)
 
     if (pin_mode == Mode::Output)
     {
-        if (val > 0)
-        {
-            val = 1.0;
-        }
-        bool bitValue = (val == 0.0);
+        bool bitValue = (val != 0.0);
         if (activeLow)
         {
+            //Serial_Pendant.printf("active low");
             bitValue = !bitValue;
         }
+        //Serial_Pendant.printf("Set out pin:%d to:%d", stm_pin_num, bitValue);
         digitalWrite(stm_pin_num, bitValue);
     }
     else
@@ -37,7 +35,12 @@ bool STM32_Pin::read_pin(bool forceUpdate)
     int new_value;
     if (pin_mode == Mode::Input)
     {
-        new_value = digitalRead(stm_pin_num);        
+        new_value = digitalRead(stm_pin_num);
+
+        if (activeLow) {
+            new_value = ! new_value;
+        }
+
         if (forceUpdate | new_value != last_value)
         {
             if (millis() - last_change_millis > debounce_ms)
@@ -94,13 +97,14 @@ STM32_Pin::FailCodes STM32_Pin::init(String params)
             pinMode(stm_pin_num, INPUT);
         }
 
+        //activeLow = (params.indexOf("low") != -1);
+
         last_value = -1; // reset to unknown value
 
         // attachInterrupt(digitalPinToInterrupt(stm_pin_num), pin_interrupt, CHANGE);
 
         pin_mode = Mode::Input;
         initialized = true;
-        //read_pin(true);  //did not work
         return FailCodes::None;
     }
 
