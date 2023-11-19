@@ -32,9 +32,9 @@ public:
     int debounce_ms = 100; // default
     uint32_t last_change_millis = 0;
 
+    void deinit(void);
     FailCodes init(String mode);
     FailCodes set_output(float val);
     bool read_pin(bool forceUpdate);
-
 private:
 };

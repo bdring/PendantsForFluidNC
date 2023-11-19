@@ -12,5 +12,8 @@ extern STM32_Pin pins[PIN_COUNT];
 
 void io_init();
 
+void deinit_all_pins();
+void read_pin(size_t pin_num, bool forceUpdate);
 void read_all_pins(bool forceUpdate);
-void protocolRespond(bool ACK);
+void protocolRespond(bool ok);
+bool valid_pin_number(int pin_num);

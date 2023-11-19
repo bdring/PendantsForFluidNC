@@ -62,16 +62,6 @@ lcd_cmd_t lcd_st7789v[] = {
 class Displayer : public GrblParser
 {
 
-    void debug_message(String message)
-    {
-
-    }
-
-    void parse_message(String message)
-    {
-
-    }
-
     void show_state(const String &state)
     {
       myState = state;
@@ -90,16 +80,6 @@ class Displayer : public GrblParser
     }
 
     void show_gcode_modes(const gcode_modes &modes)
-    {
-
-    }
-
-    void show_info_message(String message)
-    {
-
-    }
-
-    void process_set_message(String message)
     {
 
     }
