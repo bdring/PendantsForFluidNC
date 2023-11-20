@@ -9,30 +9,20 @@
 // HardwareSerial Serial2(PA3, PA2);
 // HardwareSerial Serial3(PB11, PB10);
 
-HardwareSerial Serial_FNC(PA10, PA9);     // connects from STM32 to ESP32 and FNC
-HardwareSerial Serial_Pendant(PA3, PA2);  // connects from STM32 to Display
+HardwareSerial FNCSerial(PA10, PA9);   // connects from STM32 to ESP32 and FNC
+HardwareSerial DebugSerial(PA3, PA2);  // connects from STM32 to Display
 
 class Displayer : public GrblParser {
-    void message_to_FNC(const String& msg) {
-        String prefix = "$Log/Debug=*";
-        prefix += msg;
-        Serial_FNC.println(msg);
-    }
-
     // With no arguments, return an ACK for okay
-    void protocolRespond() { Serial_FNC.write(ACK); }
+    void protocolRespond() { putchar(ACK); }
 
     // If an error message is supplied, send it followed by a NAK
     void protocolRespond(const String& msg) {
-        message_to_FNC(msg);
-        Serial_FNC.write(NAK);
+        String prefix("$Log/Debug=*");
+        send_line(prefix + msg);
+        putchar(NAK);
     }
 
-    void fnc_message(String msg) {
-        String prefix = "$Log/Msg=*";
-        prefix += msg;
-        Serial_FNC.println(prefix);
-    }
     void handle_msg(const String& command, const String& arguments) {
         if (command == "RST") {
             deinit_all_pins();
@@ -107,41 +97,46 @@ class Displayer : public GrblParser {
             }
         }
     }
+    int getchar() {
+        if (FNCSerial.available()) {
+            return FNCSerial.read();
+        }
+        return -1;
+    }
+    void putchar(uint8_t c) { FNCSerial.write(c); }
+    int  milliseconds() { return millis(); }
+    void poll_extra() {
+        while (DebugSerial.available()) {  // From debug UART
+            char c = DebugSerial.read();
+            putchar(c);
+            collect(c);  // for testing from pendant terminal
+        }
+
+        read_all_pins(false);
+    }
 } displayer;
 
 void setup() {
     io_init();
 
-    Serial_FNC.begin(115200);      // PA10, PA9
-    Serial_Pendant.begin(115200);  // PA3, PA2
+    FNCSerial.begin(115200);  // PA10, PA9
+
+    DebugSerial.begin(115200);  // PA3, PA2
+    DebugSerial.printf("\r\n[MSG:INFO: Hello pendant. Clock %dHz]", F_CPU);
 
     pinMode(PC13, OUTPUT);  // for rx/tx activity LED
-    Serial_Pendant.printf("\r\n[MSG:INFO: Hello pendant. Clock %dHz]", F_CPU);
-    Serial_FNC.println("$Log/Info=*Hello");
+
+    displayer.wait_ready();
+    // XXX we need some sort of message to tell FluidNC that the
+    // expander has been reset.  At startup, that would be okay, but
+    // if it happens later, it is probably an alarm condition because
+    // the pins are now invalid.  Maybe the message should be a realtime
+    // character to avoid the need to ack with an ok, since we cannot
+    // depend on FluidNC to be ready when the expander starts.
 }
 
 void loop() {
-    while (Serial_FNC.available()) {  // From Terminal
-        char c = Serial_FNC.read();
-        //  Serial_Pendant.write(c); // just for debugging
-        if (c == '\n') {
-            volatile int a;
-            a = 10;
-        }
-        displayer.write(c);  // for production
-    }
-
-    while (Serial_Pendant.available()) {  // From FNC
-        char c = Serial_Pendant.read();
-        Serial_FNC.write(c);
-        // displayer.write(c); // for testing from pendant terminal
-    }
-
-    read_all_pins(false);
-}
-
-void message_to_debug_port(String message) {
-    Serial_Pendant.printf("[MSG:INFO: Controller debug:%s", message);
+    displayer.poll();
 }
 
 // 8 MHz external Crystal with 2x PLL = 16MHz

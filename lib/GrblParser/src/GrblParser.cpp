@@ -1,6 +1,14 @@
 #include <Arduino.h>
 #include "GrblParser.h"
 
+void GrblParser::poll() {
+    int c;
+    if ((c = getchar()) >= 0) {
+        collect(c);
+    }
+    poll_extra();
+}
+
 bool GrblParser::is_report_type(const String& report, String& body, const char* prefix, const char* suffix) {
     if (report.startsWith(prefix)) {
         if (strlen(suffix) && report.endsWith(suffix)) {
@@ -19,6 +27,7 @@ void GrblParser::parse_report() {
     }
 
     if (_report == "ok") {
+        _ackwait = false;
         show_ok();
         return;
     }
@@ -36,6 +45,7 @@ void GrblParser::parse_report() {
         return;
     }
     if (is_report_type(_report, body, "error:", "")) {
+        _ackwait = false;
         parse_error(body);
         return;
     }
@@ -345,7 +355,7 @@ void GrblParser::parse_numbers(String s, float* nums, int maxnums) {
 }
 
 // Receive an incoming byte
-size_t GrblParser::write(uint8_t data) {
+size_t GrblParser::collect(uint8_t data) {
     char c = data;
     if (c == '\r') {
         return 1;
@@ -358,9 +368,30 @@ size_t GrblParser::write(uint8_t data) {
     _report += c;
     return 1;
 }
-size_t GrblParser::write(const String& str) {
+size_t GrblParser::collect(const String& str) {
     for (auto c : str) {
-        write((uint8_t)c);
+        collect((uint8_t)c);
     }
     return str.length();
+}
+
+void GrblParser::send_line(const String& line, int timeout_ms) {
+    while (_ackwait) {
+        if ((milliseconds() - _ack_time_limit) >= 0) {
+            show_timeout();
+            _ackwait = false;
+        } else {
+            poll();
+        }
+    }
+    for (auto c : line) {
+        putchar(c);
+    }
+    _ack_time_limit = milliseconds() + timeout_ms;
+    _ackwait        = true;
+}
+
+void GrblParser::wait_ready() {
+    // XXX we need to figure out how to do this.  The pendant
+    // typically starts faster than FluidNC
 }
