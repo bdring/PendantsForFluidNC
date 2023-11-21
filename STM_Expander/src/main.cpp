@@ -12,6 +12,8 @@
 HardwareSerial FNCSerial(PA10, PA9);   // connects from STM32 to ESP32 and FNC
 HardwareSerial DebugSerial(PA3, PA2);  // connects from STM32 to Display
 
+extern void send_pin_msg(int pin_num, bool active);
+
 class Displayer : public GrblParser {
     // With no arguments, return an ACK for okay
     void protocolRespond() { putchar(ACK); }
@@ -60,13 +62,13 @@ class Displayer : public GrblParser {
             if (command == "GET") {
                 if (pin == "*") {
                     protocolRespond();
-                    read_all_pins(true);
+                    read_all_pins(send_pin_msg, true);
                     return;
                 }
                 pin_num = pin.toInt();
                 if (valid_pin_number(pin_num)) {
                     protocolRespond();
-                    read_pin(pin_num, true);
+                    read_pin(send_pin_msg, pin_num, true);
                 } else {
                     protocolRespond("Invalid pin number");
                 }
@@ -103,7 +105,6 @@ class Displayer : public GrblParser {
         }
         return -1;
     }
-    void putchar(uint8_t c) { FNCSerial.write(c); }
     int  milliseconds() { return millis(); }
     void poll_extra() {
         while (DebugSerial.available()) {  // From debug UART
@@ -112,8 +113,11 @@ class Displayer : public GrblParser {
             collect(c);  // for testing from pendant terminal
         }
 
-        read_all_pins(false);
+        read_all_pins(send_pin_msg, false);
     }
+
+public:
+    void putchar(uint8_t c) { FNCSerial.write(c); }
 } displayer;
 
 void setup() {
@@ -137,6 +141,11 @@ void setup() {
 
 void loop() {
     displayer.poll();
+}
+
+void send_pin_msg(int pin_num, bool active) {
+    displayer.putchar(active ? PinHigh : PinLow);
+    displayer.putchar(pin_num);
 }
 
 // 8 MHz external Crystal with 2x PLL = 16MHz

@@ -18,7 +18,6 @@ class Displayer : public GrblParser {
         }
         return -1;
     }
-    void putchar(uint8_t c) { Serial1.write(c); }
     int  milliseconds() { return millis(); }
     void poll_extra() {
 #ifdef SEND_CONSOLE_DATA
@@ -30,6 +29,10 @@ class Displayer : public GrblParser {
         }
 #endif
     }
+
+public:
+    void putchar(uint8_t c) { Serial1.write(c); }
+
 } displayer;
 
 void setup() {

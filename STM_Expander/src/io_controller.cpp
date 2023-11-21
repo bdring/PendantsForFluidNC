@@ -1,4 +1,5 @@
 #include <io_controller.h>
+#include "GrblParser.h"
 
 STM32_Pin pins[PIN_COUNT];
 
@@ -44,17 +45,16 @@ void deinit_all_pins() {
         pins[pin_num].deinit();
     }
 }
-void read_pin(size_t pin_num, bool forceUpdate) {
+void read_pin(pin_msg_t send_msg, size_t pin_num, bool forceUpdate) {
     if (pins[pin_num].pin_mode == STM32_Pin::Mode::Input) {
         if (pins[pin_num].read_pin(forceUpdate)) {
-            Serial_FNC.write(pins[pin_num].last_value == 1 ? PinHigh : PinLow);
-            Serial_FNC.write(pin_num);
+            send_msg(pin_num, pins[pin_num].last_value == 1);
         }
     }
 }
-void read_all_pins(bool forceUpdate) {
+void read_all_pins(pin_msg_t send_msg, bool forceUpdate) {
     for (size_t pin_num = 0; pin_num < PIN_COUNT; pin_num++) {
-        read_pin(pin_num, forceUpdate);
+        read_pin(send_msg, pin_num, forceUpdate);
     }
 }
 bool valid_pin_number(int pin_num) {
