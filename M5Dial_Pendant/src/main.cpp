@@ -5,7 +5,8 @@
 
 #define RED_BUTTON GPIO_NUM_13
 #define GREEN_BUTTON GPIO_NUM_15
-#define BUTTON_DEBOUNCE 20  // milliseconds
+#define BUTTON_REPEAT_RATE 250  // milliseconds
+#define VERSION "0.9"
 
 enum class MenuName : uint8_t {
     Main    = 0,
@@ -36,6 +37,9 @@ void   drawButton(int x, int y, int width, int height, int charSize, String text
 void   buttonLegends(String red, String green, String orange);
 void   greenButtonInt();
 void   menuTitle();
+void   refreshDisplaySprite();
+bool   red_button();
+bool   green_button();
 String M5TouchStateName(m5::touch_state_t state_num);
 
 class Displayer : public GrblParser {
@@ -78,26 +82,22 @@ void setup() {
 
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
-    M5Dial.Display.drawBitmap(20, 83, 199, 74, logo_img);
+    M5Dial.Display.drawBitmap(20, 83, 199, 74, logo_img);  // need to change the endianness to change to the new command
 
     delay(3000);  // view the log and wait for the USBSerial to be detected by the PC
-    Serial_FNC.println("$Log/Msg=*Hello from M5Dial Pendant");
+    Serial_FNC.println("$Log/Msg=*M5Dial Pendant v0.1");
     USBSerial.println("Debug: M5Dial Pendant");
-
+    Serial_FNC.write('?');  // change to displayer
     main_menu(true);
 }
 
 void loop() {
     M5Dial.update();
     displayer.poll();  // do the serial port rerading and echoing
-    long newPosition = M5Dial.Encoder.read();
+    //long newPosition = M5Dial.Encoder.read();
     switch (menu_number) {
         case MenuName::Main:
-            if (newPosition != oldPosition || M5Dial.BtnA.isPressed() || statusUpdate) {
-                main_menu(statusUpdate);
-                oldPosition  = newPosition;
-                statusUpdate = false;
-            }
+            main_menu(statusUpdate);
             break;
         case MenuName::Homing:
             homingMenu();
@@ -129,6 +129,17 @@ void main_menu(bool infoUpdate) {
                 return;
         }
     }
+    if (red_button()) {
+        USBSerial.println("Red btn");  // debug info
+        if (stateString == "Alarm") {
+            Serial_FNC.println("$X");
+        }
+    }
+
+    if (green_button()) {
+        USBSerial.println("Grn btn");  // debug info
+    }
+
     if (abs(delta) > 0 || infoUpdate) {
         rotateNumberLoop(menu_item, delta, 0, 4);
         oldPosition += delta * 4;
@@ -181,9 +192,7 @@ void main_menu(bool infoUpdate) {
         menuTitle();
         buttonLegends(redButtonText, greenButtonText, encoder_button_text);
 
-        M5Dial.Display.startWrite();
-        canvas.pushSprite(0, 0);
-        M5Dial.Display.endWrite();
+        refreshDisplaySprite();
     }
 }
 
@@ -194,7 +203,6 @@ void homingMenu() {
     long        delta       = (newPosition - oldPosition) / 4;
     if (abs(delta) > 0) {
         oldPosition += delta * 4;
-        M5Dial.Display.clear();
         drawStatus();
 
         int x      = 30;
@@ -217,6 +225,7 @@ void homingMenu() {
 
         menuTitle();
         buttonLegends("Rset", "Main", "Home All");
+        refreshDisplaySprite();
     }
 }
 
@@ -249,25 +258,25 @@ void joggingMenu() {
     if (abs(delta) > 0 || touch) {
         oldPosition += delta * 4;
 
-        M5Dial.Display.clear();
         drawStatus();
 
         drawDRO(10, 71, 0, myAxes[0], jog_axis == 0);
         drawDRO(10, 104, 1, myAxes[1], jog_axis == 1);
         drawDRO(10, 137, 2, myAxes[2], jog_axis == 2);
 
-        M5Dial.Display.setTextFont(&fonts::FreeMonoBold12pt7b);
-        M5Dial.Display.setTextColor(WHITE);
-        M5Dial.Display.setTextDatum(middle_center);
+        canvas.setTextFont(&fonts::FreeMonoBold12pt7b);
+        canvas.setTextColor(WHITE);
+        canvas.setTextDatum(middle_center);
         char  buffer[20];  // Enough room for the digits you want and more to be safe
         float jog_increment = pow(10.0, jog_inc_level) / 100.0;
         dtostrf(jog_increment, 6, 2, buffer);
         String foo(buffer);
         foo = "Jog Inc:" + foo;
-        M5Dial.Display.drawString(foo, 120, 185);
+        canvas.drawString(foo, 120, 185);
 
         menuTitle();
         buttonLegends("Inc+", "Inc-", "Main");
+        refreshDisplaySprite();
     }
 }
 
@@ -382,7 +391,35 @@ void menuTitle() {
     canvas.drawString(menu_names[(int)menu_number], 120, 12);
 }
 
-// Just used helpful for touch development
+void refreshDisplaySprite() {
+    M5Dial.Display.startWrite();
+    canvas.pushSprite(0, 0);
+    M5Dial.Display.endWrite();
+}
+
+// This returns true is a button is pressed and the debounce has not expired
+// Button is active low
+bool red_button() {
+    static uint32_t last_change_millis = millis();
+
+    if (!digitalRead(RED_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
+        last_change_millis = millis();
+        return true;
+    }
+    return false;
+}
+
+bool green_button() {
+    static uint32_t last_change_millis = millis();
+
+    if (!digitalRead(GREEN_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
+        last_change_millis = millis();
+        return true;
+    }
+    return false;
+}
+
+// Helpful for touch development.
 String M5TouchStateName(m5::touch_state_t state_num) {
     static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
                                                     "___",  "flick", "flick_end", "flick_begin", "___", "drag", "drag_end", "drag_begin" };
