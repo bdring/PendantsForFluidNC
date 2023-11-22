@@ -20,6 +20,8 @@ MenuName                 menu_number   = MenuName::Main;  // The menu that is cu
 int                      jog_axis      = 0;               // the axis currently being jogged
 int                      jog_inc_level = 4;               // exponent 0=0.01, 2=0.1 ... 5 = 100.00
 static m5::touch_state_t prev_state;
+HardwareSerial           Serial_FNC(1);
+bool                     statusUpdate = false;
 
 void rotateNumberLoop(int& currentVal, int increment, int min, int max);
 
@@ -36,6 +38,32 @@ void   greenButtonInt();
 void   menuTitle();
 String M5TouchStateName(m5::touch_state_t state_num);
 
+class Displayer : public GrblParser {
+    void show_state(const String& state) { stateString = state; }
+    void show_dro(const float* axes, bool isMpos, bool* limits) {
+        char delim = ' ';
+        for (int i = 0; i < _n_axis; i++) {
+            myAxes[i] = axes[i];
+        }
+    }
+    void end_status_report() { statusUpdate = true; }
+    int  getchar() {
+        if (Serial_FNC.available()) {
+            int c = Serial_FNC.read();
+            USBSerial.write(c);  // echo
+            return c;
+        }
+        return -1;
+    }
+    int milliseconds() { return millis(); }
+
+    void poll_extra() {}
+
+public:
+    void putchar(uint8_t c) { Serial1.write(c); }
+
+} displayer;
+
 M5Canvas canvas(&M5Dial.Display);
 
 void setup() {
@@ -46,32 +74,29 @@ void setup() {
     pinMode(GREEN_BUTTON, INPUT_PULLUP);  // Port A SDA
 
     USBSerial.begin(115200);
-    USBSerial.println("M5Dial Pendant");
-
-    HardwareSerial Serial_FNC(1);
-    Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // reassign to the M5Stamp Port B
+    Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // assign pins to the M5Stamp Port B
 
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
     M5Dial.Display.drawBitmap(20, 83, 199, 74, logo_img);
 
-    delay(3000);
-
-    myAxes[0] = 123.45;
-    myAxes[1] = -1.89;
-    myAxes[2] = 7123.45;
+    delay(3000);  // view the log and wait for the USBSerial to be detected by the PC
+    Serial_FNC.println("$Log/Msg=*Hello from M5Dial Pendant");
+    USBSerial.println("Debug: M5Dial Pendant");
 
     main_menu(true);
 }
 
 void loop() {
     M5Dial.update();
+    displayer.poll();  // do the serial port rerading and echoing
     long newPosition = M5Dial.Encoder.read();
     switch (menu_number) {
         case MenuName::Main:
-            if (newPosition != oldPosition || M5Dial.BtnA.isPressed()) {
-                main_menu(false);
-                oldPosition = newPosition;
+            if (newPosition != oldPosition || M5Dial.BtnA.isPressed() || statusUpdate) {
+                main_menu(statusUpdate);
+                oldPosition  = newPosition;
+                statusUpdate = false;
             }
             break;
         case MenuName::Homing:
@@ -108,7 +133,8 @@ void main_menu(bool infoUpdate) {
         rotateNumberLoop(menu_item, delta, 0, 4);
         oldPosition += delta * 4;
         // M5Dial.Speaker.tone(1000, 30);
-        M5Dial.Display.clear();
+        canvas.createSprite(240, 240);
+        canvas.fillSprite(BLACK);
         drawStatus();
         int y       = 68;
         int spacing = 33;
@@ -154,6 +180,10 @@ void main_menu(bool infoUpdate) {
         }
         menuTitle();
         buttonLegends(redButtonText, greenButtonText, encoder_button_text);
+
+        M5Dial.Display.startWrite();
+        canvas.pushSprite(0, 0);
+        M5Dial.Display.endWrite();
     }
 }
 
@@ -262,11 +292,12 @@ void drawStatus() {
     static constexpr int y      = 24;
     static constexpr int width  = 140;
     static constexpr int height = 34;
-    M5Dial.Display.fillRoundRect(120 - width / 2, y, width, height, 5, rect_color);
-    M5Dial.Display.setTextFont(&fonts::FreeSansBold18pt7b);
-    M5Dial.Display.setTextColor(BLACK);
-    M5Dial.Display.setTextDatum(middle_center);
-    M5Dial.Display.drawString(stateString, 120, y + height / 2 + 3);
+
+    canvas.fillRoundRect(120 - width / 2, y, width, height, 5, rect_color);
+    canvas.setTextFont(&fonts::FreeSansBold18pt7b);
+    canvas.setTextColor(BLACK);
+    canvas.setTextDatum(middle_center);
+    canvas.drawString(stateString, 120, y + height / 2 + 3);
 }
 
 void drawDRO(int x, int y, int axis, float value, bool highlighted) {
@@ -285,18 +316,18 @@ void drawDRO(int x, int y, int axis, float value, bool highlighted) {
         color_hightlight = NAVY;
     }
 
-    M5Dial.Display.setTextColor(WHITE);
+    canvas.setTextColor(WHITE);
 
-    M5Dial.Display.fillRoundRect(x, y, width, height, 5, color_hightlight);
-    M5Dial.Display.drawRoundRect(x, y, width, height, 5, color_value);
+    canvas.fillRoundRect(x, y, width, height, 5, color_hightlight);
+    canvas.drawRoundRect(x, y, width, height, 5, color_value);
 
-    M5Dial.Display.setTextColor(WHITE);
-    M5Dial.Display.setTextDatum(middle_left);
-    M5Dial.Display.drawString(axis_label, x + 5, y + height / 2 + 2);
+    canvas.setTextColor(WHITE);
+    canvas.setTextDatum(middle_left);
+    canvas.drawString(axis_label, x + 5, y + height / 2 + 2);
     char buffer[20];  // Enough room for the digits you want and more to be safe
     dtostrf(value, 9, 2, buffer);
-    M5Dial.Display.setTextDatum(middle_right);
-    M5Dial.Display.drawString(String(buffer), x + width - 5, y + height / 2 + 2);
+    canvas.setTextDatum(middle_right);
+    canvas.drawString(String(buffer), x + width - 5, y + height / 2 + 2);
 }
 
 void rotateNumberLoop(int& currentVal, int increment, int min, int max) {
@@ -312,9 +343,9 @@ void rotateNumberLoop(int& currentVal, int increment, int min, int max) {
 void drawButton(int x, int y, int width, int height, int charSize, String text, bool highlighted) {
     int color_value, color_hightlight;
     if (charSize = 12) {
-        M5Dial.Display.setTextFont(&fonts::FreeSansBold12pt7b);
+        canvas.setTextFont(&fonts::FreeSansBold12pt7b);
     } else {
-        M5Dial.Display.setTextFont(&fonts::FreeSansBold18pt7b);
+        canvas.setTextFont(&fonts::FreeSansBold18pt7b);
     }
 
     color_value = WHITE;
@@ -323,34 +354,35 @@ void drawButton(int x, int y, int width, int height, int charSize, String text, 
     } else {
         color_hightlight = NAVY;
     }
-    M5Dial.Display.fillRoundRect(x, y, width, height, 5, color_hightlight);
-    M5Dial.Display.drawRoundRect(x, y, width, height, 5, color_value);
-    M5Dial.Display.setTextColor(WHITE);
-    M5Dial.Display.setTextDatum(middle_center);
-    M5Dial.Display.drawString(text, x + width / 2, y + height / 2 + 2);
+    canvas.fillRoundRect(x, y, width, height, 5, color_hightlight);
+    canvas.drawRoundRect(x, y, width, height, 5, color_value);
+    canvas.setTextColor(WHITE);
+    canvas.setTextDatum(middle_center);
+    canvas.drawString(text, x + width / 2, y + height / 2 + 2);
 }
 
 void buttonLegends(String red, String green, String orange) {
-    M5Dial.Display.setTextFont(&fonts::FreeMonoBold9pt7b);
-    M5Dial.Display.setTextDatum(middle_center);
-    M5Dial.Display.setTextColor(RED);
-    M5Dial.Display.drawString(red, 80, 209);
-    M5Dial.Display.setTextColor(GREEN);
-    M5Dial.Display.drawString(green, 160, 209);
-    M5Dial.Display.setTextColor(ORANGE);
-    M5Dial.Display.drawString(orange, 120, 224);
+    canvas.setTextFont(&fonts::FreeMonoBold9pt7b);
+    canvas.setTextDatum(middle_center);
+    canvas.setTextColor(RED);
+    canvas.drawString(red, 80, 209);
+    canvas.setTextColor(GREEN);
+    canvas.drawString(green, 160, 209);
+    canvas.setTextColor(ORANGE);
+    canvas.drawString(orange, 120, 224);
 }
 
 void menuTitle() {
     String menu_names[] = { "Main", "Homing", "Jogging" };
 
-    M5Dial.Display.setTextFont(&fonts::FreeMonoBold9pt7b);
-    M5Dial.Display.setTextDatum(middle_center);
-    M5Dial.Display.setTextColor(WHITE);
+    canvas.setTextFont(&fonts::FreeMonoBold9pt7b);
+    canvas.setTextDatum(middle_center);
+    canvas.setTextColor(WHITE);
 
-    M5Dial.Display.drawString(menu_names[(int)menu_number], 120, 12);
+    canvas.drawString(menu_names[(int)menu_number], 120, 12);
 }
 
+// Just used helpful for touch development
 String M5TouchStateName(m5::touch_state_t state_num) {
     static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
                                                     "___",  "flick", "flick_end", "flick_begin", "___", "drag", "drag_end", "drag_begin" };

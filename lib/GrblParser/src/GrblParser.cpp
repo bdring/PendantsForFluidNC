@@ -89,7 +89,7 @@ void GrblParser::parse_status_report(const String& body) {
     if (nextpos == -1) {
         return;
     }
-    _state = body.substring(pos + 1, nextpos);
+    _state = body.substring(pos, nextpos);
 
     bool probe              = false;
     bool limits[MAX_N_AXIS] = { false };
