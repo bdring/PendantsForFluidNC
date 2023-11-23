@@ -40,21 +40,27 @@ void io_init() {
     pins[18].pwm_capable = true;
     pins[19].pwm_capable = true;
 }
+void update_all_pins() {
+    for (size_t pin_num = 0; pin_num < PIN_COUNT; pin_num++) {
+        pins[pin_num].force_update();
+    }
+}
+
 void deinit_all_pins() {
     for (size_t pin_num = 0; pin_num < PIN_COUNT; pin_num++) {
         pins[pin_num].deinit();
     }
 }
-void read_pin(pin_msg_t send_msg, size_t pin_num, bool forceUpdate) {
+void read_pin(pin_msg_t send_msg, size_t pin_num) {
     if (pins[pin_num].pin_mode == STM32_Pin::Mode::Input) {
-        if (pins[pin_num].read_pin(forceUpdate)) {
+        if (pins[pin_num].changed()) {
             send_msg(pin_num, pins[pin_num].last_value == 1);
         }
     }
 }
-void read_all_pins(pin_msg_t send_msg, bool forceUpdate) {
+void read_all_pins(pin_msg_t send_msg) {
     for (size_t pin_num = 0; pin_num < PIN_COUNT; pin_num++) {
-        read_pin(send_msg, pin_num, forceUpdate);
+        read_pin(send_msg, pin_num);
     }
 }
 bool valid_pin_number(int pin_num) {

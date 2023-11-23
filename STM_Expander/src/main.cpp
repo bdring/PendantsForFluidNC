@@ -56,19 +56,20 @@ class Displayer : public GrblParser {
                 pin        = pinspecs.substring(pinnumpos, equalspos);
                 param_list = pinspecs.substring(equalspos + 1);
             } else {
-                pin = pinspecs.substring(pinnumpos + 1);
+                pin = pinspecs.substring(pinnumpos);
             }
 
             if (command == "GET") {
                 if (pin == "*") {
                     protocolRespond();
-                    read_all_pins(send_pin_msg, true);
+                    update_all_pins();
+                    read_all_pins(send_pin_msg);
                     return;
                 }
                 pin_num = pin.toInt();
                 if (valid_pin_number(pin_num)) {
                     protocolRespond();
-                    read_pin(send_pin_msg, pin_num, true);
+                    read_pin(send_pin_msg, pin_num);
                 } else {
                     protocolRespond("Invalid pin number");
                 }
@@ -93,6 +94,8 @@ class Displayer : public GrblParser {
                     float val = param_list.toFloat();
                     if (pins[pin_num].set_output(val) != STM32_Pin::FailCodes::None) {
                         protocolRespond("Set Error");
+                    } else {
+                        protocolRespond();
                     }
                 }
                 return;
@@ -113,7 +116,7 @@ class Displayer : public GrblParser {
             collect(c);  // for testing from pendant terminal
         }
 
-        read_all_pins(send_pin_msg, false);
+        read_all_pins(send_pin_msg);
     }
 
 public:
@@ -144,8 +147,9 @@ void loop() {
 }
 
 void send_pin_msg(int pin_num, bool active) {
-    displayer.putchar(active ? PinHigh : PinLow);
-    displayer.putchar(pin_num);
+    // UTF8 encoding
+    displayer.putchar(active ? PinHighUTF8Prefix : PinLowUTF8Prefix);
+    displayer.putchar(0x80 + pin_num);
 }
 
 // 8 MHz external Crystal with 2x PLL = 16MHz
