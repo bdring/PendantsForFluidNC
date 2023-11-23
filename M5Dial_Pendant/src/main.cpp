@@ -13,17 +13,16 @@ enum class MenuName : uint8_t {
     Homing  = 1,
     Jogging = 2,
 };
-String menu_names[] = { "Main", "Homing", "Jogging" };  // As shown on display 
+String menu_names[] = { "Main", "Homing", "Jogging" };  // As shown on display
 
 String                   stateString   = "Idle";
 float                    myAxes[6]     = { 0 };
 MenuName                 menu_number   = MenuName::Main;  // The menu that is currently active
 int                      jog_axis      = 0;               // the axis currently being jogged
-int                      jog_inc_level = 4;               // exponent 0=0.01, 2=0.1 ... 5 = 100.00
+int                      jog_inc_level = 1;              // exponent 0=0.01, 2=0.1 ... 5 = 100.00
 static m5::touch_state_t prev_state;
-HardwareSerial           Serial_FNC(1);  // Serial port for comm with FNC
+HardwareSerial           Serial_FNC(1);         // Serial port for comm with FNC
 bool                     statusUpdate = false;  // New status is available from FNC
-
 
 // The menus
 void main_menu(bool infoUpdate);
@@ -31,14 +30,14 @@ void homingMenu();
 void joggingMenu();
 
 // draw stuff
-void   drawDRO(int x, int y, int axis, float value, bool highlighted);
-void   drawStatus();
-void   drawButton(int x, int y, int width, int height, int charSize, String text, bool highlighted);
-void   buttonLegends(String red, String green, String orange);
-void   menuTitle();
-void   refreshDisplaySprite();
+void drawDRO(int x, int y, int width, int axis, float value, bool highlighted);
+void drawStatus();
+void drawButton(int x, int y, int width, int height, int charSize, String text, bool highlighted);
+void buttonLegends(String red, String green, String orange);
+void menuTitle();
+void refreshDisplaySprite();
 
-void rotateNumberLoop(int& currentVal, int increment, int min, int max);
+void   rotateNumberLoop(int& currentVal, int increment, int min, int max);
 bool   red_button();
 bool   green_button();
 String M5TouchStateName(m5::touch_state_t state_num);
@@ -84,7 +83,7 @@ void setup() {
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
     M5Dial.Display.drawBitmap(20, 83, 199, 74, logo_img);  // need to change the endianness to change to the new command
-    delay(3000);  // view the logo and wait for the USBSerial to be detected by the PC
+    delay(3000);                                           // view the logo and wait for the USBSerial to be detected by the PC
 
     Serial_FNC.println("$Log/Msg=*M5Dial Pendant v0.1");
     USBSerial.println("M5Dial Pendant Begin");
@@ -97,7 +96,7 @@ void loop() {
     while (Serial_FNC.available()) {
         displayer.poll();  // do the serial port rerading and echoing
     }
-    
+
     switch (menu_number) {
         case MenuName::Main:
             main_menu(statusUpdate);
@@ -136,6 +135,10 @@ void main_menu(bool infoUpdate) {
         USBSerial.println("Red btn");  // debug info
         if (stateString == "Alarm") {
             Serial_FNC.println("$X");
+        } else if (stateString == "Run") {
+            Serial_FNC.print("!");
+        } else if (stateString.startsWith("Hold")) {
+            Serial_FNC.print("~");
         }
     }
 
@@ -152,9 +155,9 @@ void main_menu(bool infoUpdate) {
         drawStatus();
         int y       = 68;
         int spacing = 33;
-        drawDRO(10, y, 0, myAxes[0], menu_item == 0);
-        drawDRO(10, y += spacing, 1, myAxes[1], menu_item == 1);
-        drawDRO(10, y += spacing, 2, myAxes[2], menu_item == 2);
+        drawDRO(10, y, 220, 0, myAxes[0], menu_item == 0);
+        drawDRO(10, y += spacing, 220, 1, myAxes[1], menu_item == 1);
+        drawDRO(10, y += spacing, 220, 2, myAxes[2], menu_item == 2);
         y = 170;
         drawButton(38, y, 74, 30, 12, "Home", menu_item == 3);
         drawButton(128, y, 74, 30, 12, "Probe", menu_item == 4);
@@ -236,7 +239,12 @@ void joggingMenu() {
     static long oldPosition = 0;
     long        newPosition = M5Dial.Encoder.read();
     long        delta       = (newPosition - oldPosition) / 4;
-    bool        touch       = false;
+    bool        update      = false;
+
+    float jog_increment = pow(10.0, abs(jog_inc_level)) / 100.0;
+    if (jog_inc_level < 0) {
+        jog_increment *= -1.0;
+    }
 
     // Dial Button handling
     if (M5Dial.BtnA.isPressed()) {
@@ -247,31 +255,61 @@ void joggingMenu() {
         return;
     }
 
+    if (red_button()) {
+        if (stateString == "Idle") {
+            if (jog_inc_level < 4) {
+                jog_inc_level++;
+            } else {
+                M5Dial.Speaker.tone(2000, 200);
+            }
+            update = true;
+        }
+    }
+
+    if (green_button()) {
+        if (stateString == "Idle") {
+            jog_inc_level--;
+            update = true;
+        }
+    }
+
     // A touch allows you to rotate through the axis being jogged
     auto t = M5Dial.Touch.getDetail();
+
     if (prev_state != t.state) {
         if (t.state == m5::touch_state_t::touch_end) {
             rotateNumberLoop(jog_axis, 1, 0, 2);
-            touch = true;
+            update = true;
         }
+
         USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
         prev_state = t.state;
     }
 
-    if (abs(delta) > 0 || touch) {
+    if (abs(delta) > 0 || update) {
+        canvas.fillSprite(BLACK);
+
         oldPosition += delta * 4;
 
         drawStatus();
+        int x     = 9;
+        int width = 180;
+        drawDRO(x, 71, width, 0, myAxes[0], jog_axis == 0);
+        drawDRO(x, 104, width, 1, myAxes[1], jog_axis == 1);
+        drawDRO(x, 137, width, 2, myAxes[2], jog_axis == 2);
 
-        drawDRO(10, 71, 0, myAxes[0], jog_axis == 0);
-        drawDRO(10, 104, 1, myAxes[1], jog_axis == 1);
-        drawDRO(10, 137, 2, myAxes[2], jog_axis == 2);
+        int height = 32;
+        x          = x + width + 1;
+        width      = 42;
+        drawButton(x, 71, width, height, 9, "zro", false);
+        drawButton(x, 104, width, height, 9, "zro", false);
+        drawButton(x, 137, width, height, 9, "zro", false);
 
         canvas.setTextFont(&fonts::FreeMonoBold12pt7b);
         canvas.setTextColor(WHITE);
         canvas.setTextDatum(middle_center);
-        char  buffer[20];  // Enough room for the digits you want and more to be safe
-        float jog_increment = pow(10.0, jog_inc_level) / 100.0;
+        char buffer[20];  // Enough room for the digits you want and more to be safe
+
         dtostrf(jog_increment, 6, 2, buffer);
         String foo(buffer);
         foo = "Jog Inc:" + foo;
@@ -312,13 +350,13 @@ void drawStatus() {
     canvas.drawString(stateString, 120, y + height / 2 + 3);
 }
 
-void drawDRO(int x, int y, int axis, float value, bool highlighted) {
+void drawDRO(int x, int y, int width, int axis, float value, bool highlighted) {
     int color_value, color_hightlight;
     M5Dial.Display.setTextFont(&fonts::FreeMonoBold18pt7b);
 
     String axis_label = String("XYZABC").substring(axis, axis + 1);
 
-    static constexpr int width  = 220;
+    //static constexpr int width  = 220;
     static constexpr int height = 32;
 
     color_value = WHITE;
@@ -356,10 +394,20 @@ void rotateNumberLoop(int& currentVal, int increment, int min, int max) {
 
 void drawButton(int x, int y, int width, int height, int charSize, String text, bool highlighted) {
     int color_value, color_hightlight;
-    if (charSize = 12) {
-        canvas.setTextFont(&fonts::FreeSansBold12pt7b);
-    } else {
-        canvas.setTextFont(&fonts::FreeSansBold18pt7b);
+
+    switch (charSize) {
+        case 9:
+            canvas.setTextFont(&fonts::FreeSansBold9pt7b);
+            break;
+        case 12:
+            canvas.setTextFont(&fonts::FreeSansBold12pt7b);
+            break;
+        case 18:
+            canvas.setTextFont(&fonts::FreeSansBold18pt7b);
+            break;
+        default:
+            canvas.setTextFont(&fonts::FreeSansBold24pt7b);
+            break;
     }
 
     color_value = WHITE;
@@ -407,6 +455,7 @@ bool red_button() {
 
     if (!digitalRead(RED_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
         last_change_millis = millis();
+        USBSerial.println("red btn");  // debug info
         return true;
     }
     return false;
@@ -417,6 +466,7 @@ bool green_button() {
 
     if (!digitalRead(GREEN_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
         last_change_millis = millis();
+        USBSerial.println("Grn btn");  // debug info
         return true;
     }
     return false;
