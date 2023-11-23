@@ -6,26 +6,26 @@
 #define RED_BUTTON GPIO_NUM_13
 #define GREEN_BUTTON GPIO_NUM_15
 #define BUTTON_REPEAT_RATE 250  // milliseconds
-#define VERSION "0.9"
+#define VERSION "0.1"
 
 enum class MenuName : uint8_t {
     Main    = 0,
     Homing  = 1,
     Jogging = 2,
 };
+String menu_names[] = { "Main", "Homing", "Jogging" };  // As shown on display 
 
-long                     oldPosition   = -4;
 String                   stateString   = "Idle";
 float                    myAxes[6]     = { 0 };
 MenuName                 menu_number   = MenuName::Main;  // The menu that is currently active
 int                      jog_axis      = 0;               // the axis currently being jogged
 int                      jog_inc_level = 4;               // exponent 0=0.01, 2=0.1 ... 5 = 100.00
 static m5::touch_state_t prev_state;
-HardwareSerial           Serial_FNC(1);
-bool                     statusUpdate = false;
+HardwareSerial           Serial_FNC(1);  // Serial port for comm with FNC
+bool                     statusUpdate = false;  // New status is available from FNC
 
-void rotateNumberLoop(int& currentVal, int increment, int min, int max);
 
+// The menus
 void main_menu(bool infoUpdate);
 void homingMenu();
 void joggingMenu();
@@ -35,9 +35,10 @@ void   drawDRO(int x, int y, int axis, float value, bool highlighted);
 void   drawStatus();
 void   drawButton(int x, int y, int width, int height, int charSize, String text, bool highlighted);
 void   buttonLegends(String red, String green, String orange);
-void   greenButtonInt();
 void   menuTitle();
 void   refreshDisplaySprite();
+
+void rotateNumberLoop(int& currentVal, int increment, int min, int max);
 bool   red_button();
 bool   green_button();
 String M5TouchStateName(m5::touch_state_t state_num);
@@ -83,18 +84,20 @@ void setup() {
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
     M5Dial.Display.drawBitmap(20, 83, 199, 74, logo_img);  // need to change the endianness to change to the new command
+    delay(3000);  // view the logo and wait for the USBSerial to be detected by the PC
 
-    delay(3000);  // view the log and wait for the USBSerial to be detected by the PC
     Serial_FNC.println("$Log/Msg=*M5Dial Pendant v0.1");
-    USBSerial.println("Debug: M5Dial Pendant");
-    Serial_FNC.write('?');  // change to displayer
+    USBSerial.println("M5Dial Pendant Begin");
+    Serial_FNC.write('?');  // Request status
     main_menu(true);
 }
 
 void loop() {
     M5Dial.update();
-    displayer.poll();  // do the serial port rerading and echoing
-    //long newPosition = M5Dial.Encoder.read();
+    while (Serial_FNC.available()) {
+        displayer.poll();  // do the serial port rerading and echoing
+    }
+    
     switch (menu_number) {
         case MenuName::Main:
             main_menu(statusUpdate);
@@ -339,6 +342,8 @@ void drawDRO(int x, int y, int axis, float value, bool highlighted) {
     canvas.drawString(String(buffer), x + width - 5, y + height / 2 + 2);
 }
 
+// Helpful function to rotate through an aaray of numbers
+// Example:  rotateNumberLoop(2, 1, 0, 2); would change the current value to 0
 void rotateNumberLoop(int& currentVal, int increment, int min, int max) {
     currentVal += increment;
     if (currentVal > max) {
@@ -370,6 +375,7 @@ void drawButton(int x, int y, int width, int height, int charSize, String text, 
     canvas.drawString(text, x + width / 2, y + height / 2 + 2);
 }
 
+// This shows on the display what the button currently do.
 void buttonLegends(String red, String green, String orange) {
     canvas.setTextFont(&fonts::FreeMonoBold9pt7b);
     canvas.setTextDatum(middle_center);
@@ -382,12 +388,9 @@ void buttonLegends(String red, String green, String orange) {
 }
 
 void menuTitle() {
-    String menu_names[] = { "Main", "Homing", "Jogging" };
-
     canvas.setTextFont(&fonts::FreeMonoBold9pt7b);
     canvas.setTextDatum(middle_center);
     canvas.setTextColor(WHITE);
-
     canvas.drawString(menu_names[(int)menu_number], 120, 12);
 }
 
@@ -419,7 +422,7 @@ bool green_button() {
     return false;
 }
 
-// Helpful for touch development.
+// Helpful for debugging touch development.
 String M5TouchStateName(m5::touch_state_t state_num) {
     static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
                                                     "___",  "flick", "flick_end", "flick_begin", "___", "drag", "drag_end", "drag_begin" };
