@@ -12,14 +12,16 @@ enum class MenuName : uint8_t {
     Main    = 0,
     Homing  = 1,
     Jogging = 2,
+    Probing = 3,
 };
-String menu_names[] = { "Main", "Homing", "Jogging" };  // As shown on display
+String menu_names[] = { "Main", "Homing", "Jogging", "Probe" };  // As shown on display
 
-String                   stateString   = "Idle";
-float                    myAxes[6]     = { 0 };
-MenuName                 menu_number   = MenuName::Main;  // The menu that is currently active
-int                      jog_axis      = 0;               // the axis currently being jogged
-int                      jog_inc_level = 1;              // exponent 0=0.01, 2=0.1 ... 5 = 100.00
+String                   stateString      = "Idle";
+float                    myAxes[6]        = { 0 };
+MenuName                 menu_number      = MenuName::Main;  // The menu that is currently active
+MenuName                 last_menu        = MenuName::Main;
+int                      jog_axis         = 0;            // the axis currently being jogged
+int                      jog_inc_level[3] = { 2, 2, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
 static m5::touch_state_t prev_state;
 HardwareSerial           Serial_FNC(1);         // Serial port for comm with FNC
 bool                     statusUpdate = false;  // New status is available from FNC
@@ -28,6 +30,7 @@ bool                     statusUpdate = false;  // New status is available from 
 void main_menu(bool infoUpdate);
 void homingMenu();
 void joggingMenu();
+void probeMenu();
 
 // draw stuff
 void drawDRO(int x, int y, int width, int axis, float value, bool highlighted);
@@ -41,6 +44,13 @@ void   rotateNumberLoop(int& currentVal, int increment, int min, int max);
 bool   red_button();
 bool   green_button();
 String M5TouchStateName(m5::touch_state_t state_num);
+String floatToString(float val, int afterDecimal);
+
+float probe_offset  = 10.0;
+float probe_travel  = 40.0;
+float probe_rate    = 60.0;
+float probe_retract = 20.0;
+int   probe_encoder = 0;
 
 class Displayer : public GrblParser {
     void show_state(const String& state) { stateString = state; }
@@ -93,6 +103,12 @@ void setup() {
 
 void loop() {
     M5Dial.update();
+    if (last_menu != menu_number) {
+        if (menu_number == MenuName::Probing) {
+            M5Dial.Encoder.write(probe_encoder);
+        }
+        last_menu = menu_number;
+    }
     while (Serial_FNC.available()) {
         displayer.poll();  // do the serial port rerading and echoing
     }
@@ -106,6 +122,9 @@ void loop() {
             break;
         case MenuName::Jogging:
             joggingMenu();
+            break;
+        case MenuName::Probing:
+            probeMenu();
             break;
     }
 }
@@ -127,7 +146,12 @@ void main_menu(bool infoUpdate) {
                 jog_axis    = menu_item;
                 return;
             case 3:
-                menu_number = MenuName::Homing;
+                menu_number  = MenuName::Homing;
+                statusUpdate = true;
+                return;
+            case 4:
+                menu_number  = MenuName::Probing;
+                statusUpdate = true;
                 return;
         }
     }
@@ -203,34 +227,48 @@ void main_menu(bool infoUpdate) {
 }
 
 void homingMenu() {
-    static long oldPosition = 0;
-    static int  menu_item   = 0;
-    long        newPosition = M5Dial.Encoder.read();
-    long        delta       = (newPosition - oldPosition) / 4;
-    if (abs(delta) > 0) {
+    static long oldPosition    = 0;
+    static int  menu_item      = 0;
+    long        newPosition    = M5Dial.Encoder.read();
+    long        delta          = (newPosition - oldPosition) / 4;
+    static int  current_button = 0;
+
+    if (red_button()) {
+        if (stateString == "Homing") {
+        } else {
+            menu_number = MenuName::Main;
+            return;
+        }
+    }
+
+    if (abs(delta) > 0 || statusUpdate) {
+        canvas.fillSprite(BLACK);
         oldPosition += delta * 4;
+        rotateNumberLoop(current_button, delta, 0, 3);
         drawStatus();
 
         int x      = 30;
         int y      = 65;
-        int gap    = 30;
-        int width  = 120;
-        int height = 26;
-        drawButton(x, y, width, height, 24, "Home All", true);
-        drawButton(x, y += gap, width, height, 24, "Home X", false);
-        drawButton(x, y += gap, width, height, 24, "Home Y", false);
-        drawButton(x, y += gap, width, height, 24, "Home Z", false);
-
-        x     = 153;
-        y     = 65;
-        width = 40;
-        drawButton(x, y, width, height, 24, "0", false);
-        drawButton(x, y += gap, width, height, 24, "0", false);
-        drawButton(x, y += gap, width, height, 24, "0", false);
-        drawButton(x, y += gap, width, height, 24, "0", false);
+        int gap    = 34;
+        int width  = 180;
+        int height = 30;
+        drawButton(x, y, width, height, 12, "Home All", current_button == 0);
+        drawButton(x, y += gap, width, height, 12, "Home X", current_button == 1);
+        drawButton(x, y += gap, width, height, 12, "Home Y", current_button == 2);
+        drawButton(x, y += gap, width, height, 12, "Home Z", current_button == 3);
 
         menuTitle();
-        buttonLegends("Rset", "Main", "Home All");
+        if (stateString == "Homing") {
+        } else {
+            String btn_label = "";
+            if (current_button == 0) {
+                btn_label = "Home All";
+            } else {
+                btn_label = "Home " + String("XYZABC").substring(current_button - 1, current_button);
+            }
+            buttonLegends("Reset", "Main", btn_label);
+        }
+
         refreshDisplaySprite();
     }
 }
@@ -241,10 +279,7 @@ void joggingMenu() {
     long        delta       = (newPosition - oldPosition) / 4;
     bool        update      = false;
 
-    float jog_increment = pow(10.0, abs(jog_inc_level)) / 100.0;
-    if (jog_inc_level < 0) {
-        jog_increment *= -1.0;
-    }
+    float jog_increment = pow(10.0, abs(jog_inc_level[jog_axis])) / 100.0;
 
     // Dial Button handling
     if (M5Dial.BtnA.isPressed()) {
@@ -257,8 +292,8 @@ void joggingMenu() {
 
     if (red_button()) {
         if (stateString == "Idle") {
-            if (jog_inc_level < 4) {
-                jog_inc_level++;
+            if (jog_inc_level[jog_axis] < 4) {
+                jog_inc_level[jog_axis]++;
             } else {
                 M5Dial.Speaker.tone(2000, 200);
             }
@@ -268,7 +303,7 @@ void joggingMenu() {
 
     if (green_button()) {
         if (stateString == "Idle") {
-            jog_inc_level--;
+            jog_inc_level[jog_axis]--;
             update = true;
         }
     }
@@ -286,7 +321,7 @@ void joggingMenu() {
         prev_state = t.state;
     }
 
-    if (abs(delta) > 0 || update) {
+    if (abs(delta) > 0 || update || statusUpdate) {
         canvas.fillSprite(BLACK);
 
         oldPosition += delta * 4;
@@ -311,14 +346,102 @@ void joggingMenu() {
         char buffer[20];  // Enough room for the digits you want and more to be safe
 
         dtostrf(jog_increment, 6, 2, buffer);
-        String foo(buffer);
-        foo = "Jog Inc:" + foo;
+        String strIncrement(buffer);
+        String foo = "Jog Inc:" + strIncrement;
         canvas.drawString(foo, 120, 185);
+
+        if (delta != 0) {
+            // $J=G91F200Z5.0
+            String jogCmd = "$J=G91F1000" + String("XYZ").substring(jog_axis, jog_axis + 1);
+            if (delta < 0) {
+                jogCmd += "-";
+            }
+            jogCmd += strIncrement;
+            USBSerial.println(jogCmd);
+            Serial_FNC.println(jogCmd);
+        }
 
         menuTitle();
         buttonLegends("Inc+", "Inc-", "Main");
         refreshDisplaySprite();
     }
+}
+
+void probeMenu() {
+    static long oldPosition = 0;
+    long        newPosition = M5Dial.Encoder.read();
+    long        delta       = (newPosition - oldPosition);
+
+    oldPosition   = newPosition;
+    probe_encoder = newPosition;
+
+    static int selection = 0;
+    canvas.createSprite(240, 240);
+    canvas.fillSprite(BLACK);
+    drawStatus();
+    menuTitle();
+    drawStatus();
+
+    if (M5Dial.BtnA.isPressed()) {  // if jog dial buttom was press
+        while (M5Dial.BtnA.isPressed())
+            M5Dial.update();
+        delay(20);
+        menu_number  = MenuName::Main;
+        statusUpdate = true;
+        return;
+    }
+
+    // A touch allows you to rotate through the items to be adjusted.
+    auto t = M5Dial.Touch.getDetail();
+    if (prev_state != t.state) {
+        if (t.state == m5::touch_state_t::touch_end) {
+            rotateNumberLoop(selection, 1, 0, 3);
+        }
+
+        USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
+        prev_state = t.state;
+    }
+
+    if (abs(delta) > 0) {
+        switch (selection) {
+            case 0:
+                probe_offset += (float)delta / 100;
+                break;
+            case 1:
+                probe_travel += delta;
+                break;
+            case 2:
+                probe_rate += delta;
+                break;
+            case 3:
+                probe_retract += delta;
+                break;
+        }
+    }
+
+    int x      = 40;
+    int y      = 62;
+    int width  = 240 - (x * 2);
+    int height = 25;
+    int pitch  = 27;
+    drawButton(x, y, width, height, 9, "Offset: " + floatToString(probe_offset, 2), selection == 0);
+    drawButton(x, y += pitch, width, height, 9, "Max Travel: " + floatToString(probe_travel, 0), selection == 1);
+    drawButton(x, y += pitch, width, height, 9, "Feed Rate: " + floatToString(probe_rate, 0), selection == 2);
+    drawButton(x, y += pitch, width, height, 9, "Retract: " + floatToString(probe_retract, 0), selection == 3);
+    drawButton(x, y += pitch, width, height, 9, "Axis: Z ", false);
+
+    String grnText = "";
+    String redText = "";
+
+    if (stateString == "Idle") {
+        grnText = "Probe";
+    } else if (stateString == "Run") {
+        redText = "Reset";
+        grnText = "Hold";
+    }
+
+    buttonLegends(redText, grnText, "Main");
+    refreshDisplaySprite();
 }
 
 void drawStatus() {
@@ -455,7 +578,7 @@ bool red_button() {
 
     if (!digitalRead(RED_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
         last_change_millis = millis();
-        USBSerial.println("red btn");  // debug info
+        //USBSerial.println("red btn");  // debug info
         return true;
     }
     return false;
@@ -466,7 +589,7 @@ bool green_button() {
 
     if (!digitalRead(GREEN_BUTTON) && (millis() - last_change_millis > BUTTON_REPEAT_RATE)) {
         last_change_millis = millis();
-        USBSerial.println("Grn btn");  // debug info
+        //USBSerial.println("Grn btn");  // debug info
         return true;
     }
     return false;
@@ -478,4 +601,12 @@ String M5TouchStateName(m5::touch_state_t state_num) {
                                                     "___",  "flick", "flick_end", "flick_begin", "___", "drag", "drag_end", "drag_begin" };
 
     return String(state_name[state_num]);
+}
+
+String floatToString(float val, int afterDecimal) {
+    char buffer[20];
+
+    dtostrf(val, 1, afterDecimal, buffer);
+    String str(buffer);
+    return str;
 }
