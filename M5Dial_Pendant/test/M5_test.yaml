@@ -106,3 +106,6 @@ spi:
 sdcard:
   cs_pin: gpio.5
   card_detect_pin: NO_PIN
+  
+probe:
+  pin: gpio.36

@@ -50,16 +50,19 @@ private:
 public:
     int _n_axis;
 
-    int  _linenum;
-    int  _spindle;
-    bool _flood;
-    bool _mist;
+    int   _linenum;
+    int   _spindle;
+    bool  _flood;
+    bool  _mist;
+    float frs[3];
+    float wco[MAX_N_AXIS];
+    bool  isMpos = false;
 
     int _last_error = 0;
 
     String _state;
     String _filename;
-    float  _percent;
+    float  _percent = 0;
 
     // Send received characters to the parser.  Typically you do not
     // need to call these explicitly, because poll() does it for you

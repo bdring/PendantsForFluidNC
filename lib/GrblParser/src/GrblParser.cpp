@@ -95,8 +95,9 @@ void GrblParser::parse_status_report(const String& body) {
     bool limits[MAX_N_AXIS] = { false };
 
     float axes[MAX_N_AXIS];
-    bool  isMpos = false;
-    _filename    = "";
+
+    _filename = "";
+    _percent  = 0.0;
 
     // ... handle it
     while (nextpos != -1) {
@@ -170,16 +171,12 @@ void GrblParser::parse_status_report(const String& body) {
             }
         }
         if (tag == "WCO") {
-            // x,y,z,...
-            // We do not use the WCO values because the DROs show whichever
-            // position is in the status report
-            // float wcos[MAX_N_AXIS];
-            // auto  wcos = parse_axes(value, wcos);
+            // current work offset
+            parse_axes(value, wco);
             continue;
         }
         if (tag == "Ov") {
             // feed_ovr,rapid_ovr,spindle_ovr
-            float frs[3];
             parse_numbers(value, frs, 3);  // feed in [0], rapid in [1], spindle in [2]
             continue;
         }
