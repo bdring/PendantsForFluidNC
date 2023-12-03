@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Mitch Bradley
+// Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
+
 #include "usart.h"
 #include "Expander.h"
 #include "stm32f1xx_hal.h"
