@@ -1,6 +1,12 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+// This file implements the low-level interface to GPIO pins that is used by
+// the intermediate-level interface defined in lib/Expander/src/pin.{c,h}
+// The intention is to encapsulate the platform-dependent GPIO API as tightly
+// as possible.
+// This implementation is for the STM32 HAL driver.
+
 #include "gpio_pin.h"
 
 int set_gpio(gpio_pin_t* gpio, bool high) {
