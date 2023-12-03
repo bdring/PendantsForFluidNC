@@ -22,9 +22,9 @@ void deinit_gpio(gpio_pin_t* gpio) {
 }
 bool set_gpio_mode(gpio_pin_t* gpio, pin_mode_t pinmode) {
     GPIO_InitTypeDef gpiomode;
-    gpiomode.Pin = gpio->pin_num;
+    gpiomode.Pin   = gpio->pin_num;
     gpiomode.Speed = GPIO_SPEED_FREQ_HIGH;
-    
+
     if (pinmode & PIN_OUTPUT) {
         gpiomode.Mode = GPIO_MODE_OUTPUT_PP;
         gpiomode.Pull = GPIO_NOPULL;

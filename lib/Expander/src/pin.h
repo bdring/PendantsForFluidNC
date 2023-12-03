@@ -31,12 +31,12 @@ enum FailCodes {
 typedef struct {
     gpio_pin_t gpio;
 
-    bool     initialized;
-    bool     active_low;
-    uint8_t  type;
-    int      last_value;
-    int      debounce_ms;
-    int      last_change_millis;
+    bool    initialized;
+    bool    active_low;
+    uint8_t type;
+    int     last_value;
+    int     debounce_ms;
+    int     last_change_millis;
 } pin_t;
 
 void init_pin(uint8_t pin_num);
