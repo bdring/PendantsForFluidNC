@@ -4,6 +4,10 @@
 #include "pin.h"
 #include "pinmap.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern int milliseconds();
 
 void init_pin(uint8_t pin_num) {
@@ -147,3 +151,7 @@ void read_all_pins(pin_msg_t send_msg) {
         read_pin(send_msg, pin_num);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

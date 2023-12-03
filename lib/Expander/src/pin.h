@@ -3,6 +3,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "gpio_pin.h"
@@ -52,3 +56,6 @@ void update_all_pins();
 void deinit_all_pins();
 void read_all_pins(pin_msg_t send_msg);
 
+#ifdef __cplusplus
+}
+#endif

@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include "pin.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // The integer value for
 // pin low reports is 0x100 to 0x13f, and for
 // pin high reports is 0x140 to 0x17f
@@ -162,3 +166,7 @@ bool __attribute__((weak)) expander_set(uint8_t pin_num, int32_t numerator, uint
 void __attribute__((weak)) expander_poll() {
     read_all_pins(expander_pin_msg);
 }
+
+#ifdef __cplusplus
+}
+#endif

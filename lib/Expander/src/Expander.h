@@ -2,6 +2,11 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "GrblParserC.h"
 
 // IO expander API
@@ -33,3 +38,7 @@ extern bool expander_get(uint8_t pin_num);
 
 // MSG:SET io.n=value
 extern bool expander_set(uint8_t pin_num, int32_t numerator, uint32_t denominator);
+
+#ifdef __cplusplus
+}
+#endif

@@ -6,6 +6,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static size_t _report_len = 0;
 static char   _report[128];
 
@@ -500,3 +504,7 @@ void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 // clearing and updating display screens
 void __attribute__((weak)) begin_status_report() {}
 void __attribute__((weak)) end_status_report() {}
+
+#ifdef __cplusplus
+}
+#endif
