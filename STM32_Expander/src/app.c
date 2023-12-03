@@ -2,12 +2,12 @@
 #include "Expander.h"
 #include "stm32f1xx_hal.h"
 
-UART_HandleTypeDef* FNCSerial = &huart1;   // connects from STM32 to ESP32 and FNC
-UART_HandleTypeDef* DebugSerial = &huart2;  // connects from STM32 to Display
+UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
+UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
 
 // DMA ring buffer for the serial port connected to FluidNC
 #define UART_DMA_LEN 256
-static int last_dma_count = 0;
+static int     last_dma_count = 0;
 static uint8_t dma_buf[UART_DMA_LEN];
 
 // Interface routines for GrblParser
@@ -21,7 +21,7 @@ int fnc_getchar() {
         count += UART_DMA_LEN;
     }
     if (count) {
-        uint8_t c = dma_buf[UART_DMA_LEN-last_dma_count];
+        uint8_t c = dma_buf[UART_DMA_LEN - last_dma_count];
         --last_dma_count;
         if (last_dma_count < 0) {
             last_dma_count += UART_DMA_LEN;
@@ -32,15 +32,19 @@ int fnc_getchar() {
 }
 
 // Send a byte to the serial port connected to FluidNC
-void fnc_putchar(uint8_t c) { HAL_UART_Transmit(FNCSerial, &c, 1, HAL_MAX_DELAY); }
+void fnc_putchar(uint8_t c) {
+    HAL_UART_Transmit(FNCSerial, &c, 1, HAL_MAX_DELAY);
+}
 
 // Return a value that increments every millisecond
-int  milliseconds() { return HAL_GetTick(); }
+int milliseconds() {
+    return HAL_GetTick();
+}
 
 // Perform extra operations after the normal polling for input from FluidNC
 void poll_extra() {
     uint8_t c;
-    while(HAL_UART_Receive(DebugSerial, &c, 1, 0) == HAL_OK) {
+    while (HAL_UART_Receive(DebugSerial, &c, 1, 0) == HAL_OK) {
         fnc_putchar(c);
         collect(c);  // for testing from pendant terminal
     }
@@ -59,6 +63,7 @@ void setup() {
     HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
     last_dma_count = UART_DMA_LEN;
 
+    HAL_UART_Transmit(DebugSerial, "Hello from STM32_Expander\r\n", 7, 1000);
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
     // expander has been reset.  At startup, that would be okay, but
@@ -76,4 +81,6 @@ void loop() {
 
 // This makes the linker happy.  It won't be called because the
 // while(1) loop in main.c never exits.
-void _exit(int foo) { while(1) {} }
+void _exit(int foo) {
+    while (1) {}
+}
