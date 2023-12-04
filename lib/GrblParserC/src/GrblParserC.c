@@ -50,14 +50,14 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
         negate = true;
     }
 
-    while (isdigit(c = *p++)) {
+    while (isdigit((int)(c = *p++))) {
         numerator = numerator * 10 + (*p - '0');
     }
     if (negate) {
         numerator = -numerator;
     }
     if (c == '.') {
-        while (isdigit(c = *p++)) {
+        while (isdigit((int)(c = *p++))) {
             numerator = numerator * 10 + (*p - '0');
             denominator *= 10;
         }
@@ -66,7 +66,7 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
             c = *p++;
         }
     } else if (c == '/') {
-        while (isdigit(c = *p++)) {
+        while (isdigit((int)(c = *p++))) {
             denominator = denominator * 10 + (*p - '0');
         }
     } else if (c == '%') {
@@ -102,11 +102,11 @@ static void parse_msg(char* command) {
     // Split the string into the command and arguments
     char* arguments;
     split(command, &arguments, ':');
-    while (isspace(*command)) {
+    while (isspace((int)(*command))) {
         ++command;
     }
     char* end = command + strlen(command);
-    while (end != command && isspace(end[-1])) {
+    while (end != command && isspace((int)(end[-1]))) {
         --end;
     }
     *end = '\0';
