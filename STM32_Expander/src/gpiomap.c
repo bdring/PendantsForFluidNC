@@ -8,7 +8,7 @@
 
 // This version is for STM32 port/pin numbers, with the
 // pin order of the bdring STM Expander board.
-pin_t pins[] = {
+pin_t gpios[] = {
     //           port num  can_PWM?   io_num
     { .gpio = { GPIOA, 4, false } },   //   0
     { .gpio = { GPIOA, 5, false } },   //   1
@@ -32,4 +32,4 @@ pin_t pins[] = {
     { .gpio = { GPIOB, 1, true } },    //  19
 };
 
-const int n_pins = sizeof(pins) / sizeof(pins[0]);
+const int n_pins = sizeof(gpios) / sizeof(gpios[0]);

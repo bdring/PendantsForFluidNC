@@ -5,6 +5,6 @@
 
 #include "pin.h"
 
-extern pin_t pins[];
+extern pin_t gpios[];
 
 extern const int n_pins;

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #include "pin.h"
-#include "pinmap.h"
+#include "gpiomap.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +14,7 @@ void init_pin(uint8_t pin_num) {
     if (pin_num >= n_pins) {
         return;
     }
-    pin_t* pin              = &pins[pin_num];
+    pin_t* pin              = &gpios[pin_num];
     pin->initialized        = false;
     pin->active_low         = false;
     pin->type               = pin_type_none;
@@ -27,7 +27,7 @@ int set_output(uint8_t pin_num, int32_t numerator, uint32_t denominator) {
     if (pin_num >= n_pins) {
         return fail_invalid_pin;
     }
-    pin_t* pin = &pins[pin_num];
+    pin_t* pin = &gpios[pin_num];
     if (!pin->initialized) {
         return fail_not_initialized;
     }
@@ -51,7 +51,7 @@ bool pin_changed(uint8_t pin_num) {  // return true if value has changed
     if (pin_num >= n_pins) {
         return false;
     }
-    pin_t* pin = &pins[pin_num];
+    pin_t* pin = &gpios[pin_num];
 
     if (pin->type != pin_type_input) {
         return false;
@@ -73,14 +73,14 @@ void force_pin_update(uint8_t pin_num) {
     if (pin_num >= n_pins) {
         return;
     }
-    pin_t* pin      = &pins[pin_num];
+    pin_t* pin      = &gpios[pin_num];
     pin->last_value = -1;
 }
 void deinit_pin(uint8_t pin_num) {
     if (pin_num >= n_pins) {
         return;
     }
-    pin_t* pin = &pins[pin_num];
+    pin_t* pin = &gpios[pin_num];
     if (pin->initialized) {
         pin->initialized        = false;
         pin->active_low         = false;
@@ -96,7 +96,7 @@ int set_pin_mode(uint8_t pin_num, pin_mode_t pinmode) {
     if (pin_num >= n_pins) {
         return fail_invalid_pin;
     }
-    pin_t* pin = &pins[pin_num];
+    pin_t* pin = &gpios[pin_num];
 
     // for now we assume all pins can input and output. Some can do PWM
 
@@ -139,7 +139,7 @@ void read_pin(pin_msg_t send_msg, uint8_t pin_num) {
     if (pin_num >= n_pins) {
         return;
     }
-    pin_t* pin = &pins[pin_num];
+    pin_t* pin = &gpios[pin_num];
     if (pin->type == pin_type_input) {
         if (pin_changed(pin_num)) {
             send_msg(pin_num, pin->last_value == 1);
