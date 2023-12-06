@@ -75,6 +75,7 @@ extern void poll_extra();
 
 // Implement these to handle specific kinds of messages from FluidNC
 extern void show_error(int error);
+extern void show_alarm(int alarm);
 extern void show_ok();
 extern void show_timeout();
 
@@ -94,6 +95,8 @@ extern void show_limits(bool probe, const bool* limits);
 extern void show_state(const char* state);
 extern void show_dro(const pos_t* axes, bool isMpos, bool* limits);
 extern void show_file(const char* filename, file_percent_t percent);
+extern void show_linenum(int linenum);
+extern void show_spindle_coolant(int spindle, bool flood, bool mist);
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);

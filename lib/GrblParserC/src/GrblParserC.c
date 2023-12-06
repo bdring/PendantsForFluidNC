@@ -18,13 +18,6 @@ static int  _ack_time_limit;
 
 static int _n_axis;
 
-static int  _linenum;
-static int  _spindle;
-static bool _flood;
-static bool _mist;
-
-static int _last_error = 0;
-
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
 
@@ -116,8 +109,12 @@ static void parse_msg(char* command) {
 
 static void parse_error(const char* body) {
     // The report wrapper, already removed, is error:...
-    _last_error = atoi(body);
-    show_error(_last_error);
+    show_error(atoi(body));
+}
+
+static void parse_alarm(const char* body) {
+    // The report wrapper, already removed, is ALARM:...
+    show_alarm(atoi(body));
 }
 
 static pos_t atopos(const char* s) {
@@ -157,6 +154,13 @@ static void parse_status_report(char* field) {
     // The body is, for example,
     //   Idle|MPos:151.000,149.000,-1.000|Pn:XP|FS:0,0|WCO:12.000,28.000,78.000
     // i.e. a sequence of field|field|field
+
+    bool has_linenum = false;
+    int  linenum     = 0;
+    int  spindle     = 0;
+    bool has_a_field = false;
+    bool flood       = false;
+    bool mist        = false;
 
     char* next;
     split(field, &next, '|');
@@ -203,7 +207,7 @@ static void parse_status_report(char* field) {
         }
         if (strcmp(field, "Ln") == 0) {
             // n
-            _linenum = atoi(value);
+            linenum = atoi(value);
             continue;
         }
         if (strcmp(field, "FS") == 0) {
@@ -258,23 +262,24 @@ static void parse_status_report(char* field) {
         }
         if (strcmp(field, "A") == 0) {
             // SCFM
-            _spindle = 0;
-            _flood   = false;
-            _mist    = false;
+            has_a_field = true;
+            spindle     = 0;
+            flood       = false;
+            mist        = false;
             char c;
             while ((c = *value++) != '\0') {
                 switch (c) {
                     case 'S':
-                        _spindle = 1;
+                        spindle = 1;
                         break;
                     case 'C':
-                        _spindle = 2;
+                        spindle = 2;
                         break;
                     case 'F':
-                        _flood = true;
+                        flood = true;
                         break;
                     case 'M':
-                        _mist = true;
+                        mist = true;
                         break;
                 }
             }
@@ -303,6 +308,13 @@ static void parse_status_report(char* field) {
     }
     show_limits(probe, limits);
     show_dro(axes, isMpos, limits);
+    if (has_linenum) {
+        show_linenum(linenum);
+    }
+    if (has_a_field) {
+        show_spindle_coolant(spindle, flood, mist);
+    }
+
     end_status_report();
 }
 
@@ -446,6 +458,10 @@ static void parse_report() {
         parse_error(body);
         return;
     }
+    if (is_report_type(_report, &body, "ALARM:", "")) {
+        parse_alarm(body);
+        return;
+    }
 }
 // Receive an incoming byte
 void collect(uint8_t data) {
@@ -480,6 +496,7 @@ void fnc_wait_ready() {
 void __attribute__((weak)) poll_extra() {};
 
 // Implement these to handle specific kinds of messages from FluidNC
+void __attribute__((weak)) show_alarm(int alarm) {}
 void __attribute__((weak)) show_error(int error) {}
 void __attribute__((weak)) show_ok() {}
 void __attribute__((weak)) show_timeout() {}
@@ -496,6 +513,7 @@ void __attribute__((weak)) show_limits(bool probe, const bool* limits) {};
 void __attribute__((weak)) show_state(const char* state) {};
 void __attribute__((weak)) show_dro(const pos_t* axes, bool isMpos, bool* limits) {}
 void __attribute__((weak)) show_file(const char* filename, file_percent_t percent) {}
+void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
 
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
