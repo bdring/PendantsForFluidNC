@@ -71,6 +71,7 @@ private:
     void parse_status_report(const String& body);
     void parse_gcode_report(const String& body);
     void parse_error(const String& body);
+    void parse_alarm(const String& body);
     void parse_msg(const String& body);
 
     void parse_axes(String s, float* axes);
@@ -96,6 +97,7 @@ public:
     bool  isMpos = false;
 
     int _last_error = 0;
+    int _last_alarm = 0;
 
     String _state;
     String _filename;
@@ -129,6 +131,7 @@ public:
 
     // Implement these to handle specific kinds of messages from FluidNC
     virtual void show_error(int error) {}
+    virtual void show_alarm(int alarm) {}
     virtual void show_ok() {}
     virtual void show_timeout() {}
 
