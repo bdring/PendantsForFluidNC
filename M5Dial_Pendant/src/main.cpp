@@ -1,4 +1,3 @@
-
 // Copyright (c) 2023 -	Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
@@ -22,9 +21,8 @@ Saved
 #include <Arduino.h>
 #include "M5Dial.h"
 #include "logo_img.h"
-#include "GrblParser.h"
+#include "GrblParserC.h"
 #include "Button.h"
-#include "FNC.h"
 #include <EEPROM.h>
 
 constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
@@ -45,14 +43,14 @@ enum class MenuName : uint8_t {
 String menu_names[] = { "Main", "Home", "Jog Dial", "Probe" };  // As shown on display
 
 // local copies of status items
-String stateString        = "N/C";
-float  myAxes[6]          = { 0 };
-bool   myLimitSwitches[6] = { false };
-bool   myProbeSwitch      = false;
-String myFile             = "";     // running SD filename
-float  myPercent          = 0.0;    // percent conplete of SD file
-float  myFro              = 100.0;  // Feed rate override
-int    lastAlarm          = 0;
+String         stateString        = "N/C";
+pos_t          myAxes[6]          = { 0 };
+bool           myLimitSwitches[6] = { false };
+bool           myProbeSwitch      = false;
+String         myFile             = "";     // running SD filename
+file_percent_t myPercent          = 0.0;    // percent conplete of SD file
+float          myFro              = 100.0;  // Feed rate override
+int            lastAlarm          = 0;
 
 MenuName menu_number = MenuName::Main;  // The menu that is currently active
 MenuName last_menu   = MenuName::Main;
@@ -117,51 +115,58 @@ struct prefs {
 } myPrefs;
 bool prefsChanged = false;
 
-class Displayer : public GrblParser {
-    void show_state(const String& state) {
-        stateString = state;
-        if (stateString.startsWith("Hold")) {
-            stateString = "Hold";
+extern "C" void show_alarm(int alarm) {
+    lastAlarm = alarm;
+}
+extern "C" void show_state(const char* state) {
+    stateString = state;
+    if (stateString.startsWith("Hold")) {
+        stateString = "Hold";
+    }
+}
+
+extern "C" void show_file(const char* filename, file_percent_t percent) {
+    myPercent = percent;
+}
+
+extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
+    myProbeSwitch = probe;
+    memcpy(myLimitSwitches, limits, sizeof(limits));
+}
+extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
+    char delim = ' ';
+    for (int axis = 0; axis < n_axis; axis++) {
+        myAxes[axis] = axes[axis];
+        if (isMpos) {
+            myAxes[axis] -= wco[axis];
         }
-        lastAlarm = _last_alarm;
     }
-    void show_limits(bool probe, const bool* limits) {
-        myProbeSwitch = probe;
-        memcpy(myLimitSwitches, limits, sizeof(limits));
+}
+
+extern "C" void end_status_report() {}
+extern "C" int  fnc_getchar() {
+    if (Serial_FNC.available()) {
+        int c = Serial_FNC.read();
+        USBSerial.write(c);  // echo
+        return c;
     }
-    void show_dro(const float* axes, bool isMpos, bool* limits) {
-        char delim = ' ';
-        for (int axis = 0; axis < _n_axis; axis++) {
-            myAxes[axis] = axes[axis];
-            if (isMpos)
-                myAxes[axis] -= wco[axis];
-        }
-    }
-
-    void show_file(const String& filename) {}
-
-    void end_status_report() {
-        myFro     = frs[0];  // feed rate override
-        myPercent = _percent;
-    }
-    int getchar() {
-        if (Serial_FNC.available()) {
-            int c = Serial_FNC.read();
-            USBSerial.write(c);  // echo
-            return c;
-        }
-        return -1;
-    }
-    int milliseconds() { return millis(); }
-
-    void poll_extra() {}
-
-public:
-    void putchar(uint8_t c) { Serial_FNC.write(c); }
-
-} displayer;
+    return -1;
+}
+extern "C" void fnc_putchar(uint8_t c) {
+    Serial_FNC.write(c);
+}
+extern "C" int milliseconds() {
+    return millis();
+}
 
 M5Canvas canvas(&M5Dial.Display);
+
+void send_line(const String& s, int timeout = 2000) {
+    send_line(s.c_str(), timeout);
+}
+void send_line(const char* s, int timeout = 2000) {
+    fnc_send_line(s, timeout);
+}
 
 void setup() {
     auto cfg = M5.config();
@@ -176,9 +181,9 @@ void setup() {
     drawStartScreen();
     delay(3000);  // view the logo and wait for the USBSerial to be detected by the PC
 
-    displayer.send_line("$Log/Msg=*M5Dial Pendant v0.1\r");
+    send_line("$Log/Msg=*M5Dial Pendant v0.1");
     USBSerial.println("\r\nM5Dial Pendant Begin");
-    displayer.putchar('?');  // Request fresh status
+    fnc_realtime(StatusReport);  // Request fresh status
     M5Dial.Speaker.setVolume(255);
 
     readPrefs();
@@ -207,7 +212,7 @@ void loop() {
         last_menu = menu_number;
     }
     while (Serial_FNC.available()) {
-        displayer.poll();  // do the serial port reading and echoing
+        fnc_poll();  // do the serial port reading and echoing
     }
 
     switch (menu_number) {
@@ -252,7 +257,7 @@ void main_menu(int32_t delta) {
                     return;
             }
         } else if (stateString == "Run") {
-            displayer.putchar((uint8_t)Cmd::FeedOvrReset);
+            fnc_realtime(FeedOvrReset);
         }
     }
 
@@ -264,7 +269,7 @@ void main_menu(int32_t delta) {
             if (!stateString.equals("Run")) {
                 rotateNumberLoop(menu_item, 1, 0, 2);
             }
-            displayer.putchar((uint8_t)Cmd::StatusReport);  // sometimes you want an extra status
+            fnc_realtime(StatusReport);  // sometimes you want an extra status
         }
         prev_state = t.state;
     }
@@ -272,11 +277,11 @@ void main_menu(int32_t delta) {
     if (redButton.changed()) {
         if (redButton.active()) {
             if (stateString == "Alarm") {
-                displayer.send_line("$X\r");
+                send_line("$X");
             } else if (stateString == "Run" || stateString == "Home") {
-                displayer.putchar((uint8_t)Cmd::Reset);
+                fnc_realtime(Reset);
             } else if (stateString.equals("Hold")) {
-                displayer.putchar((uint8_t)Cmd::Reset);
+                fnc_realtime(Reset);
             } else if (stateString.equals("Idle")) {
                 menu_number = MenuName::Homing;
                 return;
@@ -287,9 +292,9 @@ void main_menu(int32_t delta) {
     if (greenButton.changed()) {
         if (greenButton.active()) {
             if (stateString == "Run") {
-                displayer.putchar((uint8_t)Cmd::FeedHold);
+                fnc_realtime(FeedHold);
             } else if (stateString.equals("Hold")) {
-                displayer.putchar((uint8_t)Cmd::CycleStart);
+                fnc_realtime(CycleStart);
             } else if (stateString.equals("Idle")) {
                 menu_number = MenuName::Probing;
                 return;
@@ -297,7 +302,7 @@ void main_menu(int32_t delta) {
                 menu_number = MenuName::Homing;
                 return;
             }
-            displayer.putchar((uint8_t)Cmd::StatusReport);
+            fnc_realtime(StatusReport);
         } else {
         }
     }
@@ -375,10 +380,10 @@ void main_menu(int32_t delta) {
         if (stateString == "Run") {
             if (delta > 0) {
                 if (myFro < 200)
-                    displayer.putchar((uint8_t)Cmd::FeedOvrFinePlus);
+                    fnc_realtime(FeedOvrFinePlus);
             } else {
                 if (myFro > 10)
-                    displayer.putchar((uint8_t)Cmd::FeedOvrFineMinus);
+                    fnc_realtime(FeedOvrFineMinus);
             }
         }
     }
@@ -396,9 +401,9 @@ void homingMenu() {
         if (greenButton.active()) {
             if (stateString == "Idle" || stateString == "Alarm") {
                 if (current_button == 0) {
-                    displayer.send_line("$H\r");
+                    send_line("$H");
                 } else {
-                    displayer.send_line("$H" + axisNumToString(current_button - 1) + "\r");
+                    send_line("$H" + axisNumToString(current_button - 1));
                 }
             }
             return;
@@ -408,7 +413,7 @@ void homingMenu() {
     if (redButton.changed()) {
         if (redButton.active()) {
             if (stateString == "Home") {
-                displayer.putchar((uint8_t)Cmd::Reset);
+                fnc_realtime(Reset);
             }
             return;
         }
@@ -482,13 +487,12 @@ void joggingMenu(int32_t delta) {
         if (greenButton.active()) {
             if (stateString == "Idle") {
                 if (selection % 2) {
-                    displayer.send_line("G10L20P0" + axisNumToString(jog_axis) + "0\r");
-                    displayer.send_line("$Log/Msg=*G10L20P0" + axisNumToString(jog_axis) + "0\r");
+                    send_line("G10L20P0" + axisNumToString(jog_axis) + "0");
+                    send_line("$Log/Msg=*G10L20P0" + axisNumToString(jog_axis) + "0");
                     return;
                 }
                 if (jog_continuous) {
-                    displayer.send_line("$J=G91F" + floatToString(myPrefs.jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) +
-                                        "10000\r");
+                    send_line("$J=G91F" + floatToString(myPrefs.jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) + "10000");
                     return;
                 } else {
                     if (active_setting == 0) {
@@ -504,12 +508,12 @@ void joggingMenu(int32_t delta) {
                 }
             } else if (stateString == "Jog") {
                 if (!jog_continuous) {
-                    displayer.putchar((uint8_t)Cmd::JogCancel);  // reset
+                    fnc_realtime(JogCancel);  // reset
                 }
             }
         } else {  // green button up
             if (jog_continuous) {
-                displayer.putchar((uint8_t)Cmd::JogCancel);  // reset
+                fnc_realtime(JogCancel);  // reset
             }
         }
     }
@@ -522,14 +526,14 @@ void joggingMenu(int32_t delta) {
                 }
                 if (jog_continuous) {
                     // $J=G91F1000X-10000
-                    displayer.send_line("$J=G91F" + floatToString(myPrefs.jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) +
-                                        "-10000\r");
+                    send_line("$J=G91F" + floatToString(myPrefs.jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) + "-10000");
                     return;
                 } else {
                     if (active_setting == 0) {
                         if (active_setting == 0) {
-                            if (myPrefs.jog_inc_level[jog_axis] > 0)
+                            if (myPrefs.jog_inc_level[jog_axis] > 0) {
                                 myPrefs.jog_inc_level[jog_axis]--;
+                            }
                         } else {
                             feedRateRotator(myPrefs.jog_rate_level[jog_axis], false);
                         }
@@ -545,12 +549,12 @@ void joggingMenu(int32_t delta) {
                 update = true;
             } else if (stateString == "Jog") {
                 if (!jog_continuous) {
-                    displayer.putchar((uint8_t)Cmd::Reset);
+                    fnc_realtime(Reset);
                 }
             }
         } else {  // red button up
             if (jog_continuous) {
-                displayer.putchar((uint8_t)Cmd::JogCancel);  // reset
+                fnc_realtime(JogCancel);  // reset
             }
         }
     }
@@ -618,13 +622,13 @@ void joggingMenu(int32_t delta) {
         if (delta != 0) {
             // $J=G91F200Z5.0
             //$Log/Msg = *
-            Serial_FNC.printf("$Log/Msg=*Jog delta:%d\r\n", delta);
+            send_line("$Log/Msg=*Jog delta:" + String(delta));
             String jogCmd = "$J=G91F" + floatToString(myPrefs.jog_rate_level[jog_axis], 0) + axisNumToString(jog_axis);
             if (delta < 0) {
                 jogCmd += "-";
             }
             jogCmd += floatToString(jog_increment, 2);
-            displayer.send_line(jogCmd + "\r");
+            send_line(jogCmd);
         }
     }
 
@@ -695,13 +699,13 @@ void probeMenu() {
                 gcode += "P" + floatToString(myPrefs.probe_offset, 2);
 
                 USBSerial.println(gcode);
-                displayer.send_line(gcode + "\r");
+                send_line(gcode);
             } else if (stateString == "Run") {
                 USBSerial.println("Hold");
-                displayer.putchar('!');
+                fnc_realtime(FeedHold);
             } else if (stateString == "Hold") {
                 USBSerial.println("Resume");
-                displayer.putchar('~');
+                fnc_realtime(CycleStart);
             }
         }
     }
@@ -711,13 +715,13 @@ void probeMenu() {
             // G38.2 G91 F80 Z-20 P8.00
             if (stateString.equals("Run")) {
                 Serial1.println("Reset");
-                displayer.putchar((uint8_t)Cmd::Reset);
+                fnc_realtime(Reset);
             } else if (stateString.equals("Idle")) {
                 String gcode = "$J=G91F1000";
                 gcode += axisNumToString(myPrefs.probe_axis);
                 gcode += (myPrefs.probe_travel < 0) ? "+" : "-";  // retract is opposite travel
                 gcode += floatToString(myPrefs.probe_retract, 0);
-                displayer.send_line(gcode + "\r");
+                send_line(gcode);
             }
         }
     }
@@ -819,7 +823,7 @@ void drawStatus() {
         canvas.setFont(&fonts::FreeSansBold12pt7b);
         canvas.drawString(stateString, 120, y + height / 2 - 4);
         canvas.setFont(&fonts::FreeSansBold9pt7b);
-        canvas.drawString(AlarmNames(lastAlarm), 120, y + height / 2 + 12);
+        canvas.drawString(alarm_name(lastAlarm), 120, y + height / 2 + 12);
     } else {
         canvas.setFont(&fonts::FreeSansBold18pt7b);
         canvas.drawString(stateString, 120, y + height / 2 + 3);
@@ -995,53 +999,13 @@ void feedRateRotator(int& rate, bool up) {
 
 void debug(const char* info) {
 #ifdef DEBUG_TO_FNC
-    displayer.send_line("$Log/Msg=*");
-    displayer.send_line(info);
-    displayer.send_line("\r");
+    String msg { "$Log/Msg=*" };
+    send_line(msg + info);
 #endif
 
 #ifdef DEBUG_TO_USB
     USBSerial.println(info);
 #endif
-}
-
-String AlarmNames(int num) {
-    switch (num) {
-        case 0:
-            return "Unknown";
-        case 1:
-            return "Hard Limit";
-        case 2:
-            return "Soft Limit";
-        case 3:
-            return "Abort Cycle";
-        case 4:
-            return "Probe Fail Initial";
-        case 5:
-            return "Probe Fail Contact";
-        case 6:
-            return "Homing Fail Reset";
-        case 7:
-            return "Homing Fail Door";
-        case 8:
-            return "Homing Fail Pulloff";
-        case 9:
-            return "Homing Fail Approach";
-        case 10:
-            return "Spindle Control";
-        case 11:
-            return "Control Pin Initially On";
-        case 12:
-            return "Ambiguous Switch";
-        case 13:
-            return "Hard Stop";
-        case 14:
-            return "Unhomed";
-        case 15:
-            return "Init";
-        default:
-            return "Unknown Alarm";
-    }
 }
 
 void savePrefs() {

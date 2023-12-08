@@ -11,6 +11,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "realtime.h"
+
 #define MAX_N_AXIS 6
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -50,6 +52,9 @@ void fnc_poll();
 // Call this to send a line-oriented command to FluidNC
 void fnc_send_line(const char* line, int timeout_ms);
 
+// Call this to send a realtime command to FluidNC
+void fnc_realtime(realtime_cmd_t rt_cmd);
+
 bool split(char* input, char** right, char delim);
 bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator);
 
@@ -71,6 +76,9 @@ extern int milliseconds();  // Must implement
 
 // Implement this to do anything that must be done while waiting for characters
 extern void poll_extra();
+
+// Returns the string name of an alarm
+const char* alarm_name(int alarm);
 
 // Implement these to handle specific kinds of messages from FluidNC
 extern void show_error(int error);

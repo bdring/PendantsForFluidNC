@@ -414,6 +414,11 @@ static void parse_gcode_report(char* tag) {
     show_gcode_modes(&new_gcode_modes);
 }
 
+void fnc_realtime(realtime_cmd_t rt_cmd) {
+    // XXX need to handle extended commands that must be sent as UTF8
+    fnc_putchar(rt_cmd);
+}
+
 void fnc_send_line(const char* line, int timeout_ms) {
     while (_ackwait) {
         if ((milliseconds() - _ack_time_limit) >= 0) {
@@ -492,6 +497,45 @@ void fnc_poll() {
 void fnc_wait_ready() {
     // XXX we need to figure out how to do this.  The pendant
     // typically starts faster than FluidNC
+}
+
+const char* alarm_name(int num) {
+    switch (num) {
+        case 0:
+            return "Unknown";
+        case 1:
+            return "Hard Limit";
+        case 2:
+            return "Soft Limit";
+        case 3:
+            return "Abort Cycle";
+        case 4:
+            return "Probe Fail Initial";
+        case 5:
+            return "Probe Fail Contact";
+        case 6:
+            return "Homing Fail Reset";
+        case 7:
+            return "Homing Fail Door";
+        case 8:
+            return "Homing Fail Pulloff";
+        case 9:
+            return "Homing Fail Approach";
+        case 10:
+            return "Spindle Control";
+        case 11:
+            return "Control Pin Initially On";
+        case 12:
+            return "Ambiguous Switch";
+        case 13:
+            return "Hard Stop";
+        case 14:
+            return "Unhomed";
+        case 15:
+            return "Init";
+        default:
+            return "Unknown Alarm";
+    }
 }
 
 // Implement this to do anything that must be done while waiting for characters
