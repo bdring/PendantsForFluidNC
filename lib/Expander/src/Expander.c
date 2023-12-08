@@ -28,7 +28,6 @@ void expander_ack() {
 }
 
 void expander_nak(const char* msg) {
-    //    send_line("$Log/Debug=*", msg, "");
     fnc_putchar(NAK);
 }
 

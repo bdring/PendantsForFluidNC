@@ -18,6 +18,8 @@ static int  _ack_time_limit;
 
 static int _n_axis;
 
+static pos_t wcos[MAX_N_AXIS] = { 0 };
+
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
 
@@ -250,7 +252,6 @@ static void parse_status_report(char* field) {
             // x,y,z,...
             // We do not use the WCO values because the DROs show whichever
             // position is in the status report
-            pos_t wcos[MAX_N_AXIS];
             parse_axes(value, wcos);
             continue;
         }
@@ -306,8 +307,8 @@ static void parse_status_report(char* field) {
     if (has_filename) {
         show_file(filename, file_percent);
     }
-    show_limits(probe, limits);
-    show_dro(axes, isMpos, limits);
+    show_limits(probe, limits, _n_axis);
+    show_dro(axes, wcos, isMpos, limits, _n_axis);
     if (has_linenum) {
         show_linenum(linenum);
     }
@@ -413,7 +414,7 @@ static void parse_gcode_report(char* tag) {
     show_gcode_modes(&new_gcode_modes);
 }
 
-void send_line(const char* line, int timeout_ms) {
+void fnc_send_line(const char* line, int timeout_ms) {
     while (_ackwait) {
         if ((milliseconds() - _ack_time_limit) >= 0) {
             show_timeout();
@@ -426,6 +427,7 @@ void send_line(const char* line, int timeout_ms) {
     while ((c = *line++) != '\0') {
         fnc_putchar(c);
     }
+    fnc_putchar('\n');
     _ack_time_limit = milliseconds() + timeout_ms;
     _ackwait        = true;
 }
@@ -509,9 +511,9 @@ void __attribute__((weak)) show_timeout() {}
 void __attribute__((weak)) handle_msg(char* command, char* arguments) {}
 
 // Data parsed from <...> status reports
-void __attribute__((weak)) show_limits(bool probe, const bool* limits) {};
+void __attribute__((weak)) show_limits(bool probe, const bool* limits, size_t n_axis) {};
 void __attribute__((weak)) show_state(const char* state) {};
-void __attribute__((weak)) show_dro(const pos_t* axes, bool isMpos, bool* limits) {}
+void __attribute__((weak)) show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis) {}
 void __attribute__((weak)) show_file(const char* filename, file_percent_t percent) {}
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
 
