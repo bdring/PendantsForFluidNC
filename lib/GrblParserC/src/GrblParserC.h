@@ -10,7 +10,6 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include "pinmode.h"
 
 #define MAX_N_AXIS 6
 #define X_AXIS 0
@@ -49,7 +48,7 @@ void fnc_wait_ready();
 void fnc_poll();
 
 // Call this to send a line-oriented command to FluidNC
-void send_line(const char* line, int timeout_ms);
+void fnc_send_line(const char* line, int timeout_ms);
 
 bool split(char* input, char** right, char delim);
 bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator);
@@ -75,6 +74,7 @@ extern void poll_extra();
 
 // Implement these to handle specific kinds of messages from FluidNC
 extern void show_error(int error);
+extern void show_alarm(int alarm);
 extern void show_ok();
 extern void show_timeout();
 
@@ -90,10 +90,12 @@ extern void handle_msg(char* command, char* arguments);
 extern uint32_t parse_io_mode(const char* params);
 
 // Data parsed from <...> status reports
-extern void show_limits(bool probe, const bool* limits);
+extern void show_limits(bool probe, const bool* limits, size_t n_axis);
 extern void show_state(const char* state);
-extern void show_dro(const pos_t* axes, bool isMpos, bool* limits);
+extern void show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis);
 extern void show_file(const char* filename, file_percent_t percent);
+extern void show_linenum(int linenum);
+extern void show_spindle_coolant(int spindle, bool flood, bool mist);
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);

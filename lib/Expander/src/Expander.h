@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 #include "GrblParserC.h"
+#include "pinmode.h"
 
 // IO expander API
 
