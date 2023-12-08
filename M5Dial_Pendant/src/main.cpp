@@ -43,14 +43,14 @@ enum class MenuName : uint8_t {
 String menu_names[] = { "Main", "Home", "Jog Dial", "Probe" };  // As shown on display
 
 // local copies of status items
-String         stateString        = "N/C";
-pos_t          myAxes[6]          = { 0 };
-bool           myLimitSwitches[6] = { false };
-bool           myProbeSwitch      = false;
-String         myFile             = "";     // running SD filename
-file_percent_t myPercent          = 0.0;    // percent conplete of SD file
-float          myFro              = 100.0;  // Feed rate override
-int            lastAlarm          = 0;
+String             stateString        = "N/C";
+pos_t              myAxes[6]          = { 0 };
+bool               myLimitSwitches[6] = { false };
+bool               myProbeSwitch      = false;
+String             myFile             = "";   // running SD filename
+file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
+override_percent_t myFro              = 100;  // Feed rate override
+int                lastAlarm          = 0;
 
 MenuName menu_number = MenuName::Main;  // The menu that is currently active
 MenuName last_menu   = MenuName::Main;
@@ -117,6 +117,9 @@ bool prefsChanged = false;
 
 extern "C" void show_alarm(int alarm) {
     lastAlarm = alarm;
+}
+extern "C" void show_overrides(override_percent_t feed, override_percent_t rapid, override_percent_t spindle) {
+    myFro = feed;
 }
 extern "C" void show_state(const char* state) {
     stateString = state;
@@ -333,7 +336,7 @@ void main_menu(int32_t delta) {
         canvas.setTextColor(WHITE);
         canvas.setFont(&fonts::FreeSansBold9pt7b);
         canvas.setTextDatum(middle_center);
-        canvas.drawString("Feed Rate Ovr:" + floatToString(myFro, 0) + "%", 120, y + 23);
+        canvas.drawString("Feed Rate Ovr:" + String(myFro) + "%", 120, y + 23);
     }
 
     if (!stateString.equals("Run") && !stateString.equals("Hold")) {

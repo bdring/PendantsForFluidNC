@@ -182,6 +182,12 @@ static void parse_status_report(char* field) {
     char*          filename     = '\0';
     file_percent_t file_percent = 0;
 
+    bool               has_overrides = false;
+    override_percent_t overrides[3]  = { 0 };
+
+    bool     has_fs = false;
+    uint32_t fs[2]  = { 0 };
+
     // ... handle it
     while (*next) {
         field = next + 1;
@@ -214,7 +220,7 @@ static void parse_status_report(char* field) {
         }
         if (strcmp(field, "FS") == 0) {
             // feedrate,spindle_speed
-            uint32_t fs[2];
+            has_fs = true;
             parse_integers(value, fs, 2);  // feed in [0], spindle in [1]
             continue;
         }
@@ -256,9 +262,8 @@ static void parse_status_report(char* field) {
             continue;
         }
         if (strcmp(field, "Ov") == 0) {
-            // feed_ovr,rapid_ovr,spindle_ovr
-            override_percent_t frs[3];
-            parse_integers(value, frs, 3);  // feed in [0], rapid in [1], spindle in [2]
+            has_overrides = true;
+            parse_integers(value, overrides, 3);
             continue;
         }
         if (strcmp(field, "A") == 0) {
@@ -314,6 +319,12 @@ static void parse_status_report(char* field) {
     }
     if (has_a_field) {
         show_spindle_coolant(spindle, flood, mist);
+    }
+    if (has_overrides) {
+        show_overrides(overrides[0], overrides[1], overrides[2]);
+    }
+    if (has_fs) {
+        show_feedrate_spindle(fs[0], fs[1]);
     }
 
     end_status_report();
@@ -560,6 +571,8 @@ void __attribute__((weak)) show_state(const char* state) {};
 void __attribute__((weak)) show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis) {}
 void __attribute__((weak)) show_file(const char* filename, file_percent_t percent) {}
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
+void __attribute__((weak)) show_overrides(override_percent_t feed, override_percent_t rapid, override_percent_t spindle) {}
+void __attribute__((weak)) show_feedrate_spindle(uint32_t feedrate, uint32_t spindle) {}
 
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}

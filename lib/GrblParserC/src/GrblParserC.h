@@ -104,6 +104,8 @@ extern void show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* li
 extern void show_file(const char* filename, file_percent_t percent);
 extern void show_linenum(int linenum);
 extern void show_spindle_coolant(int spindle, bool flood, bool mist);
+extern void show_overrides(override_percent_t feed, override_percent_t rapid, override_percent_t spindle);
+extern void show_feedrate_spindle(uint32_t feedrate, uint32_t spindle);
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);
