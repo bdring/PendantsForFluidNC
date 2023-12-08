@@ -49,6 +49,12 @@ void GrblParser::parse_report() {
         parse_error(body);
         return;
     }
+
+    if (is_report_type(_report, body, "ALARM:", "")) {
+        _ackwait = false;
+        parse_alarm(body);
+        return;
+    }
 }
 
 void GrblParser::parse_msg(const String& body) {
@@ -76,6 +82,12 @@ void GrblParser::parse_error(const String& body) {
     // The report wrapper, already removed, is error:...
     _last_error = body.toInt();
     show_error(_last_error);
+}
+
+void GrblParser::parse_alarm(const String& body) {
+    // The report wrapper, already removed, is error:...
+    _last_alarm = body.toInt();
+    show_alarm(_last_alarm);
 }
 
 void GrblParser::parse_status_report(const String& body) {
