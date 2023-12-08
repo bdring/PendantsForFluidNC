@@ -8,7 +8,7 @@ void Button::init(uint8_t pin, bool activeLow) {
 }
 
 bool Button::active() {
-    _last_value = !digitalRead(_pin_num) ^ _active_low;
+    _last_value = digitalRead(_pin_num) ^ _active_low;
 
     return _last_value;
 }
