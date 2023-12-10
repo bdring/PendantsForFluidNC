@@ -60,6 +60,19 @@ pin_mode_t parse_io_mode(const char* params) {
     return mode;
 }
 
+static void trim(char** str) {
+    char* s = *str;
+    while (isspace(*s)) {
+        ++s;
+    }
+    char* p = s + strlen(s);
+    while (p != s && isspace(p[-1])) {
+        --p;
+    }
+    *p   = '\0';
+    *str = s;
+}
+
 bool expander_handle_msg(char* command, char* pinspecs) {
     if (strcmp(command, "RST") == 0) {
         expander_rst();
@@ -76,10 +89,10 @@ bool expander_handle_msg(char* command, char* pinspecs) {
         //   SET: io.N=0.5
         uint8_t pin_num = 0;
 
-        //            trim(pinspecs);
+        trim(&pinspecs);
 
         size_t prefixlen = strlen("io.");
-        if (strncmp(pinspecs, "io.", prefixlen) == 0) {
+        if (strncmp(pinspecs, "io.", prefixlen) != 0) {
             expander_nak("Missing io. specifier");
             return true;
         }
