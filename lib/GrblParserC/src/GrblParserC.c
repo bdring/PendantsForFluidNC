@@ -46,14 +46,14 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     }
 
     while (isdigit((int)(c = *p++))) {
-        numerator = numerator * 10 + (*p - '0');
+        numerator = numerator * 10 + (c - '0');
     }
     if (negate) {
         numerator = -numerator;
     }
     if (c == '.') {
         while (isdigit((int)(c = *p++))) {
-            numerator = numerator * 10 + (*p - '0');
+            numerator = numerator * 10 + (c - '0');
             denominator *= 10;
         }
         if (c == '%') {
@@ -62,7 +62,7 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
         }
     } else if (c == '/') {
         while (isdigit((int)(c = *p++))) {
-            denominator = denominator * 10 + (*p - '0');
+            denominator = denominator * 10 + (c - '0');
         }
     } else if (c == '%') {
         denominator *= 100;
