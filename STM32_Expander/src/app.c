@@ -66,7 +66,7 @@ void setup() {
     HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
     last_dma_count = UART_DMA_LEN;
 
-    HAL_UART_Transmit(DebugSerial, (uint8_t*)"Hello from STM32_Expander\r\n", 7, 1000);
+    HAL_UART_Transmit(DebugSerial, (uint8_t*)"Hello from STM32_Expander\r\n", 27, 1000);
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
     // expander has been reset.  At startup, that would be okay, but
