@@ -4,6 +4,7 @@
 #include "usart.h"
 #include "Expander.h"
 #include "stm32f1xx_hal.h"
+#include "string.h"
 
 UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
 UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
@@ -12,6 +13,21 @@ UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
 #define UART_DMA_LEN 256
 static int     last_dma_count = 0;
 static uint8_t dma_buf[UART_DMA_LEN];
+
+// Interface routines for interfacing with the pendant UART
+
+void debug_print(char* msg) {
+    HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
+}
+
+void debug_println(char* msg) {
+    debug_print(msg);
+    debug_print("\r\n");
+}
+
+void debug_putchar(uint8_t c) {
+    HAL_UART_Transmit(DebugSerial, &c, 1, 1000);
+}
 
 // Interface routines for GrblParser
 
@@ -66,7 +82,8 @@ void setup() {
     HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
     last_dma_count = UART_DMA_LEN;
 
-    HAL_UART_Transmit(DebugSerial, (uint8_t*)"Hello from STM32_Expander\r\n", 27, 1000);
+    debug_println("[MSG:INFO: Hello from STM32_Expander]");
+    //HAL_UART_Transmit(DebugSerial, (uint8_t*)"Hello from STM32_Expander\r\n", 27, 1000);
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
     // expander has been reset.  At startup, that would be okay, but

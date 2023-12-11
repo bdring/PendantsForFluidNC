@@ -525,6 +525,12 @@ void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 void __attribute__((weak)) begin_status_report() {}
 void __attribute__((weak)) end_status_report() {}
 
+// used for optional debugging or pendants and smart displays
+void __attribute__((weak)) debug_putchar(char* msg) {}
+void __attribute__((weak)) debug_print(char* msg) {}
+void __attribute__((weak)) debug_println(char c) {}
+char __attribute__((weak)) debug_getchar() {}
+
 #ifdef __cplusplus
 }
 #endif

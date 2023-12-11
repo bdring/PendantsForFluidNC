@@ -39,7 +39,7 @@ void expander_pin_msg(uint8_t pin_num, bool active) {
 
 pin_mode_t parse_io_mode(const char* params) {
     pin_mode_t mode = 0;
-    if (strstr(params, "out")) {
+    if (strstr(params, "low")) {
         mode |= PIN_ACTIVELOW;
     }
     if (strstr(params, "out")) {
