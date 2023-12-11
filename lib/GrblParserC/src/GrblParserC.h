@@ -65,6 +65,12 @@ extern void fnc_putchar(uint8_t ch);  // Must implement
 // Get the time in milliseconds
 extern int milliseconds();  // Must implement
 
+// Optional debug port routines
+extern void debug_putchar(char c);
+extern void debug_print(const char* msg);
+extern void debug_println(const char* msg);
+extern int  debug_getchar();
+
 // The following can be implemented to do whatever your app
 // wants to do.  Any that you do not implement will be automatically
 // handled as no-ops.

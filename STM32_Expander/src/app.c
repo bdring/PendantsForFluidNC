@@ -16,17 +16,17 @@ static uint8_t dma_buf[UART_DMA_LEN];
 
 // Interface routines for interfacing with the pendant UART
 
-void debug_print(char* msg) {
+void debug_print(const char* msg) {
     HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
 }
 
-void debug_println(char* msg) {
+void debug_println(const char* msg) {
     debug_print(msg);
     debug_print("\r\n");
 }
 
-void debug_putchar(uint8_t c) {
-    HAL_UART_Transmit(DebugSerial, &c, 1, 1000);
+void debug_putchar(char c) {
+    HAL_UART_Transmit(DebugSerial, (uint8_t*)&c, 1, 1000);
 }
 
 // Interface routines for GrblParser

@@ -28,6 +28,7 @@ void expander_ack() {
 }
 
 void expander_nak(const char* msg) {
+    debug_println(msg);
     fnc_putchar(NAK);
 }
 
