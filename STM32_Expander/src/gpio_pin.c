@@ -36,7 +36,7 @@ bool set_gpio_mode(gpio_pin_t* gpio, pin_mode_t pinmode) {
         gpiomode.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(gpio->port, &gpiomode);
 
-        GPIO_PinState pinstate = (pinmode & PIN_ACTIVELOW) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+        GPIO_PinState pinstate = (pinmode & PIN_ACTIVELOW) ? GPIO_PIN_RESET : GPIO_PIN_SET;
         HAL_GPIO_WritePin(gpio->port, gpio->pin_num, pinstate);
         return true;
     }
