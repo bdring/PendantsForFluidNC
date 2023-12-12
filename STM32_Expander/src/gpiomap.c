@@ -10,26 +10,26 @@
 // pin order of the bdring STM Expander board.
 pin_t gpios[] = {
     //           port num  can_PWM?   io_num
-    { .gpio = { GPIOA, 4, false } },   //   0
-    { .gpio = { GPIOA, 5, false } },   //   1
-    { .gpio = { GPIOA, 8, true } },    //   2
-    { .gpio = { GPIOA, 11, false } },  //   3
-    { .gpio = { GPIOA, 12, false } },  //   4
-    { .gpio = { GPIOB, 6, true } },    //   5
-    { .gpio = { GPIOB, 7, true } },    //   6
-    { .gpio = { GPIOB, 8, true } },    //   7
-    { .gpio = { GPIOB, 9, true } },    //   8
-    { .gpio = { GPIOB, 10, false } },  //   9
-    { .gpio = { GPIOB, 11, false } },  //  10
-    { .gpio = { GPIOB, 14, false } },  //  11
-    { .gpio = { GPIOB, 15, false } },  //  12
-    { .gpio = { GPIOC, 13, false } },  //  13
-    { .gpio = { GPIOA, 0, true } },    //  14
-    { .gpio = { GPIOA, 1, true } },    //  15
-    { .gpio = { GPIOA, 6, true } },    //  16
-    { .gpio = { GPIOA, 7, true } },    //  17
-    { .gpio = { GPIOB, 0, true } },    //  18
-    { .gpio = { GPIOB, 1, true } },    //  19
+    { .gpio = { GPIOA, GPIO_PIN_4, false } },   //   0
+    { .gpio = { GPIOA, GPIO_PIN_5, false } },   //   1
+    { .gpio = { GPIOA, GPIO_PIN_8, true } },    //   2
+    { .gpio = { GPIOA, GPIO_PIN_11, false } },  //   3
+    { .gpio = { GPIOA, GPIO_PIN_12, false } },  //   4
+    { .gpio = { GPIOB, GPIO_PIN_6, true } },    //   5
+    { .gpio = { GPIOB, GPIO_PIN_7, true } },    //   6
+    { .gpio = { GPIOB, GPIO_PIN_8, true } },    //   7
+    { .gpio = { GPIOB, GPIO_PIN_9, true } },    //   8
+    { .gpio = { GPIOB, GPIO_PIN_10, false } },  //   9
+    { .gpio = { GPIOB, GPIO_PIN_11, false } },  //  10
+    { .gpio = { GPIOB, GPIO_PIN_14, false } },  //  11
+    { .gpio = { GPIOB, GPIO_PIN_15, false } },  //  12
+    { .gpio = { GPIOC, GPIO_PIN_13, false } },  //  13
+    { .gpio = { GPIOA, GPIO_PIN_0, true } },    //  14
+    { .gpio = { GPIOA, GPIO_PIN_1, true } },    //  15
+    { .gpio = { GPIOA, GPIO_PIN_6, true } },    //  16
+    { .gpio = { GPIOA, GPIO_PIN_7, true } },    //  17
+    { .gpio = { GPIOB, GPIO_PIN_0, true } },    //  18
+    { .gpio = { GPIOB, GPIO_PIN_1, true } },    //  19
 };
 
 const int n_pins = sizeof(gpios) / sizeof(gpios[0]);
