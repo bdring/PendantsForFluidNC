@@ -1,49 +1,66 @@
 #include <Arduino.h>
-#include "GrblParser.h"
+#include "GrblParserC.h"
 
-class Displayer : public GrblParser {
-    void show_state(const String& state) { Serial.print(state); }
-    void show_dro(const float* axes, bool isMpos, bool* limits) {
-        char delim = ' ';
-        for (int i = 0; i < _n_axis; i++) {
-            Serial.print(delim);
-            delim = ',';
-            Serial.print(axes[i]);
-        }
+extern "C" void fnc_putchar(uint8_t c) {
+    Serial1.write(c);
+}
+
+extern "C" int fnc_getchar() {
+    if (Serial1.available()) {
+        return Serial1.read();
     }
-    void end_status_report() { Serial.println(); }
-    int  getchar() {
-        if (Serial1.available()) {
-            return Serial1.read();
-        }
-        return -1;
+    return -1;
+}
+
+extern "C" void debug_putchar(char c) {
+    Serial.print(c);
+}
+extern "C" void debug_print(const char* msg) {
+    Serial.print(msg);
+}
+extern "C" void debug_println(const char* msg) {
+    Serial.println(msg);
+}
+
+extern "C" void show_state(const char* state) {
+    Serial.print(state);
+}
+extern "C" void show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis) {
+    char delim = ' ';
+    for (size_t i = 0; i < n_axis; i++) {
+        debug_putchar(delim);
+        delim = ',';
+        String a(axes[i]);
+        debug_print(a.c_str());
     }
-    int  milliseconds() { return millis(); }
-    void poll_extra() {
+    debug_println("");
+}
+extern "C" void end_status_report() {
+    debug_println("");
+}
+extern "C" int milliseconds() {
+    return millis();
+}
+extern "C" void poll_extra() {
 #ifdef SEND_CONSOLE_DATA
-        while (Serial.available()) {
-            char c = Serial.read();
-            if (c != '\r') {
-                Serial1.write(c);
-            }
+    while (Serial.available()) {
+        char c = Serial.read();
+        if (c != '\r') {
+            fnc_putchar(c);
         }
-#endif
     }
-
-public:
-    void putchar(uint8_t c) { Serial1.write(c); }
-
-} displayer;
+#endif
+}
 
 void setup() {
     Serial.begin(115200);
     Serial1.begin(115200);
-    displayer.wait_ready();
-    displayer.putchar("?");     // Initial status report
-    displayer.send_line("$G");  // Initial modes report
+    fnc_wait_ready();
+    fnc_putchar('?');           // Initial status report
+    fnc_send_line("$G", 1000);  // Initial modes report
 }
 // #define ECHO_RX_DATA
 // #define SEND_CONSOLE_DATA
 void loop() {
-    displayer.poll();
+    fnc_poll();
 }
