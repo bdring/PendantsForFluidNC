@@ -6,10 +6,10 @@
  */
 
 #include "Arduino.h"
-#include "TFT_eSPI.h" /* Please use the TFT library provided by LilyGo. */
+#include "GrblParserC.h"
 #include "pin_config.h"
-#include "GrblParser.h"  // be sure to move the files into the library folder for Arduino
 #include "fnc.h"
+#include "TFT_eSPI.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #    error "The current version is not supported for the time being, please use a version below Arduino ESP32 3.0"
@@ -62,53 +62,45 @@ lcd_cmd_t lcd_st7789v[] = {
 };
 #endif
 
-class Displayer : public GrblParser {
-    void show_state(const String& state) {
-        myState = state;
-        updateDisplay();
-    }
+extern "C" void show_state(const char* state) {
+    myState = state;
+    updateDisplay();
+}
 
-    void show_dro(const float* axes, bool isMpos, bool* limits) {
-        my_n_axis = _n_axis;
-        for (int i = 0; i < MAX_N_AXIS; i++) {
-            myAxes[i] = axes[i];
-        }
-        for (int i = 0; i < MAX_N_AXIS; i++) {
-            myLimits[i] = limits[i];
-        }
-        updateDisplay();  // TO DO reduce the number of these
+extern "C" void show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis) {
+    my_n_axis = n_axis;
+    for (int i = 0; i < n_axis; i++) {
+        myAxes[i] = axes[i];
     }
+    for (int i = 0; i < n_axis; i++) {
+        myLimits[i] = limits[i];
+    }
+    updateDisplay();  // TO DO reduce the number of these
+}
 
-    void show_gcode_modes(const gcode_modes& modes) {}
+extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
+    // limits done with DROs
+    if (myProbe != probe) {
+        myProbe = probe;
+    }
+    updateDisplay();
+}
 
-    void show_limits(bool probe, const bool* limits) {
-        // limits done with DROs
-        if (myProbe != probe) {
-            myProbe = probe;
-        }
-        updateDisplay();
+extern "C" int fnc_getchar() {
+    if (FNCSerial.available()) {
+        return FNCSerial.read();
     }
-    int getchar() {
-        if (FNCSerial.available()) {
-            return FNCSerial.read();
-        }
-        return -1;
-    }
-    int  putchar(uint8_t c) { FNCSerial.write(c); }
-    int  milliseconds() { return millis(); }
-    void poll_extra() {
-#ifdef DEBUG_USB
-        while (DebugSerial.available()) {
-            char c = DebugSerial.read();
-            if (c != '\r') {
-                DebugSerial.print(c);
-                putchar(c);
-            }
-        }
-#endif
-        readButtons();
-    }
-} displayer;
+    return -1;
+}
+extern "C" void fnc_putchar(uint8_t c) {
+    FNCSerial.write(c);
+}
+extern "C" void debug_putchar(char c) {
+    DebugSerial.write(c);
+}
+extern "C" int milliseconds() {
+    return millis();
+}
 
 void setup() {
     pinMode(PIN_POWER_ON, OUTPUT);
@@ -161,47 +153,22 @@ void setup() {
 
     updateDisplay();
 
-    displayer.wait_ready();  // Synchronize with FluidNC
-    displayer.putchar('?');  // Initial status report
+    fnc_wait_ready();  // Synchronize with FluidNC
+    fnc_putchar('?');  // Initial status report
 }
 
 void loop() {
-    displayer.poll();
-}
-
-void updateDisplay() {
-    char   buf[12];
-    String axesNames = "XYZABC";
-
-    sprite1.fillSprite(TFT_BLACK);
-
-    if (myState == "Alarm") {
-        sprite1.setTextColor(TFT_RED, TFT_BLACK);
-    } else if (myState.startsWith("Hold")) {
-        sprite1.setTextColor(TFT_YELLOW, TFT_BLACK);
-    } else {
-        sprite1.setTextColor(TFT_GREEN, TFT_BLACK);
-    }
-
-    sprite1.drawString(myState, 0, 0, 4);
-    drawCheckbox(150, 0, 18, myProbe, "Probe");
-
-    for (int i = 0; i < my_n_axis; i++) {
-        sprite1.drawString(DRO_format(i, myAxes[i]), 0, 26 + i * 24, 4);
-        drawCheckbox(150, 26 + i * 24, 18, myLimits[i], "Limit");
-    }
-
-    sprite1.pushSprite(0, 0);
+    fnc_poll();
 }
 
 void readButtons() {
     if (!digitalRead(PIN_BUTTON_2)) {
         if (myState == "Run") {
-            DebugSerial.write("!");
-            displayer.putchar('!');
+            debug_putchar('!');
+            fnc_putchar('!');
         } else if (myState.startsWith("Hold")) {
-            DebugSerial.write("~");
-            displayer('~');
+            debug_putchar('~');
+            fnc_putchar('~');
         }
         delay(50);
         while (!digitalRead(PIN_BUTTON_2)) {}
@@ -242,4 +209,42 @@ void drawCheckbox(int x, int y, int width, bool checked, String label) {
     }
 
     sprite1.drawString(label, x + width + 5, y, 4);
+}
+
+void updateDisplay() {
+    char   buf[12];
+    String axesNames = "XYZABC";
+
+    sprite1.fillSprite(TFT_BLACK);
+
+    if (myState == "Alarm") {
+        sprite1.setTextColor(TFT_RED, TFT_BLACK);
+    } else if (myState.startsWith("Hold")) {
+        sprite1.setTextColor(TFT_YELLOW, TFT_BLACK);
+    } else {
+        sprite1.setTextColor(TFT_GREEN, TFT_BLACK);
+    }
+
+    sprite1.drawString(myState, 0, 0, 4);
+    drawCheckbox(150, 0, 18, myProbe, "Probe");
+
+    for (int i = 0; i < my_n_axis; i++) {
+        sprite1.drawString(DRO_format(i, myAxes[i]), 0, 26 + i * 24, 4);
+        drawCheckbox(150, 26 + i * 24, 18, myLimits[i], "Limit");
+    }
+
+    sprite1.pushSprite(0, 0);
+}
+
+extern "C" void poll_extra() {
+#ifdef DEBUG_USB
+    while (DebugSerial.available()) {
+        char c = DebugSerial.read();
+        if (c != '\r') {
+            debug_putchar(c);
+            putchar(c);
+        }
+    }
+#endif
+    readButtons();
 }
