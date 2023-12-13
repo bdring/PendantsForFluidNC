@@ -119,6 +119,12 @@ static void parse_alarm(const char* body) {
     show_alarm(atoi(body));
 }
 
+static void parse_signon(char* body) {
+    char* arguments;
+    split(body, &arguments, ' ');
+    handle_signon(body, arguments);
+}
+
 static pos_t atopos(const char* s) {
     int32_t  numerator;
     uint32_t denominator;
@@ -464,6 +470,13 @@ static void parse_report() {
         parse_alarm(body);
         return;
     }
+
+    if (is_report_type(_report, &body, "Grbl ", "")) {
+        parse_signon(body);
+        return;
+    }
+
+    handle_other(_report);
 }
 // Receive an incoming byte
 void collect(uint8_t data) {
@@ -509,6 +522,9 @@ void __attribute__((weak)) show_timeout() {}
 // can first call handle_expander_msg(), which will return true if an
 // expander message was handled.
 void __attribute__((weak)) handle_msg(char* command, char* arguments) {}
+
+void __attribute__((weak)) handle_signon(char* version, char* extra) {}
+void __attribute__((weak)) handle_other(char* line) {}
 
 // Data parsed from <...> status reports
 void __attribute__((weak)) show_limits(bool probe, const bool* limits, size_t n_axis) {};

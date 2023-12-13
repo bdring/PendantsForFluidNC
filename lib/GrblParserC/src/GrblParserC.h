@@ -93,6 +93,14 @@ extern void expander_pin_msg(uint8_t pin_num, bool active);
 // General handler that can be ovverridden
 extern void handle_msg(char* command, char* arguments);
 
+extern void handle_grbl(char* line);
+
+// Handle signon messages like "Grbl 3.4 [stuff]"
+extern void handle_signon(char* version, char* extra);
+
+// Handle anything not otherwise recognized
+extern void handle_other(char* line);
+
 extern uint32_t parse_io_mode(const char* params);
 
 // Data parsed from <...> status reports
