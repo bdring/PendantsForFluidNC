@@ -10,7 +10,7 @@
 typedef struct {
     // Implementation for STM32 HAL
     GPIO_TypeDef* port;
-    uint8_t       pin_num;
+    uint16_t       pin_num;
     bool          pwm_capable;
 } gpio_pin_t;
 
