@@ -83,6 +83,7 @@ void menuTitle();
 void refreshDisplaySprite();
 
 // helper functions
+bool   touchEnd();
 void   rotateNumberLoop(int& currentVal, int increment, int min, int max);
 void   feedRateRotator(int& rate, bool up);
 bool   dial_button();
@@ -249,6 +250,10 @@ void main_menu(int32_t delta) {
         }
     }
 
+    if (touchEnd()) {
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
+    }
+
     if (redButton.changed()) {
         if (redButton.active()) {
             if (stateString == "Alarm") {
@@ -391,17 +396,10 @@ void homingMenu() {
         }
     }
 
-    auto t = M5Dial.Touch.getDetail();
-    if (prev_state != t.state) {
-        if (t.state == m5::touch_state_t::touch) {
-            M5Dial.Speaker.tone(1800, 20);
-            rotateNumberLoop(current_button, 1, 0, 3);
-        }
-        USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        prev_state = t.state;
+    if (touchEnd()) {
+        rotateNumberLoop(current_button, 1, 0, 3);
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
     }
-
-    //
 
     canvas.fillSprite(BLACK);
     drawStatus();
@@ -545,7 +543,7 @@ void joggingMenu(int32_t delta) {
             } else {
                 rotateNumberLoop(active_setting, 1, 0, 1);
             }
-            USBSerial.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
+            displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
             update = true;
             return;
         }
@@ -696,15 +694,9 @@ void probeMenu() {
         }
     }
 
-    // A touch allows you to rotate through the items to be adjusted.
-    auto t = M5Dial.Touch.getDetail();
-    if (prev_state != t.state) {
-        if (t.state == m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 20);
-            rotateNumberLoop(selection, 1, 0, 4);
-        }
-        //USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        prev_state = t.state;
+    if (touchEnd()) {
+        rotateNumberLoop(selection, 1, 0, 4);
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
     }
 
     if (abs(delta) > 0) {
@@ -965,6 +957,18 @@ void debug(const char* info) {
 #ifdef DEBUG_TO_USB
     USBSerial.println(info);
 #endif
+}
+
+bool touchEnd() {
+    auto t = M5Dial.Touch.getDetail();
+    if (prev_state != t.state) {
+        prev_state = t.state;
+        if (t.state == m5::touch_state_t::touch_end) {
+            M5Dial.Speaker.tone(1800, 20);
+            return true;
+        }
+    }
+    return false;
 }
 
 String AlarmNames(int num) {
