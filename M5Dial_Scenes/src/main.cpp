@@ -185,6 +185,11 @@ void menuTitle() {
     canvas.drawString(current_scene->name(), 120, 12);
 }
 
+void drawErrorScreen() {
+    M5Dial.Display.clear();
+    M5Dial.Display.fillScreen(RED);
+}
+
 void refreshDisplaySprite() {
     M5Dial.Display.startWrite();
     canvas.pushSprite(0, 0);
@@ -229,6 +234,12 @@ void readPrefs() {
 
     // EEPROM.get(0, myPrefs);
     // log_msg("get prefs");
+}
+
+extern "C" void show_error(int error) {
+    drawErrorScreen();
+    delay(1000);
+    current_scene->display();
 }
 
 extern "C" void show_alarm(int alarm) {
