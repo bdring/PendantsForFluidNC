@@ -313,7 +313,7 @@ static void parse_status_report(char* field) {
             int32_t  numerator;
             uint32_t denominator;
             atofraction(value, &numerator, &denominator);
-            file_percent = 100 * numerator / denominator;
+            file_percent = numerator / denominator;
             continue;
         }
     }
