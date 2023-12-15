@@ -185,9 +185,14 @@ void menuTitle() {
     canvas.drawString(current_scene->name(), 120, 12);
 }
 
-void drawErrorScreen() {
+void drawErrorScreen(const String& s) {
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(RED);
+    M5Dial.Display.setFont(&fonts::FreeSansBold24pt7b);
+    M5Dial.Display.setTextColor(WHITE);
+    M5Dial.Display.setTextDatum(middle_center);
+    M5Dial.Display.drawString("Error", 90, 120);
+    M5Dial.Display.drawString(s, 180, 120);
 }
 
 void refreshDisplaySprite() {
@@ -237,7 +242,7 @@ void readPrefs() {
 }
 
 extern "C" void show_error(int error) {
-    drawErrorScreen();
+    drawErrorScreen(String(error));
     M5Dial.Speaker.tone(3000, 1000);
     delay(1000);
     current_scene->display();
