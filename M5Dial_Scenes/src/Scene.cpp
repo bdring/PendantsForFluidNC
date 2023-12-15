@@ -15,13 +15,14 @@ Button dialButton;
 
 std::vector<Scene*> scene_stack;
 
-void activate_scene(Scene* scene) {
+void activate_scene(Scene* scene, void* arg) {
     current_scene = scene;
+    current_scene->init(arg);
     current_scene->display();
 }
-void push_scene(Scene* scene) {
+void push_scene(Scene* scene, void* arg) {
     scene_stack.push_back(current_scene);
-    activate_scene(scene);
+    activate_scene(scene, arg);
 }
 void pop_scene() {
     if (scene_stack.size()) {

@@ -45,10 +45,11 @@ public:
     virtual void onLimitsChange() {}
     virtual void onEncoder(int delta) {}
     virtual void display() {}
+    virtual void init(void* arg) {}
 };
 
-void activate_scene(Scene* scene);
-void push_scene(Scene* scene);
+void activate_scene(Scene* scene, void* arg = nullptr);
+void push_scene(Scene* scene, void* arg = nullptr);
 void pop_scene();
 
 void send_line(const String& s, int timeout = 2000);
