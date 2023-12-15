@@ -32,11 +32,7 @@ void pop_scene() {
 }
 
 void dispatch_events() {
-    static int32_t oldEncoderPos = 0;
-    static bool    last_dial     = false;
-    static bool    last_red      = false;
-    static bool    last_green    = false;
-
+    static int32_t           oldEncoderPos    = 0;
     static m5::touch_state_t last_touch_state = {};
 
     M5Dial.update();
@@ -47,30 +43,25 @@ void dispatch_events() {
         current_scene->onEncoder(encoderDelta);
     }
 
-    bool this_dial = dialButton.active();
-    if (this_dial != last_dial) {
-        last_dial = this_dial;
-        if (this_dial) {
+    bool this_button;
+    if (dialButton.changed(this_button)) {
+        if (this_button) {
             current_scene->onDialButtonPress();
         } else {
             current_scene->onDialButtonRelease();
         }
     }
 
-    bool this_red = redButton.active();
-    if (this_red != last_red) {
-        last_red = this_red;
-        if (this_red) {
+    if (redButton.changed(this_button)) {
+        if (this_button) {
             current_scene->onRedButtonPress();
         } else {
             current_scene->onRedButtonRelease();
         }
     }
 
-    bool this_green = greenButton.active();
-    if (this_green != last_green) {
-        last_green = this_green;
-        if (this_green) {
+    if (greenButton.changed(this_button)) {
+        if (this_button) {
             current_scene->onGreenButtonPress();
         } else {
             current_scene->onGreenButtonRelease();

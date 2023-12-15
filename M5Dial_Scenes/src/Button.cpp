@@ -3,33 +3,34 @@
 
 #include "Button.h"
 
-void Button::init(uint8_t pin, bool activeLow) {
-    pinMode(pin, INPUT_PULLUP);
+const int debounce_ms = 10;
+
+void Button::init(uint8_t pin, bool active_low) {
     _pin_num    = pin;
-    _last_value = active();
-    _active_low = activeLow;
+    _active_low = active_low;
+    pinMode(_pin_num, INPUT_PULLUP);
+    _last_value = read();
+    _delaying   = false;
 }
 
-bool Button::active() {
-    if (_active_low)
-        _last_value = !digitalRead(_pin_num);
-    else
-        _last_value = digitalRead(_pin_num);
-
-    return _last_value;
+bool Button::read() {
+    return digitalRead(_pin_num) ^ _active_low;
 }
 
-// check, but do not save that value
-bool Button::changed() {
-    bool newVal;
-    if (_active_low)
-        newVal = !digitalRead(_pin_num);
-    else
-        newVal = digitalRead(_pin_num);
-
-    return (_last_value != newVal);
-}
-
-bool Button::value() {
-    return _last_value;
+bool Button::changed(bool& value) {
+    if (_delaying) {
+        if (millis() - _timestamp < debounce_ms) {
+            return false;
+        }
+        _delaying = false;
+    }
+    bool new_value = read();
+    value          = new_value;
+    if (new_value != _last_value) {
+        _timestamp  = millis();
+        _delaying   = true;
+        _last_value = new_value;
+        return true;
+    }
+    return false;
 }

@@ -6,13 +6,13 @@
 class Button {
 public:
     void init(uint8_t pin_num, bool activeLow);
-    bool active();
-    bool changed();
-    bool value();
+    bool read();
+    bool changed(bool& value);
 
 private:
     uint8_t _pin_num;
     bool    _active_low;
-    bool    _last_value;
-    bool    _changed;
+    bool    _last_value = false;
+    bool    _delaying   = false;
+    int32_t _timestamp  = 0;
 };
