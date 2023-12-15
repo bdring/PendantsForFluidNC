@@ -78,7 +78,24 @@ void menuTitle();
 void refreshDisplaySprite();
 
 // helper functions
-void   rotateNumberLoop(int& currentVal, int increment, int min, int max);
+
+// Function to rotate through an aaray of numbers
+// Example:  rotateNumberLoop(variable, 1, 0, 2)
+// The variable can be integer or float.  If it is float, you need
+// to cast increment, min, and max to float otherwise the compiler
+// will try to use double and complain
+
+template <typename T>
+void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
+    currentVal += increment;
+    if (currentVal > max) {
+        currentVal = min;
+    }
+    if (currentVal < min) {
+        currentVal = max;
+    }
+}
+
 void   feedRateRotator(int& rate, bool up);
 String M5TouchStateName(m5::touch_state_t state_num);
 String floatToString(float val, int afterDecimal);

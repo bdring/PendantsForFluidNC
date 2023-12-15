@@ -81,18 +81,6 @@ void dispatch_events() {
     }
 }
 
-// Helpful function to rotate through an aaray of numbers
-// Example:  rotateNumberLoop(2, 1, 0, 2); would change the current value to 0
-void rotateNumberLoop(int& currentVal, int increment, int min, int max) {
-    currentVal += increment;
-    if (currentVal > max) {
-        currentVal = min + (increment - 1);
-    }
-    if (currentVal < min) {
-        currentVal = max - (increment + 1);
-    }
-}
-
 // Helpful for debugging touch development.
 String M5TouchStateName(m5::touch_state_t state_num) {
     static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
