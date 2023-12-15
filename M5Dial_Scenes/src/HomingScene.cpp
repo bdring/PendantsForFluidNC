@@ -14,11 +14,12 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle || state == Alarm) {
-            if (current_button == 0) {
-                send_line("$H");
-            } else {
-                send_line("$H" + axisNumToString(current_button - 1));
+            String line = "$H";
+            if (current_button != 0) {
+                line += axisNumToString(current_button - 1);
             }
+            log_msg(line);
+            send_line(line);
         }
     }
     void onRedButtonPress() {
