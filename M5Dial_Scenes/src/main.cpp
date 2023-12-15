@@ -238,6 +238,7 @@ void readPrefs() {
 
 extern "C" void show_error(int error) {
     drawErrorScreen();
+    M5Dial.Speaker.tone(3000, 1000);
     delay(1000);
     current_scene->display();
 }
