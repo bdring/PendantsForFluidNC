@@ -19,7 +19,7 @@ extern "C" {
 #define B_AXIS 4
 #define C_AXIS 5
 
-typedef int32_t  pos_t;
+typedef float    pos_t;
 typedef int32_t  feedrate_t;
 typedef uint32_t override_percent_t;
 typedef int32_t  file_percent_t;

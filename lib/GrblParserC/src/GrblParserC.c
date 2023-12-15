@@ -23,6 +23,13 @@ static pos_t wcos[MAX_N_AXIS] = { 0 };
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
 
+static void dbg(const char* line) {
+    char msg[100];
+    strcpy(msg, "$Msg/Uart0=");
+    strcat(msg, line);
+    fnc_send_line(msg, 1000);
+}
+
 bool split(char* input, char** next, char delim) {
     char* pos = strchr(input, delim);
     if (pos) {
@@ -48,9 +55,6 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     while (isdigit((int)(c = *p++))) {
         numerator = numerator * 10 + (c - '0');
     }
-    if (negate) {
-        numerator = -numerator;
-    }
     if (c == '.') {
         while (isdigit((int)(c = *p++))) {
             numerator = numerator * 10 + (c - '0');
@@ -67,6 +71,9 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     } else if (c == '%') {
         denominator *= 100;
         c = *p++;
+    }
+    if (negate) {
+        numerator = -numerator;
     }
     *pnumerator   = numerator;
     *pdenominator = denominator;
@@ -129,18 +136,20 @@ static pos_t atopos(const char* s) {
     int32_t  numerator;
     uint32_t denominator;
     atofraction(s, &numerator, &denominator);
-    return numerator * 10000 / denominator;
+    return (pos_t)numerator / denominator;
 }
 
-static void parse_axes(char* s, pos_t* axes) {
-    char* next;
-    _n_axis = 0;
+static size_t parse_axes(char* s, pos_t* axes) {
+    char*  next;
+    size_t n_axis = 0;
     do {
         split(s, &next, ',');
         if (_n_axis < MAX_N_AXIS) {
-            axes[_n_axis++] = atopos(s);
+            axes[n_axis++] = atopos(s);
         }
-    } while (*next);
+        s = next;
+    } while (*s);
+    return n_axis;
 }
 
 static void parse_integers(char* s, uint32_t* nums, int maxnums) {
@@ -188,9 +197,11 @@ static void parse_status_report(char* field) {
     char*          filename     = '\0';
     file_percent_t file_percent = 0;
 
+    size_t n_axis = 0;
+
     // ... handle it
     while (*next) {
-        field = next + 1;
+        field = next;
         split(field, &next, '|');
 
         // MPos:, WPos:, Bf:, Ln:, FS:, Pn:, WCO:, Ov:, A:, SD: (ISRs:, Heap:)
@@ -199,13 +210,13 @@ static void parse_status_report(char* field) {
 
         if (strcmp(field, "MPos") == 0) {
             // x,y,z,...
-            parse_axes(value, axes);
+            n_axis = parse_axes(value, axes);
             isMpos = true;
             continue;
         }
         if (strcmp(field, "WPos") == 0) {
             // x,y,z...
-            parse_axes(value, axes);
+            n_axis = parse_axes(value, axes);
             isMpos = false;
             continue;
         }
@@ -313,8 +324,10 @@ static void parse_status_report(char* field) {
     if (has_filename) {
         show_file(filename, file_percent);
     }
-    show_limits(probe, limits, _n_axis);
-    show_dro(axes, wcos, isMpos, limits, _n_axis);
+    if (n_axis) {
+        show_limits(probe, limits, n_axis);
+        show_dro(axes, wcos, isMpos, limits, n_axis);
+    }
     if (has_linenum) {
         show_linenum(linenum);
     }
@@ -452,6 +465,7 @@ static void parse_report() {
         show_ok();
         return;
     }
+
     char* body;
     if (is_report_type(_report, &body, "<", ">")) {
         parse_status_report(body);
