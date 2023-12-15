@@ -26,7 +26,7 @@ private:
 public:
     JoggingScene() : Scene("Jog Dial") {}
 
-    void onDialButtonRelease() { pop_scene(); }
+    void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
             if (selection % 2) {  // Zero WCO

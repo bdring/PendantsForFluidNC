@@ -15,7 +15,7 @@ private:
 public:
     MainScene() : Scene("Main") {}
 
-    void onDialButtonRelease() {
+    void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
             push_scene(&joggingScene);
         } else if (state == Cycle) {

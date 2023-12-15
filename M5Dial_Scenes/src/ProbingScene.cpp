@@ -20,7 +20,7 @@ private:
 public:
     ProbingScene() : Scene("Probe") {}
 
-    void onDialButtonRelease() { pop_scene(); }
+    void onDialButtonPress() { pop_scene(); }
 
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
