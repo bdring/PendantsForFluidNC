@@ -66,8 +66,10 @@ public:
         if (state == Cycle) {
             if (delta > 0 && myFro < 200) {
                 fnc_realtime(FeedOvrFinePlus);
-            } else if (delta < 0 && myFro > 10)
+            } else if (delta < 0 && myFro > 10) {
                 fnc_realtime(FeedOvrFineMinus);
+            }
+            display();
         }
     }
 
