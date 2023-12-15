@@ -29,9 +29,6 @@ constexpr static const int GREEN_BUTTON_PIN = GPIO_NUM_15;
 constexpr static const int DIAL_BUTTON_PIN  = GPIO_NUM_42;
 constexpr static const int UPDATE_RATE_MS   = 30;  // minimum refresh rate in milliseconds
 
-#define DEBUG_TO_FNC
-#define DEBUG_TO_USB
-
 M5Canvas canvas(&M5Dial.Display);
 
 // local copies of status items
@@ -218,20 +215,9 @@ void feedRateRotator(int& rate, bool up) {
     }
 }
 
-void debug(const char* info) {
-#ifdef DEBUG_TO_FNC
-    String msg { "$Log/Msg=*" };
-    send_line(msg + info);
-#endif
-
-#ifdef DEBUG_TO_USB
-    USBSerial.println(info);
-#endif
-}
-
 void savePrefs() {
     // EEPROM.put(0, myPrefs);
-    // debug("put prefs");
+    // log_msg("put prefs");
 }
 
 void readPrefs() {
@@ -242,7 +228,7 @@ void readPrefs() {
     // }
 
     // EEPROM.get(0, myPrefs);
-    // debug("get prefs");
+    // log_msg("get prefs");
 }
 
 extern "C" void show_alarm(int alarm) {
@@ -330,7 +316,8 @@ void setup() {
     drawStartScreen();
     delay(3000);  // view the logo and wait for the USBSerial to be detected by the PC
 
-    send_line("$Log/Msg=*M5Dial Pendant v0.1");
+    log_msg("M5Dial Pendant v0.2");
+
     USBSerial.println("\r\nM5Dial Pendant Begin");
     fnc_realtime(StatusReport);  // Request fresh status
     M5Dial.Speaker.setVolume(255);

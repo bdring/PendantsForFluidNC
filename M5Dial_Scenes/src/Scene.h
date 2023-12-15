@@ -91,3 +91,5 @@ extern Button redButton;
 extern Button dialButton;
 
 void dispatch_events();
+
+void log_msg(const String& s);

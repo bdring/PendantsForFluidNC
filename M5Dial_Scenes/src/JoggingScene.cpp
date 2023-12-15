@@ -29,9 +29,10 @@ public:
     void onDialButtonRelease() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
-            if (selection % 2) {
-                send_line("G10L20P0" + axisNumToString(jog_axis) + "0");
-                send_line("$Log/Msg=*G10L20P0" + axisNumToString(jog_axis) + "0");
+            if (selection % 2) {  // Zero WCO
+                String cmd = "G10L20P0" + axisNumToString(jog_axis) + "0";
+                log_msg(cmd);
+                send_line(cmd);
             } else {
                 if (jog_continuous) {
                     // $J=G91F1000X10000
@@ -124,14 +125,15 @@ public:
         } else {
             if (delta != 0) {
                 // $J=G91F200Z5.0
-                //$Log/Msg = *
-                send_line("$Log/Msg=*Jog delta:" + String(delta));
-                String jogCmd = "$J=G91F" + floatToString(jog_rate_level[jog_axis], 0) + axisNumToString(jog_axis);
+                String jogRate      = floatToString(jog_rate_level[jog_axis], 0);
+                String jogIncrement = floatToString(jog_increment(), 2);
+                String cmd          = "$J=G91F" + jogRate + axisNumToString(jog_axis);
                 if (delta < 0) {
-                    jogCmd += "-";
+                    cmd += "-";
                 }
-                jogCmd += floatToString(jog_increment(), 2);
-                send_line(jogCmd);
+                cmd += jogIncrement;
+                log_msg(cmd);
+                send_line(cmd);
             }
         }
     }

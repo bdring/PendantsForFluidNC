@@ -1,6 +1,9 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+#define DEBUG_TO_FNC
+#define DEBUG_TO_USB
+
 #include <Arduino.h>
 #include "Scene.h"
 
@@ -78,7 +81,7 @@ void dispatch_events() {
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
         if (this_touch.state != m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 200);
+            M5Dial.Speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch);
         } else {
             current_scene->onTouchRelease(this_touch);
@@ -122,4 +125,12 @@ void send_line(const String& s, int timeout) {
 }
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
+}
+void log_msg(const String& s) {
+#ifdef DEBUG_TO_FNC
+    send_line("$Msg/Uart0=" + s);
+#endif
+#ifdef DEBUG_TO_USB
+    USBSerial.println(s);
+#endif
 }
