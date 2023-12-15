@@ -143,7 +143,7 @@ public:
                 break;
         }
 
-        buttonLegends(redText, grnText, "Main");
+        buttonLegends(redText, grnText, "Back");
         refreshDisplaySprite();
     }
 };

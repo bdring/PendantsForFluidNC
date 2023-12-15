@@ -178,31 +178,32 @@ public:
         canvas.setTextColor(WHITE);
         canvas.drawString((jog_continuous) ? "Bttn Jog" : "Knob Jog", 120, 12);
 
+        const char* back = "Back";
         switch (state) {
             case Idle:
                 if (jog_continuous) {
                     if (selection % 2) {
-                        buttonLegends("", "Zero " + axisNumToString(jog_axis), "Main");
+                        buttonLegends("", "Zero " + axisNumToString(jog_axis), back);
                     } else {
-                        buttonLegends("Jog-", "Jog+", "Main");
+                        buttonLegends("Jog-", "Jog+", back);
                     }
                 } else {
                     if (selection % 2) {  // if zro selected
-                        buttonLegends("", "Zero " + axisNumToString(jog_axis), "Main");
+                        buttonLegends("", "Zero " + axisNumToString(jog_axis), back);
                     } else {
-                        buttonLegends("Dec", "Inc", "Main");
+                        buttonLegends("Dec", "Inc", back);
                     }
                 }
                 break;
             case Jog:
                 if (jog_continuous) {
-                    buttonLegends("Jog-", "Jog+", "Main");
+                    buttonLegends("Jog-", "Jog+", back);
                 } else {
-                    buttonLegends("E-Stop", "Cancel", "Main");
+                    buttonLegends("E-Stop", "Cancel", back);
                 }
                 break;
             case Alarm:
-                buttonLegends("", "", "Main");
+                buttonLegends("", "", back);
                 break;
         }
 

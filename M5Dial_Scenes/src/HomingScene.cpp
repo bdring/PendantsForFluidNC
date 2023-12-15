@@ -59,7 +59,7 @@ public:
             grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
         }
 
-        buttonLegends(redLabel, grnLabel, "Main");
+        buttonLegends(redLabel, grnLabel, "Back");
 
         refreshDisplaySprite();
     }
