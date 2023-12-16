@@ -278,7 +278,7 @@ extern "C" void show_state(const char* state_string) {
     }
 }
 
-extern "C" void start_status_report() {
+extern "C" void begin_status_report() {
     myPercent = 0;
 }
 extern "C" void end_status_report() {
