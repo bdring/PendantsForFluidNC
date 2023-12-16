@@ -252,9 +252,6 @@ extern "C" void show_alarm(int alarm) {
     lastAlarm = alarm;
     current_scene->display();
 }
-extern "C" void show_overrides(override_percent_t feed, override_percent_t rapid, override_percent_t spindle) {
-    myFro = feed;
-}
 extern "C" void show_state(const char* state_string) {
     if (stateString != state_string) {
         stateString = state_string;
@@ -290,6 +287,10 @@ extern "C" void end_status_report() {
 
 extern "C" void show_file(const char* filename, file_percent_t percent) {
     myPercent = percent;
+}
+
+extern "C" void show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {
+    myFro = feed_ovr;
 }
 
 extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {

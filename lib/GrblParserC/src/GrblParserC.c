@@ -193,9 +193,14 @@ static void parse_status_report(char* field) {
     pos_t axes[MAX_N_AXIS];
     bool  isMpos = false;
 
+    bool has_override = false;
+
     bool           has_filename = false;
     char*          filename     = '\0';
     file_percent_t file_percent = 0;
+
+    uint32_t           fs[2];
+    override_percent_t frs[3];
 
     size_t n_axis = 0;
 
@@ -231,7 +236,6 @@ static void parse_status_report(char* field) {
         }
         if (strcmp(field, "FS") == 0) {
             // feedrate,spindle_speed
-            uint32_t fs[2];
             parse_integers(value, fs, 2);  // feed in [0], spindle in [1]
             continue;
         }
@@ -273,8 +277,8 @@ static void parse_status_report(char* field) {
             continue;
         }
         if (strcmp(field, "Ov") == 0) {
+            has_override = true;
             // feed_ovr,rapid_ovr,spindle_ovr
-            override_percent_t frs[3];
             parse_integers(value, frs, 3);  // feed in [0], rapid in [1], spindle in [2]
             continue;
         }
@@ -333,6 +337,10 @@ static void parse_status_report(char* field) {
     }
     if (has_a_field) {
         show_spindle_coolant(spindle, flood, mist);
+    }
+    show_feed_spindle(fs[0], fs[1]);
+    if (has_override) {
+        show_overrides(frs[0], frs[1], frs[2]);
     }
 
     end_status_report();
@@ -550,7 +558,8 @@ void __attribute__((weak)) show_state(const char* state) {};
 void __attribute__((weak)) show_dro(const pos_t* axes, const pos_t* wcos, bool isMpos, bool* limits, size_t n_axis) {}
 void __attribute__((weak)) show_file(const char* filename, file_percent_t percent) {}
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
-
+void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed) {}
+void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 
