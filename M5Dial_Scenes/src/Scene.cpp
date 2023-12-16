@@ -36,10 +36,7 @@ void dispatch_events() {
     static int32_t           oldEncoderPos    = 0;
     static m5::touch_state_t last_touch_state = {};
 
-    M5Dial.update();
-    int32_t newEncoderPos = M5Dial.Encoder.read();
-    int32_t encoderDelta  = newEncoderPos - oldEncoderPos;
-    oldEncoderPos         = newEncoderPos;
+    int32_t encoderDelta = M5Dial.Encoder.readAndReset();
     if (encoderDelta) {
         current_scene->onEncoder(encoderDelta);
     }

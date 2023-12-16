@@ -331,7 +331,7 @@ void setup() {
     redButton.init(RED_BUTTON_PIN, true);
     dialButton.init(DIAL_BUTTON_PIN, true);
 
-    USBSerial.begin(115200);
+    USBSerial.begin(921600);
     Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // assign pins to the M5Stamp Port B
 
     drawStartScreen();
