@@ -42,7 +42,7 @@ public:
         int width  = WIDTH - (x * 2);
         int height = 32;
 
-        Stripe button(x, 65, width, height, SMALL);
+        Stripe button(x, y, width, height, SMALL);
         button.draw("Home All", current_button == 0);
         y = button.y();  // LEDs start with the Home X button
         button.draw("Home X", current_button == 1);
