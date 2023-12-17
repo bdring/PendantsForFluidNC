@@ -86,29 +86,3 @@ String M5TouchStateName(m5::touch_state_t state_num) {
 
     return String(state_name[state_num]);
 }
-
-String axisNumToString(int axis) {
-    return String("XYZABC").substring(axis, axis + 1);
-}
-
-String floatToString(float val, int afterDecimal) {
-    char buffer[20];
-    dtostrf(val, 1, afterDecimal, buffer);
-    String str(buffer);
-    return str;
-}
-
-void send_line(const String& s, int timeout) {
-    send_line(s.c_str(), timeout);
-}
-void send_line(const char* s, int timeout) {
-    fnc_send_line(s, timeout);
-}
-void log_msg(const String& s) {
-#ifdef DEBUG_TO_FNC
-    send_line("$Msg/Uart0=" + s);
-#endif
-#ifdef DEBUG_TO_USB
-    USBSerial.println(s);
-#endif
-}

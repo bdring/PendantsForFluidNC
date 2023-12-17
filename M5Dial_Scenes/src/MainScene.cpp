@@ -78,9 +78,8 @@ public:
 
     void display() {
         canvas.createSprite(240, 240);
-        canvas.fillSprite(BLACK);
-
-        menuTitle();
+        drawBackground(BLACK);
+        drawMenuTitle(current_scene->name());
         drawStatus();
 
         int y       = 68;
@@ -95,15 +94,13 @@ public:
             if (myPercent > 0) {
                 canvas.fillRoundRect(20, y, width, 10, 5, LIGHTGREY);
                 width = (float)width * myPercent / 100.0;
-                if (width > 0)
+                if (width > 0) {
                     canvas.fillRoundRect(20, y, width, 10, 5, GREEN);
+                }
             }
 
             // Feed override
-            canvas.setTextColor(WHITE);
-            canvas.setFont(&fonts::FreeSansBold9pt7b);
-            canvas.setTextDatum(middle_center);
-            canvas.drawString("Feed Rate Ovr:" + String(myFro) + "%", 120, y + 23);
+            centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
         String encoder_button_text = "";
@@ -123,23 +120,23 @@ public:
         switch (state) {
             case Alarm:
             case Homing:
-                buttonLegends("Reset", "Home", encoder_button_text);
+                drawButtonLegends("Reset", "Home", encoder_button_text);
                 break;
             case Cycle:
-                buttonLegends("E-Stop", "Hold", "FRO End");
+                drawButtonLegends("E-Stop", "Hold", "FRO End");
                 break;
             case Hold:
-                buttonLegends("Quit", "Start", encoder_button_text);
+                drawButtonLegends("Quit", "Start", encoder_button_text);
                 break;
             case Jog:
-                buttonLegends("Jog Cancel", "", encoder_button_text);
+                drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                buttonLegends("Probe", "Home", encoder_button_text);
+                drawButtonLegends("Probe", "Home", encoder_button_text);
                 break;
         }
 
-        refreshDisplaySprite();
+        refreshDisplay();
     }
 };
 MainScene mainScene;

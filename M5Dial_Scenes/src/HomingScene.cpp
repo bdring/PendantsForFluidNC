@@ -33,23 +33,22 @@ public:
         display();
     }
     void display() {
-        canvas.fillSprite(BLACK);
+        drawBackground(BLACK);
+        drawMenuTitle(current_scene->name());
         drawStatus();
 
         int x      = 50;
         int y      = 65;
         int gap    = 34;
-        int width  = 140;
+        int width  = WIDTH - (x * 2);
         int height = 30;
-        drawButton(x, y, width, height, 12, "Home All", current_button == 0);
-        drawButton(x, y += gap, width, height, 12, "Home X", current_button == 1);
+        drawButton(x, y, width, height, SMALL, "Home All", current_button == 0);
+        drawButton(x, y += gap, width, height, SMALL, "Home X", current_button == 1);
         drawLed(x - 16, y + 15, 10, myLimitSwitches[0]);
-        drawButton(x, y += gap, width, height, 12, "Home Y", current_button == 2);
+        drawButton(x, y += gap, width, height, SMALL, "Home Y", current_button == 2);
         drawLed(x - 16, y + 15, 10, myLimitSwitches[1]);
-        drawButton(x, y += gap, width, height, 12, "Home Z", current_button == 3);
+        drawButton(x, y += gap, width, height, SMALL, "Home Z", current_button == 3);
         drawLed(x - 16, y + 15, 10, myLimitSwitches[2]);
-
-        menuTitle();
 
         String redLabel, grnLabel, orangeLabel = "";
         if (state == Homing) {
@@ -59,9 +58,9 @@ public:
             grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
         }
 
-        buttonLegends(redLabel, grnLabel, "Back");
+        drawButtonLegends(redLabel, grnLabel, "Back");
 
-        refreshDisplaySprite();
+        refreshDisplay();
     }
 };
 HomingScene homingScene;

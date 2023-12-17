@@ -106,22 +106,20 @@ public:
 
     void display() {
         canvas.createSprite(240, 240);
-        canvas.fillSprite(BLACK);
-
-        drawStatus();
-        menuTitle();
+        drawBackground(BLACK);
+        drawMenuTitle(current_scene->name());
         drawStatus();
 
         int x      = 40;
         int y      = 62;
-        int width  = 240 - (x * 2);
+        int width  = WIDTH - (x * 2);
         int height = 25;
         int pitch  = 27;  // for spacing of buttons
-        drawButton(x, y, width, height, 9, "Offset: " + floatToString(probe_offset, 2), selection == 0);
-        drawButton(x, y += pitch, width, height, 9, "Max Travel: " + floatToString(probe_travel, 0), selection == 1);
-        drawButton(x, y += pitch, width, height, 9, "Feed Rate: " + floatToString(probe_rate, 0), selection == 2);
-        drawButton(x, y += pitch, width, height, 9, "Retract: " + floatToString(probe_retract, 0), selection == 3);
-        drawButton(x, y += pitch, width, height, 9, "Axis: " + axisNumToString(probe_axis), selection == 4);
+        drawButton(x, y, width, height, TINY, "Offset: " + floatToString(probe_offset, 2), selection == 0);
+        drawButton(x, y += pitch, width, height, TINY, "Max Travel: " + floatToString(probe_travel, 0), selection == 1);
+        drawButton(x, y += pitch, width, height, TINY, "Feed Rate: " + floatToString(probe_rate, 0), selection == 2);
+        drawButton(x, y += pitch, width, height, TINY, "Retract: " + floatToString(probe_retract, 0), selection == 3);
+        drawButton(x, y += pitch, width, height, TINY, "Axis: " + axisNumToString(probe_axis), selection == 4);
 
         drawLed(20, 128, 10, myProbeSwitch);
 
@@ -143,8 +141,8 @@ public:
                 break;
         }
 
-        buttonLegends(redText, grnText, "Back");
-        refreshDisplaySprite();
+        drawButtonLegends(redText, grnText, "Back");
+        refreshDisplay();
     }
 };
 ProbingScene probingScene;

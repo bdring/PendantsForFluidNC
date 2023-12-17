@@ -23,6 +23,30 @@ private:
 
     float jog_increment() { return pow(10.0, abs(jog_inc_level[jog_axis])) / 100.0; }
 
+    void feedRateRotator(int& rate, bool up) {
+        if (up) {
+            if (rate < 10) {
+                rate += 1;
+            } else if (rate < 100) {
+                rate += 10;
+            } else if (rate < 1000) {
+                rate += 100;
+            } else {
+                rate += 1000;
+            }
+        } else {
+            if (rate > 1000) {
+                rate -= 1000;
+            } else if (rate > 100) {
+                rate -= 100;
+            } else if (rate > 10) {
+                rate -= 10;
+            } else if (rate > 2) {
+                rate -= 1;
+            }
+        }
+    }
+
 public:
     JoggingScene() : Scene("Jog Dial") {}
 
@@ -139,9 +163,9 @@ public:
     }
 
     void display() {
-        canvas.fillSprite(BLACK);
-
+        drawBackground(BLACK);
         drawStatus();
+
         int x      = 9;
         int y      = 69;
         int width  = 180;
@@ -155,59 +179,54 @@ public:
         x          = x + width + 1;
         y          = 69;
         width      = 42;
-        drawButton(x, y, width, height, 9, "zro", selection == 1);
-        drawButton(x, y += offset, width, height, 9, "zro", selection == 3);
-        drawButton(x, y += offset, width, height, 9, "zro", selection == 5);
+        drawButton(x, y, width, height, TINY, "zro", selection == 1);
+        drawButton(x, y += offset, width, height, TINY, "zro", selection == 3);
+        drawButton(x, y += offset, width, height, TINY, "zro", selection == 5);
+
+        String legend;
+        legend = jog_continuous ? "Bttn Jog" : "Knob Jog";
+        centered_text(legend, 12);
 
         if (jog_continuous) {
-            canvas.setFont(&fonts::FreeSansBold9pt7b);
-            canvas.setTextDatum(middle_center);
-            canvas.setTextColor(WHITE);
-            canvas.drawString("Jog Rate: " + floatToString(jog_cont_speed[jog_axis], 0), 120, 185);
+            legend = "Jog Rate: " + floatToString(jog_cont_speed[jog_axis], 0);
+            centered_text(legend, 185);
         } else {
-            canvas.setFont(&fonts::FreeSansBold9pt7b);
-            canvas.setTextDatum(middle_center);
-            canvas.setTextColor((active_setting == 0) ? WHITE : DARKGREY);
-            canvas.drawString("Jog Dist: " + floatToString(jog_increment(), 2), 120, 177);
-            canvas.setTextColor((active_setting == 1) ? WHITE : DARKGREY);
-            canvas.drawString("Jog Rate: " + floatToString(jog_rate_level[jog_axis], 2), 120, 193);
+            legend = "Jog Dist: " + floatToString(jog_increment(), 2);
+            centered_text(legend, 177, active_setting == 0 ? WHITE : DARKGREY);
+            legend = "Jog Rate: " + floatToString(jog_rate_level[jog_axis], 2);
+            centered_text(legend, 193, active_setting == 1 ? WHITE : DARKGREY);
         }
-
-        canvas.setFont(&fonts::FreeSansBold9pt7b);
-        canvas.setTextDatum(middle_center);
-        canvas.setTextColor(WHITE);
-        canvas.drawString((jog_continuous) ? "Bttn Jog" : "Knob Jog", 120, 12);
 
         const char* back = "Back";
         switch (state) {
             case Idle:
                 if (jog_continuous) {
                     if (selection % 2) {
-                        buttonLegends("", "Zero " + axisNumToString(jog_axis), back);
+                        drawButtonLegends("", "Zero " + axisNumToString(jog_axis), back);
                     } else {
-                        buttonLegends("Jog-", "Jog+", back);
+                        drawButtonLegends("Jog-", "Jog+", back);
                     }
                 } else {
                     if (selection % 2) {  // if zro selected
-                        buttonLegends("", "Zero " + axisNumToString(jog_axis), back);
+                        drawButtonLegends("", "Zero " + axisNumToString(jog_axis), back);
                     } else {
-                        buttonLegends("Dec", "Inc", back);
+                        drawButtonLegends("Dec", "Inc", back);
                     }
                 }
                 break;
             case Jog:
                 if (jog_continuous) {
-                    buttonLegends("Jog-", "Jog+", back);
+                    drawButtonLegends("Jog-", "Jog+", back);
                 } else {
-                    buttonLegends("E-Stop", "Cancel", back);
+                    drawButtonLegends("E-Stop", "Cancel", back);
                 }
                 break;
             case Alarm:
-                buttonLegends("", "", back);
+                drawButtonLegends("", "", back);
                 break;
         }
 
-        refreshDisplaySprite();
+        refreshDisplay();
     }
 };
 JoggingScene joggingScene;
