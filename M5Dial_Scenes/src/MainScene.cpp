@@ -82,13 +82,12 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        int y       = 68;
-        int spacing = 33;
-        drawDRO(10, y, 220, 0, myAxes[0], false);
-        drawDRO(10, y += spacing, 220, 1, myAxes[1], false);
-        drawDRO(10, y += spacing, 220, 2, myAxes[2], false);
+        DRO dro(10, 68, 220, 32);
+        dro.draw(0, false);
+        dro.draw(1, false);
+        dro.draw(2, false);
 
-        y = 170;
+        int y = 170;
         if (state == Cycle || state == Hold) {
             int width = 192;
             if (myPercent > 0) {

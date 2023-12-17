@@ -34,9 +34,22 @@ void drawStatus() {
     }
 }
 
-void drawButton(int x, int y, int width, int height, fontnum_t fontnum, const String& msg, bool highlighted) {
-    drawOutlinedRect(x, y, width, height, highlighted ? BLUE : NAVY, WHITE);
-    text(msg, x + width / 2, y + height / 2 + 2, WHITE, fontnum);
+Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}
+
+void Stripe::draw(const String& left, const String& right, bool highlighted, int left_color) {
+    drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
+    if (left.length()) {
+        text(left, text_left_x(), text_middle_y(), left_color, _font, middle_left);
+    }
+    if (right.length()) {
+        text(right, text_right_x(), text_middle_y(), WHITE, _font, middle_right);
+    }
+    _y += gap();
+}
+void Stripe::draw(const String& center, bool highlighted) {
+    drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
+    text(center, text_center_x(), text_middle_y(), WHITE, _font, middle_center);
+    _y += gap();
 }
 
 #define PUSH_BUTTON_LINE 212
@@ -49,9 +62,10 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
 }
 
-void drawLed(int x, int y, int radius, bool active) {
-    canvas.fillCircle(x, y, radius, (active) ? GREEN : DARKGREY);
-    canvas.drawCircle(x, y, radius, WHITE);
+void LED::draw(bool highlighted) {
+    canvas.fillCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY);
+    canvas.drawCircle(_x, _y, _radius, WHITE);
+    _y += _gap;
 }
 
 void drawMenuTitle(const String& name) {
@@ -63,3 +77,5 @@ void refreshDisplay() {
     canvas.pushSprite(0, 0);
     M5Dial.Display.endWrite();
 }
+
+void drawMenuView(std::vector<String> labels, int start, int selected) {}

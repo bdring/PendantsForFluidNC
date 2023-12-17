@@ -39,16 +39,20 @@ public:
 
         int x      = 50;
         int y      = 65;
-        int gap    = 34;
         int width  = WIDTH - (x * 2);
-        int height = 30;
-        drawButton(x, y, width, height, SMALL, "Home All", current_button == 0);
-        drawButton(x, y += gap, width, height, SMALL, "Home X", current_button == 1);
-        drawLed(x - 16, y + 15, 10, myLimitSwitches[0]);
-        drawButton(x, y += gap, width, height, SMALL, "Home Y", current_button == 2);
-        drawLed(x - 16, y + 15, 10, myLimitSwitches[1]);
-        drawButton(x, y += gap, width, height, SMALL, "Home Z", current_button == 3);
-        drawLed(x - 16, y + 15, 10, myLimitSwitches[2]);
+        int height = 32;
+
+        Stripe button(x, 65, width, height, SMALL);
+        button.draw("Home All", current_button == 0);
+        y = button.y();  // LEDs start with the Home X button
+        button.draw("Home X", current_button == 1);
+        button.draw("Home Y", current_button == 2);
+        button.draw("Home Z", current_button == 3);
+
+        LED led(x - 16, y + height / 2, 10, button.gap());
+        led.draw(myLimitSwitches[0]);
+        led.draw(myLimitSwitches[1]);
+        led.draw(myLimitSwitches[2]);
 
         String redLabel, grnLabel, orangeLabel = "";
         if (state == Homing) {

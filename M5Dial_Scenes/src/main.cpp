@@ -49,13 +49,8 @@ void drawErrorScreen(const String& s) {
     text("Error " + s, VERTICAL_CENTER, WHITE, LARGE);
 }
 
-void drawDRO(int x, int y, int width, int axis, float value, bool highlighted) {
-    static constexpr int height = 32;
-
-    drawOutlinedRect(x, y, width, height, highlighted ? BLUE : NAVY, WHITE);
-
-    text(axisNumToString(axis), x + 5, y + height / 2 + 2, myLimitSwitches[axis] ? GREEN : WHITE, MEDIUM_MONO, middle_left);
-    text(floatToString(value, 2), x + width - 5, y + height / 2 + 2, WHITE, MEDIUM_MONO, middle_right);
+void DRO::draw(int axis, bool highlight) {
+    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
 }
 
 void savePrefs() {

@@ -110,18 +110,22 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        int x      = 40;
-        int y      = 62;
-        int width  = WIDTH - (x * 2);
-        int height = 25;
-        int pitch  = 27;  // for spacing of buttons
-        drawButton(x, y, width, height, TINY, "Offset: " + floatToString(probe_offset, 2), selection == 0);
-        drawButton(x, y += pitch, width, height, TINY, "Max Travel: " + floatToString(probe_travel, 0), selection == 1);
-        drawButton(x, y += pitch, width, height, TINY, "Feed Rate: " + floatToString(probe_rate, 0), selection == 2);
-        drawButton(x, y += pitch, width, height, TINY, "Retract: " + floatToString(probe_retract, 0), selection == 3);
-        drawButton(x, y += pitch, width, height, TINY, "Axis: " + axisNumToString(probe_axis), selection == 4);
+        int    x      = 40;
+        int    y      = 62;
+        int    width  = WIDTH - (x * 2);
+        int    height = 25;
+        int    pitch  = 27;  // for spacing of buttons
+        Stripe button(x, y, width, height, TINY);
+        button.draw("Offset", floatToString(probe_offset, 2), selection == 0);
+        button.draw("Max Travel", floatToString(probe_travel, 0), selection == 1);
+        y = button.y();  // For LED
+        button.draw("Feed Rate", floatToString(probe_rate, 0), selection == 2);
 
-        drawLed(20, 128, 10, myProbeSwitch);
+        button.draw("Retract", floatToString(probe_retract, 0), selection == 3);
+        button.draw("Axis", axisNumToString(probe_axis), selection == 4);
+
+        LED led(x - 20, y + height / 2, 10, button.gap());
+        led.draw(myProbeSwitch);
 
         String grnText = "";
         String redText = "";

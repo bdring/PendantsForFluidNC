@@ -169,19 +169,17 @@ public:
         int x      = 9;
         int y      = 69;
         int width  = 180;
-        int offset = 33;
+        int height = 33;
 
-        drawDRO(x, y, width, 0, myAxes[0], jog_axis == 0);
-        drawDRO(x, y += offset, width, 1, myAxes[1], jog_axis == 1);
-        drawDRO(x, y += offset, width, 2, myAxes[2], jog_axis == 2);
+        DRO dro(x, y, width, height);
+        dro.draw(0, jog_axis == 0);
+        dro.draw(1, jog_axis == 1);
+        dro.draw(2, jog_axis == 2);
 
-        int height = 32;
-        x          = x + width + 1;
-        y          = 69;
-        width      = 42;
-        drawButton(x, y, width, height, TINY, "zro", selection == 1);
-        drawButton(x, y += offset, width, height, TINY, "zro", selection == 3);
-        drawButton(x, y += offset, width, height, TINY, "zro", selection == 5);
+        Stripe stripe(x + width + 1, y, 42, height, TINY);
+        stripe.draw("zro", selection == 1);
+        stripe.draw("zro", selection == 3);
+        stripe.draw("zro", selection == 5);
 
         String legend;
         legend = jog_continuous ? "Bttn Jog" : "Knob Jog";
