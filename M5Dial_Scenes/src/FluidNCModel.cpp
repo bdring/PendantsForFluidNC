@@ -2,6 +2,7 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #include "FluidNCModel.h"
+#include <map>
 
 // local copies of status items
 String             stateString        = "N/C";
@@ -14,29 +15,26 @@ file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
 int                lastAlarm          = 0;
 
+// clang-format off
+std::map<String, state_t> state_map = {
+    { "Idle", Idle },
+    { "Alarm", Alarm },
+    { "Hold:0", Hold },
+    { "Hold:1", Hold },
+    { "Run", Cycle },
+    { "Jog", Jog },
+    { "Home", Homing },
+    { "Door:0", SafetyDoor },
+    { "Door:1", SafetyDoor },
+    { "Check", CheckMode },
+    { "Sleep", Sleep },
+};
+// clang-format on
+
 void decode_state_string(const char* state_string) {
-    stateString = state_string;
     if (stateString != state_string) {
         stateString = state_string;
-        if (stateString.startsWith("Hold")) {
-            state = Hold;
-        } else if (stateString == "Run") {
-            state = Cycle;
-        } else if (stateString == "Alarm") {
-            state = Alarm;
-        } else if (stateString == "Idle") {
-            state = Idle;
-        } else if (stateString == "Jog") {
-            state = Jog;
-        } else if (stateString == "Home") {
-            state = Homing;
-        } else if (stateString.startsWith("Door")) {
-            state = SafetyDoor;
-        } else if (stateString == "Check") {
-            state = CheckMode;
-        } else if (stateString == "Sleep") {
-            state = Sleep;
-        }
+        state       = state_map[stateString];
     }
 }
 

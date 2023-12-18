@@ -14,10 +14,21 @@ void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outl
     canvas.drawRoundRect(x, y, width, height, 5, outlinecolor);
 }
 
+// clang-format off
 std::map<state_t, int> stateColors = {
-    { Idle, WHITE }, { Alarm, RED },        { CheckMode, WHITE }, { Homing, CYAN },       { Cycle, GREEN },    { Hold, YELLOW },
-    { Jog, CYAN },   { SafetyDoor, WHITE }, { Sleep, WHITE },     { ConfigAlarm, WHITE }, { Critical, WHITE },
+    { Idle,        WHITE },
+    { Alarm,       RED },
+    { CheckMode,   WHITE },
+    { Homing,      CYAN },
+    { Cycle,       GREEN },
+    { Hold,        YELLOW },
+    { Jog,         CYAN },
+    { SafetyDoor,  WHITE },
+    { Sleep,       WHITE },
+    { ConfigAlarm, WHITE },
+    { Critical,    WHITE },
 };
+// clang-format on
 
 void drawStatus() {
     static constexpr int x      = 100;
