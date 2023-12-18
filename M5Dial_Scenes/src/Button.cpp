@@ -19,7 +19,7 @@ bool Button::read() {
 
 bool Button::changed(bool& value) {
     if (_delaying) {
-        if (millis() - _timestamp < debounce_ms) {
+        if (((int32_t)millis() - _debounce_end) < 0) {
             return false;
         }
         _delaying = false;
@@ -27,9 +27,9 @@ bool Button::changed(bool& value) {
     bool new_value = read();
     value          = new_value;
     if (new_value != _last_value) {
-        _timestamp  = millis();
-        _delaying   = true;
-        _last_value = new_value;
+        _debounce_end = (int32_t)millis() + debounce_ms;
+        _delaying     = true;
+        _last_value   = new_value;
         return true;
     }
     return false;

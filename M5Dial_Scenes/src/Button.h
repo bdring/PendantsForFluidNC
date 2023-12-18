@@ -12,7 +12,7 @@ public:
 private:
     uint8_t _pin_num;
     bool    _active_low;
-    bool    _last_value = false;
-    bool    _delaying   = false;
-    int32_t _timestamp  = 0;
+    bool    _last_value   = false;
+    bool    _delaying     = false;
+    int32_t _debounce_end = 0;
 };
