@@ -56,7 +56,7 @@ public:
 
         String redLabel, grnLabel, orangeLabel = "";
         if (state == Homing) {
-            redLabel == "E-Stop";
+            redLabel = "E-Stop";
         } else {
             grnLabel = "Home ";
             grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
