@@ -133,12 +133,12 @@ void setup() {
 }
 
 void loop() {
-    static uint32_t last_time = millis();  // controls the framerate
+    static int32_t next_time = millis() + UPDATE_RATE_MS;  // controls the framerate
     dispatch_events();
 
     while (Serial_FNC.available()) {
         fnc_poll();  // do the serial port reading and echoing
     }
 
-    while (millis() - last_time < UPDATE_RATE_MS) {}
+    while (((int32_t)millis() - next_time) < 0) {}
 }
