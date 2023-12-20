@@ -133,12 +133,9 @@ void setup() {
 }
 
 void loop() {
-    static int32_t next_time = millis() + UPDATE_RATE_MS;  // controls the framerate
     dispatch_events();
 
     while (Serial_FNC.available()) {
-        fnc_poll();  // do the serial port reading and echoing
+        fnc_poll();  // Handle messages from FluidNC
     }
-
-    while (((int32_t)millis() - next_time) < 0) {}
 }
