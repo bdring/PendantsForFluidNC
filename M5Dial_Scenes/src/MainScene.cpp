@@ -7,6 +7,8 @@
 extern Scene probingScene;
 extern Scene homingScene;
 extern Scene joggingScene;
+extern Scene controlScene;
+extern Scene menuScene;
 
 class MainScene : public Scene {
 private:
@@ -17,7 +19,8 @@ public:
 
     void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
-            push_scene(&joggingScene);
+            //push_scene(&joggingScene);
+            push_scene(&menuScene);
         } else if (state == Cycle) {
             fnc_realtime(FeedOvrReset);
         }
@@ -63,12 +66,16 @@ public:
     }
 
     void onEncoder(int delta) {
+        menu_item += delta;
         if (state == Cycle) {
             if (delta > 0 && myFro < 200) {
                 fnc_realtime(FeedOvrFinePlus);
             } else if (delta < 0 && myFro > 10) {
                 fnc_realtime(FeedOvrFineMinus);
             }
+            //display();
+        } else if (state == Idle) {
+            menu_item += delta * 10;
             display();
         }
     }
@@ -131,7 +138,7 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("Probe", "Home", encoder_button_text);
+                drawButtonLegends("Probe", "Home", "Menus");                
                 break;
         }
 

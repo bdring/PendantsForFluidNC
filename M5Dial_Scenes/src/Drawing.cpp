@@ -45,6 +45,15 @@ void drawStatus() {
     }
 }
 
+void showError() {
+    if (millis() < errorExpire) {
+        //errorCounter--;
+        canvas.fillCircle(120, 120, 95, RED);
+        canvas.drawCircle(120, 120, 95, WHITE);
+        centered_text("Error " + String(lastError), 130, WHITE, MEDIUM);
+    }
+}
+
 Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}
 
 void Stripe::draw(const String& left, const String& right, bool highlighted, int left_color) {
@@ -81,6 +90,12 @@ void LED::draw(bool highlighted) {
 
 void drawMenuTitle(const String& name) {
     centered_text(name, 12);
+}
+
+void drawThickCircle(int x, int y, int outsideRaius, int thickness, int color) {
+    for (int i = 0; i < thickness; i++) {
+        canvas.drawCircle(x, y, outsideRaius-i, color);
+    }
 }
 
 void refreshDisplay() {

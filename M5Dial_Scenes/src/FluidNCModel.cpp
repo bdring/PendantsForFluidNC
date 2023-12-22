@@ -14,6 +14,8 @@ String             myFile             = "";   // running SD filename
 file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
 int                lastAlarm          = 0;
+uint32_t           errorExpire        = 0;
+int                lastError          = 0;
 
 // clang-format off
 std::map<String, state_t> state_map = {

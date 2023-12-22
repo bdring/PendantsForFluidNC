@@ -70,9 +70,8 @@ void readPrefs() {
 }
 
 extern "C" void show_error(int error) {
-    drawErrorScreen(String(error));
-    M5Dial.Speaker.tone(3000, 1000);
-    delay(1000);
+    errorExpire = millis() + 1000;
+    lastError   = error;
     current_scene->display();
 }
 
@@ -126,6 +125,8 @@ void setup() {
     USBSerial.println("\r\nM5Dial Pendant Begin");
     fnc_realtime(StatusReport);  // Request fresh status
     M5Dial.Speaker.setVolume(255);
+
+    errorExpire = millis();
 
     readPrefs();
 
