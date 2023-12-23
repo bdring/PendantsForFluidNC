@@ -19,12 +19,12 @@ Saved
 */
 
 #include <Arduino.h>
+#include <LittleFS.h>
 #include <Esp.h>  // ESP.restart()
 #include <EEPROM.h>
 #include "alarm.h"
 #include "FluidNCModel.h"
 #include "Scene.h"
-#include <LittleFS.h>
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
@@ -39,7 +39,8 @@ HardwareSerial Serial_FNC(1);  // Serial port for comm with FNC
 void drawSplashScreen() {
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
-    showImageFile("/logo_img.bin", 0, 70, 240, 100);
+    M5Dial.Display.drawPngFile(LittleFS, "/bitmap.png", 0, 70);
+
     centered_text("Fluid Dial", 36, BLACK, SMALL);
     centered_text("Pendant", 65, BLACK, SMALL);
     centered_text("B. Dring", 190, BLACK, SMALL);
