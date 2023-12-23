@@ -55,3 +55,5 @@ void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outl
 void drawButtonLegends(const String& red, const String& green, const String& orange);
 void drawMenuTitle(const String& name);
 void refreshDisplay();
+
+void showImageFile(const char* name, int x, int y, int width, int height);

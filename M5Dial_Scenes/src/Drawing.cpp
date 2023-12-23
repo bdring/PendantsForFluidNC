@@ -4,6 +4,7 @@
 #include "Drawing.h"
 #include "alarm.h"
 #include <map>
+#include <LittleFS.h>
 
 void drawBackground(int color) {
     canvas.fillSprite(color);
@@ -90,3 +91,16 @@ void refreshDisplay() {
 }
 
 void drawMenuView(std::vector<String> labels, int start, int selected) {}
+
+void showImageFile(const char* name, int x, int y, int width, int height) {
+    auto file = LittleFS.open(name);
+    if (!file) {
+        USBSerial.println("Can't open logo_img.bin");
+        return;
+    }
+    auto      len   = file.size();
+    uint16_t* buf   = (uint16_t*)malloc(len);
+    auto      nread = file.read((uint8_t*)buf, len);
+    M5Dial.Display.pushImage(0, 70, width, height, buf, true);
+    free(buf);
+}

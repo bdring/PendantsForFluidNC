@@ -19,11 +19,14 @@ Saved
 */
 
 #include <Arduino.h>
-#include "logo_img.h"
+#include <Esp.h>  // ESP.restart()
 #include <EEPROM.h>
 #include "alarm.h"
 #include "FluidNCModel.h"
 #include "Scene.h"
+#include <LittleFS.h>
+
+#define FORMAT_LITTLEFS_IF_FAILED true
 
 constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
 constexpr static const int GREEN_BUTTON_PIN = GPIO_NUM_15;
@@ -36,8 +39,7 @@ HardwareSerial Serial_FNC(1);  // Serial port for comm with FNC
 void drawSplashScreen() {
     M5Dial.Display.clear();
     M5Dial.Display.fillScreen(WHITE);
-    M5Dial.Display.pushImage(0, 70, WIDTH, 100, logo_img);
-
+    showImageFile("/logo_img.bin", 0, 70, 240, 100);
     centered_text("Fluid Dial", 36, BLACK, SMALL);
     centered_text("Pendant", 65, BLACK, SMALL);
     centered_text("B. Dring", 190, BLACK, SMALL);
@@ -107,6 +109,58 @@ extern "C" int milliseconds() {
 
 extern Scene mainScene;
 
+void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
+    USBSerial.printf("Listing directory: %s\r\n", dirname);
+
+    File root = fs.open(dirname);
+    if (!root) {
+        USBSerial.println("- failed to open directory");
+        return;
+    }
+    if (!root.isDirectory()) {
+        USBSerial.println(" - not a directory");
+        return;
+    }
+
+    File file = root.openNextFile();
+    while (file) {
+        if (file.isDirectory()) {
+            USBSerial.print("  DIR : ");
+
+            USBSerial.print(file.name());
+            time_t     t        = file.getLastWrite();
+            struct tm* tmstruct = localtime(&t);
+            USBSerial.printf("  LAST WRITE: %d-%02d-%02d %02d:%02d:%02d\n",
+                             (tmstruct->tm_year) + 1900,
+                             (tmstruct->tm_mon) + 1,
+                             tmstruct->tm_mday,
+                             tmstruct->tm_hour,
+                             tmstruct->tm_min,
+                             tmstruct->tm_sec);
+
+            if (levels) {
+                listDir(fs, file.name(), levels - 1);
+            }
+        } else {
+            USBSerial.print("  FILE: ");
+            USBSerial.print(file.name());
+            USBSerial.print("  SIZE: ");
+
+            USBSerial.print(file.size());
+            time_t     t        = file.getLastWrite();
+            struct tm* tmstruct = localtime(&t);
+            USBSerial.printf("  LAST WRITE: %d-%02d-%02d %02d:%02d:%02d\n",
+                             (tmstruct->tm_year) + 1900,
+                             (tmstruct->tm_mon) + 1,
+                             tmstruct->tm_mday,
+                             tmstruct->tm_hour,
+                             tmstruct->tm_min,
+                             tmstruct->tm_sec);
+        }
+        file = root.openNextFile();
+    }
+}
+
 void setup() {
     auto cfg = M5.config();
     M5Dial.begin(cfg, true, false);
@@ -117,6 +171,13 @@ void setup() {
 
     USBSerial.begin(921600);
     Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // assign pins to the M5Stamp Port B
+
+    if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
+        USBSerial.println("LittleFS Mount Failed");
+        return;
+    }
+    USBSerial.println("LittleFS Mount Succeeded");
+    listDir(LittleFS, "/", 0);
 
     drawSplashScreen();
     delay(3000);  // view the logo and wait for the USBSerial to be detected by the PC
@@ -134,6 +195,14 @@ void setup() {
 
 void loop() {
     dispatch_events();
+
+    while (USBSerial.available()) {
+        char c = USBSerial.read();
+        if (c == 'R' || c == 'r') {
+            ESP.restart();
+            while (1) {}
+        }
+    }
 
     while (Serial_FNC.available()) {
         fnc_poll();  // Handle messages from FluidNC
