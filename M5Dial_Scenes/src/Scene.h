@@ -23,13 +23,13 @@ public:
     virtual void onGreenButtonRelease() {}
     virtual void onDialButtonPress() {}
     virtual void onDialButtonRelease() {}
-    virtual void onTouchPress(m5::touch_detail_t) {}
-    virtual void onTouchRelease(m5::touch_detail_t) {}
+    virtual void onTouchPress(int x, int y) {}
+    virtual void onTouchRelease(int x, int y) {}
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
     virtual void onEncoder(int delta) {}
-    virtual void display() {}
+    virtual void reDisplay() {}
     virtual void init(void* arg) {}
 };
 
@@ -55,8 +55,6 @@ void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
         currentVal = max;
     }
 }
-
-String M5TouchStateName(m5::touch_state_t state_num);
 
 extern Scene* current_scene;
 

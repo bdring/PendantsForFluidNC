@@ -27,19 +27,18 @@ public:
             fnc_realtime(Reset);
         }
     }
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         rotateNumberLoop(current_button, 1, 0, 3);
-        USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        display();
+        reDisplay();
     }
-    void display() {
+    void reDisplay() {
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();
 
         int x      = 50;
         int y      = 65;
-        int width  = WIDTH - (x * 2);
+        int width  = display.width() - (x * 2);
         int height = 32;
 
         Stripe button(x, y, width, height, SMALL);

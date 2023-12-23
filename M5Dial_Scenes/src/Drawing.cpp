@@ -37,7 +37,7 @@ void drawStatus() {
     static constexpr int width  = 140;
     static constexpr int height = 36;
 
-    canvas.fillRoundRect(CENTER - width / 2, y, width, height, 5, stateColors[state]);
+    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
     if (state == Alarm) {
         centered_text(stateString, y + height / 2 - 4, BLACK, SMALL);
         centered_text(alarm_name[lastAlarm], y + height / 2 + 12, BLACK);
@@ -85,9 +85,9 @@ void drawMenuTitle(const String& name) {
 }
 
 void refreshDisplay() {
-    M5Dial.Display.startWrite();
+    display.startWrite();
     canvas.pushSprite(0, 0);
-    M5Dial.Display.endWrite();
+    display.endWrite();
 }
 
 void drawMenuView(std::vector<String> labels, int start, int selected) {}
@@ -95,12 +95,12 @@ void drawMenuView(std::vector<String> labels, int start, int selected) {}
 void showImageFile(const char* name, int x, int y, int width, int height) {
     auto file = LittleFS.open(name);
     if (!file) {
-        USBSerial.println("Can't open logo_img.bin");
+        debugPort.println("Can't open logo_img.bin");
         return;
     }
     auto      len   = file.size();
     uint16_t* buf   = (uint16_t*)malloc(len);
     auto      nread = file.read((uint8_t*)buf, len);
-    M5Dial.Display.pushImage(0, 70, width, height, buf, true);
+    display.pushImage(0, 70, width, height, buf, true);
     free(buf);
 }

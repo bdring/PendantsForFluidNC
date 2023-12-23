@@ -4,8 +4,6 @@
 #include "Text.h"
 #include <map>
 
-M5Canvas canvas(&M5Dial.Display);
-
 const GFXfont* font[] = {
     // lgfx::v1::IFont* font[] = {
     &fonts::FreeSansBold9pt7b,   // TINY
@@ -22,5 +20,5 @@ void text(const String& msg, int x, int y, int color, fontnum_t fontnum, int dat
     canvas.drawString(msg, x, y);
 }
 void centered_text(const String& msg, int y, int color, fontnum_t fontnum) {
-    text(msg, CENTER, y, color, fontnum);
+    text(msg, display.width() / 2, y, color, fontnum);
 }

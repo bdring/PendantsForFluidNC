@@ -4,8 +4,6 @@
 // Factors for drawing parts of the pendant display
 
 #pragma once
-#include <Arduino.h>
-#include "M5Dial.h"
 #include "FluidNCModel.h"
 #include "Text.h"
 

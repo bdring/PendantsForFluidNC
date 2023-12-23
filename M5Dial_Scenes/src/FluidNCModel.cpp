@@ -74,7 +74,7 @@ void log_msg(const String& s) {
     send_line("$Msg/Uart0=" + s);
 #endif
 #ifdef DEBUG_TO_USB
-    USBSerial.println(s);
+    debugPort.println(s);
 #endif
 }
 

@@ -18,7 +18,7 @@ std::vector<Scene*> scene_stack;
 void activate_scene(Scene* scene, void* arg) {
     current_scene = scene;
     current_scene->init(arg);
-    current_scene->display();
+    current_scene->reDisplay();
 }
 void push_scene(Scene* scene, void* arg) {
     scene_stack.push_back(current_scene);
@@ -37,7 +37,7 @@ void dispatch_events() {
     static m5::touch_state_t last_touch_state = {};
 
     M5Dial.update();
-    int32_t encoderDelta = M5Dial.Encoder.readAndReset();
+    int32_t encoderDelta = encoder.readAndReset();
     if (encoderDelta) {
         current_scene->onEncoder(encoderDelta);
     }
@@ -67,22 +67,14 @@ void dispatch_events() {
         }
     }
 
-    auto this_touch = M5Dial.Touch.getDetail();
+    auto this_touch = touch.getDetail();
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
         if (this_touch.state != m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 50);
-            current_scene->onTouchPress(this_touch);
+            speaker.tone(1800, 50);
+            current_scene->onTouchPress(this_touch.x, this_touch.y);
         } else {
-            current_scene->onTouchRelease(this_touch);
+            current_scene->onTouchRelease(this_touch.x, this_touch.y);
         }
     }
-}
-
-// Helpful for debugging touch development.
-String M5TouchStateName(m5::touch_state_t state_num) {
-    static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
-                                                    "___",  "flick", "flick_end", "flick_begin", "___", "drag", "drag_end", "drag_begin" };
-
-    return String(state_name[state_num]);
 }

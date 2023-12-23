@@ -29,17 +29,17 @@ public:
             gcode += "F" + floatToString(probe_rate, 0);
             gcode += axisNumToString(probe_axis) + floatToString(probe_travel, 0);
             gcode += "P" + floatToString(probe_offset, 2);
-            USBSerial.println(gcode);
+            debugPort.println(gcode);
             send_line(gcode);
             return;
         }
         if (state == Cycle) {
-            USBSerial.println("Hold");
+            debugPort.println("Hold");
             fnc_realtime(FeedHold);
             return;
         }
         if (state == Hold) {
-            USBSerial.println("Resume");
+            debugPort.println("Resume");
             fnc_realtime(CycleStart);
             return;
         }
@@ -62,10 +62,10 @@ public:
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         // Rotate through the items to be adjusted.
         rotateNumberLoop(selection, 1, 0, 4);
-        display();
+        reDisplay();
     }
 
     void onEncoder(int delta) {
@@ -92,7 +92,7 @@ public:
                 case 4:
                     rotateNumberLoop(probe_axis, 1, 0, 2);
             }
-            display();
+            reDisplay();
             prefsChanged = true;
         }
     }
@@ -104,7 +104,7 @@ public:
         }
     }
 
-    void display() {
+    void reDisplay() {
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
@@ -112,7 +112,7 @@ public:
 
         int    x      = 40;
         int    y      = 62;
-        int    width  = WIDTH - (x * 2);
+        int    width  = display.width() - (x * 2);
         int    height = 25;
         int    pitch  = 27;  // for spacing of buttons
         Stripe button(x, y, width, height, TINY);

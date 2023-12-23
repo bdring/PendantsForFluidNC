@@ -23,7 +23,7 @@ public:
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         if (state == Cycle) {
             rotateNumberLoop(menu_item, 1, 0, 2);
         }
@@ -69,14 +69,14 @@ public:
             } else if (delta < 0 && myFro > 10) {
                 fnc_realtime(FeedOvrFineMinus);
             }
-            display();
+            reDisplay();
         }
     }
 
-    void onDROChange() { display(); }
-    void onLimitsChange() { display(); }
+    void onDROChange() { reDisplay(); }
+    void onLimitsChange() { reDisplay(); }
 
-    void display() {
+    void reDisplay() {
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());

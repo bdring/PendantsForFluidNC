@@ -71,7 +71,7 @@ public:
                     }
                     prefsChanged = true;
                 }
-                display();
+                reDisplay();
             }
             return;
         }
@@ -104,7 +104,7 @@ public:
                     }
                     prefsChanged = true;
                 }
-                display();
+                reDisplay();
             }
             return;
         }
@@ -121,25 +121,25 @@ public:
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         // Rotate through the axis being jogged
-        //USBSerial.printf("Touch x:%i y:%i\r\n", t.x, t.y);
+        //debugPort.printf("Touch x:%i y:%i\r\n", t.x, t.y);
         //Use dial to break out of continuous mode
-        if (t.y < 70) {
+        if (y < 70) {
             jog_continuous = !jog_continuous;
-        } else if (t.y < 140) {
+        } else if (y < 140) {
             rotateNumberLoop(selection, 1, 0, 5);
             jog_axis = (selection) / 2;
         } else {
             rotateNumberLoop(active_setting, 1, 0, 1);
         }
-        USBSerial.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
-        display();
+        debugPort.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
+        reDisplay();
     }
 
-    void onDROChange() { display(); }
-    void onLimitsChange() { display(); }
-    void onAlarm() { display(); }
+    void onDROChange() { reDisplay(); }
+    void onLimitsChange() { reDisplay(); }
+    void onAlarm() { reDisplay(); }
 
     void onEncoder(int delta) {
         if (jog_continuous) {
@@ -162,7 +162,7 @@ public:
         }
     }
 
-    void display() {
+    void reDisplay() {
         drawBackground(BLACK);
         drawStatus();
 
