@@ -20,7 +20,6 @@ public:
 
     void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
-            //push_scene(&joggingScene);
             push_scene(&menuScene);
         } else if (state == Cycle) {
             fnc_realtime(FeedOvrReset);
@@ -60,7 +59,7 @@ public:
                 break;
             case Idle:
             case Alarm:
-                push_scene(&homingScene);
+                send_line("$H");
                 return;  // no status report
         }
         fnc_realtime(StatusReport);
@@ -131,7 +130,7 @@ public:
                 drawButtonLegends("Probe", "Home", encoder_button_text);
                 break;
         }
-
+        showError();  // if there is one
         refreshDisplay();
     }
 };

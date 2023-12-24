@@ -8,6 +8,9 @@ class JoggingScene : public Scene {
 private:
     static const int MAX_JOG_INC = 5;
 
+    bool skippedLast;
+    bool lastJogFwd;
+
     bool prefsChanged = false;
 
     int  active_setting = 0;  // Dist or Rate
@@ -48,7 +51,10 @@ private:
     }
 
 public:
-    JoggingScene() : Scene("Jog Dial") {}
+    JoggingScene() : Scene("Jog Dial") {
+        skippedLast = true;
+        lastJogFwd  = true;
+    }
 
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
@@ -149,6 +155,26 @@ public:
         } else {
             if (delta != 0) {
                 // $J=G91F200Z5.0
+
+                USBSerial.print("Delta");
+                USBSerial.println(delta);
+
+                // encoder error filtering
+                if (abs(delta) > 1) {
+                    return;
+                }
+                bool jogFwd = delta > 0;
+                if (lastJogFwd != jogFwd) {  // are we changing direction
+                    if (!skippedLast) {
+                        skippedLast = true;
+                        return;
+                    } else {
+                        skippedLast = false;
+                    }
+                }
+                lastJogFwd = jogFwd;
+                // end filtering
+
                 String jogRate      = floatToString(jog_rate_level[jog_axis], 0);
                 String jogIncrement = floatToString(jog_increment(), 2);
                 String cmd          = "$J=G91F" + jogRate + axisNumToString(jog_axis);
@@ -223,7 +249,7 @@ public:
                 drawButtonLegends("", "", back);
                 break;
         }
-
+        showError();  // if there is one
         refreshDisplay();
     }
 };

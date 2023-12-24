@@ -63,7 +63,7 @@ public:
         }
 
         drawButtonLegends(redLabel, grnLabel, "Back");
-
+        showError();  // if there is one
         refreshDisplay();
     }
 };

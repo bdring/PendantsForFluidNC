@@ -49,7 +49,7 @@ void showError() {
     if (millis() < errorExpire) {
         //errorCounter--;
         canvas.fillCircle(120, 120, 95, RED);
-        canvas.drawCircle(120, 120, 95, WHITE);
+        drawThickCircle(120, 120, 95, 5, WHITE);
         centered_text("Error " + String(lastError), 130, WHITE, MEDIUM);
     }
 }
@@ -94,7 +94,7 @@ void drawMenuTitle(const String& name) {
 
 void drawThickCircle(int x, int y, int outsideRaius, int thickness, int color) {
     for (int i = 0; i < thickness; i++) {
-        canvas.drawCircle(x, y, outsideRaius-i, color);
+        canvas.drawCircle(x, y, outsideRaius - i, color);
     }
 }
 

@@ -78,7 +78,7 @@ public:
         int x = cosf(s + inc * current_file) * 114.0;
         int y = sinf(s + inc * current_file) * 114.0;
 
-        canvas.fillCircle(x + 120, y+ 120, 5, LIGHTGREY);
+        canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
 
         // middle one
         canvas.fillRoundRect(5, 90, 214, 60, 20, LIGHTGREY);
@@ -90,6 +90,7 @@ public:
 
         drawMenuTitle(current_scene->name());
         drawButtonLegends("Back", "Sel", "Menu");
+        showError();  // if there is one
         refreshDisplay();
     }
 };

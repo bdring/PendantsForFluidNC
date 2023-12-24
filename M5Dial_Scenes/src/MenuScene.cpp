@@ -41,31 +41,28 @@ public:
     void onDialButtonPress() {
         switch (current_button) {
             case 0:
-                activate_scene(&setupScene);
+                push_scene(&setupScene);
                 break;
             case 1:
-                activate_scene(&fileScene);
+                push_scene(&fileScene);
                 break;
             case 2:
-                activate_scene(&mainScene);
+                push_scene(&mainScene);
                 break;
             case 3:
-                activate_scene(&controlScene);
+                push_scene(&controlScene);
                 break;
             case 4:
-                // off
-                //M5Dial.Power.(GPIO_NUM_42);//
-                delay(3000);
-                M5Dial.Power.deepSleep(1000000, true);
+                // Power off to deepSleep
                 break;
             case 5:
-                activate_scene(&probingScene);
+                push_scene(&probingScene);
                 break;
             case 6:
-                activate_scene(&homingScene);
+                push_scene(&homingScene);
                 break;
             case 7:
-                activate_scene(&joggingScene);
+                push_scene(&joggingScene);
                 break;
         }
     }
@@ -93,7 +90,7 @@ public:
         drawThickCircle(x, y, 29, 4, WHITE);
         //canvas.fillCircle(120, 71, 6, WHITE);
         centered_text(menuLabels[current_button], 120, WHITE, SMALL);
-
+        showError();  // if there is one
         refreshDisplay();
     }
 };

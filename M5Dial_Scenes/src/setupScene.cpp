@@ -24,6 +24,7 @@ public:
 
         drawMenuTitle(current_scene->name());
         drawButtonLegends("", "", "Menu");
+        showError();  // if there is one
         refreshDisplay();
     }
 };
