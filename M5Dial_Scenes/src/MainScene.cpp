@@ -110,20 +110,9 @@ public:
             centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
-        String encoder_button_text = "";
-        switch (menu_item) {
-            case 0:
-                encoder_button_text = "Jog";
-                break;
-            case 1:
-                encoder_button_text = "Home";
-                break;
-            case 2:
-                encoder_button_text = "Probe";
-                break;
-        }
-        String redButtonText   = "";
-        String greenButtonText = "";
+        String encoder_button_text = "Menu";
+        String redButtonText       = "";
+        String greenButtonText     = "";
         switch (state) {
             case Alarm:
             case Homing:
@@ -139,7 +128,7 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("Probe", "Home", "Menus");                
+                drawButtonLegends("Probe", "Home", encoder_button_text);
                 break;
         }
 

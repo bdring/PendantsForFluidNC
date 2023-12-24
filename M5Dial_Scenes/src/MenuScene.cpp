@@ -5,7 +5,14 @@
 #include "Scene.h"
 #include "menu_img.h"
 
+// these should not be here...move
 extern Scene fileScene;
+extern Scene controlScene;
+extern Scene mainScene;
+extern Scene probingScene;
+extern Scene homingScene;
+extern Scene joggingScene;
+extern Scene setupScene;
 
 class MenuScene : public Scene {
 private:
@@ -34,22 +41,31 @@ public:
     void onDialButtonPress() {
         switch (current_button) {
             case 0:
+                activate_scene(&setupScene);
                 break;
             case 1:
                 activate_scene(&fileScene);
                 break;
             case 2:
-                
+                activate_scene(&mainScene);
                 break;
             case 3:
+                activate_scene(&controlScene);
                 break;
             case 4:
+                // off
+                //M5Dial.Power.(GPIO_NUM_42);//
+                delay(3000);
+                M5Dial.Power.deepSleep(1000000, true);
                 break;
             case 5:
+                activate_scene(&probingScene);
                 break;
             case 6:
+                activate_scene(&homingScene);
                 break;
             case 7:
+                activate_scene(&joggingScene);
                 break;
         }
     }
