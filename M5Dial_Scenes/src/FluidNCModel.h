@@ -34,6 +34,7 @@ extern override_percent_t myFro;
 extern int                lastAlarm;
 extern uint32_t           errorExpire;
 extern int                lastError;
+extern gcode_modes        myGcModes;
 
 void send_line(const String& s, int timeout = 2000);
 void send_line(const char* s, int timeout = 2000);

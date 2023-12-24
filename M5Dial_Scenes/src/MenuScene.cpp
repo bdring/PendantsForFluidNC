@@ -66,9 +66,7 @@ public:
                 break;
         }
     }
-    void onGreenButtonPress() {}
-    void onRedButtonPress() {}
-    void onTouchRelease(m5::touch_detail_t t) {}
+
     void onEncoder(int delta) {
         if (abs(delta) > 0) {
             encoderCounter += delta;
@@ -80,15 +78,20 @@ public:
     }
     void display() {
         drawBackground(BLACK);
+        canvas.pushImage(0, 0, 240, 240, menu_img);
 
+        
         int x, y;
 
+        // Draw circle around current selection
         x = cosf(0.785 * (float)current_button) * _ballOffsetRadius + 120;
-        y = sinf(0.785 * (float)current_button) * _ballOffsetRadius + 120;
-
-        canvas.pushImage(0, 0, 240, 240, menu_img);
+        y = sinf(0.785 * (float)current_button) * _ballOffsetRadius + 120;        
         drawThickCircle(x, y, 29, 4, WHITE);
-        //canvas.fillCircle(120, 71, 6, WHITE);
+        // draw a little pointing circle 
+        x = cosf(0.785 * (float)current_button) * 49 + 120;
+        y = sinf(0.785 * (float)current_button) * 49 + 120;
+        canvas.fillCircle(x, y, 6, WHITE);
+
         centered_text(menuLabels[current_button], 120, WHITE, SMALL);
         showError();  // if there is one
         refreshDisplay();

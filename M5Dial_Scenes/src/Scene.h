@@ -67,5 +67,3 @@ extern Button redButton;
 extern Button dialButton;
 
 void dispatch_events();
-
-

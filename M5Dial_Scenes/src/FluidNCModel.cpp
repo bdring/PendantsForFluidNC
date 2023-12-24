@@ -16,6 +16,7 @@ override_percent_t myFro              = 100;  // Feed rate override
 int                lastAlarm          = 0;
 uint32_t           errorExpire        = 0;
 int                lastError          = 0;
+gcode_modes        myGcModes;
 
 // clang-format off
 std::map<String, state_t> state_map = {

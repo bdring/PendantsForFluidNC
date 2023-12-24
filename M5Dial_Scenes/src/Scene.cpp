@@ -71,13 +71,13 @@ void dispatch_events() {
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
         if (this_touch.state != m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch);
         } else {
             current_scene->onTouchRelease(this_touch);
         }
     }
 }
+
 
 // Helpful for debugging touch development.
 String M5TouchStateName(m5::touch_state_t state_num) {

@@ -104,6 +104,10 @@ extern "C" int milliseconds() {
     return millis();
 }
 
+extern "C" void show_gcode_modes(struct gcode_modes* modes) {
+    myGcModes.coolant = modes->coolant;
+}
+
 extern Scene mainScene;
 
 void setup() {

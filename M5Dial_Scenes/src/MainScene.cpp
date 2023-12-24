@@ -27,9 +27,6 @@ public:
     }
 
     void onTouchRelease(m5::touch_detail_t t) {
-        if (state == Cycle) {
-            rotateNumberLoop(menu_item, 1, 0, 2);
-        }
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
@@ -42,9 +39,6 @@ public:
             case Homing:
             case Hold:
                 fnc_realtime(Reset);
-                break;
-            case Idle:
-                push_scene(&probingScene);
                 break;
         }
     }
@@ -115,7 +109,7 @@ public:
         switch (state) {
             case Alarm:
             case Homing:
-                drawButtonLegends("Reset", "Home", encoder_button_text);
+                drawButtonLegends("Reset", "", encoder_button_text);
                 break;
             case Cycle:
                 drawButtonLegends("E-Stop", "Hold", "FRO End");
@@ -127,7 +121,7 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("Probe", "Home", encoder_button_text);
+                drawButtonLegends("", "Home All", encoder_button_text);
                 break;
         }
         showError();  // if there is one
