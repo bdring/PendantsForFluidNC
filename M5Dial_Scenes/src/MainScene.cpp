@@ -77,7 +77,7 @@ public:
     void onLimitsChange() { reDisplay(); }
 
     void reDisplay() {
-        canvas.createSprite(240, 240);
+        canvas.createSprite(display.width(), display.height());
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();
