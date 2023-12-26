@@ -25,6 +25,8 @@ public:
     virtual void onDialButtonRelease() {}
     virtual void onTouchPress(int x, int y) {}
     virtual void onTouchRelease(int x, int y) {}
+    virtual void onTouchHold(int x, int y) {}
+    virtual void onTouchFlick(int x, int y) {}
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
@@ -35,7 +37,7 @@ public:
 
 void activate_scene(Scene* scene, void* arg = nullptr);
 void push_scene(Scene* scene, void* arg = nullptr);
-void pop_scene();
+void pop_scene(void* arg = nullptr);
 
 // helper functions
 

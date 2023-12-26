@@ -26,6 +26,7 @@ void init_system() {
 
     auto cfg = M5.config();
     M5Dial.begin(cfg, true, false);
+    touch.setFlickThresh(30);
 
     if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
         debugPort.println("LittleFS Mount Failed");

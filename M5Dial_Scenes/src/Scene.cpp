@@ -24,7 +24,7 @@ void push_scene(Scene* scene, void* arg) {
     scene_stack.push_back(current_scene);
     activate_scene(scene, arg);
 }
-void pop_scene() {
+void pop_scene(void* arg) {
     if (scene_stack.size()) {
         Scene* last_scene = scene_stack.back();
         scene_stack.pop_back();
@@ -70,11 +70,16 @@ void dispatch_events() {
     auto this_touch = touch.getDetail();
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
-        if (this_touch.state != m5::touch_state_t::touch_end) {
+        debugPort.printf("Touch %d\r\n", this_touch.state);
+        if (this_touch.state == m5::touch_state_t::touch) {
             speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch.x, this_touch.y);
-        } else {
+        } else if (this_touch.wasClicked()) {
             current_scene->onTouchRelease(this_touch.x, this_touch.y);
+        } else if (this_touch.wasHold()) {
+            current_scene->onTouchHold(this_touch.x, this_touch.y);
+        } else if (this_touch.state == m5::touch_state_t::flick_end) {
+            current_scene->onTouchFlick(this_touch.distanceX(), this_touch.distanceY());
         }
     }
 }

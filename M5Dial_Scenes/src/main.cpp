@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 /*  TO DO
-  Save prefs to flash
+    Save prefs to flash
 */
 
 #include <Arduino.h>
@@ -11,6 +11,7 @@
 #include "alarm.h"
 #include "FluidNCModel.h"
 #include "Scene.h"
+#include "Menu.h"
 
 constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
 constexpr static const int GREEN_BUTTON_PIN = GPIO_NUM_15;
@@ -143,7 +144,10 @@ void setup() {
     fnc_realtime(StatusReport);  // Request fresh status
     speaker.setVolume(255);
 
-    activate_scene(&mainScene);
+    extern void   initPieMenu();
+    extern Scene* pieMenu0;
+    initPieMenu();
+    activate_scene(pieMenu0);
 }
 
 void loop() {
