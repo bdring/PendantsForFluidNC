@@ -108,6 +108,7 @@ public:
         String greenButtonText     = "";
         switch (state) {
             case Alarm:
+                drawButtonLegends("Reset", "Home All", encoder_button_text);
             case Homing:
                 drawButtonLegends("Reset", "", encoder_button_text);
                 break;
@@ -121,7 +122,7 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("", "Home All", encoder_button_text);
+                drawButtonLegends("", "", encoder_button_text);
                 break;
         }
         showError();  // if there is one

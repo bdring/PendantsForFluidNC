@@ -186,6 +186,7 @@ public:
                 send_line(cmd);
             }
         }
+        display();
     }
 
     void display() {
@@ -212,13 +213,13 @@ public:
         centered_text(legend, 12);
 
         if (jog_continuous) {
-            legend = "Jog Rate: " + floatToString(jog_cont_speed[jog_axis], 0);
-            centered_text(legend, 185);
+            legend = "Rate: " + floatToString(jog_cont_speed[jog_axis], 0);
+            centered_text(legend, 193);
         } else {
-            legend = "Jog Dist: " + floatToString(jog_increment(), 2);
-            centered_text(legend, 177, active_setting == 0 ? WHITE : DARKGREY);
-            legend = "Jog Rate: " + floatToString(jog_rate_level[jog_axis], 2);
-            centered_text(legend, 193, active_setting == 1 ? WHITE : DARKGREY);
+            legend = "Dist: " + floatToString(jog_increment(), 2);
+            centered_text(legend, 181, active_setting == 0 ? WHITE : DARKGREY);
+            legend = "Rate: " + floatToString(jog_rate_level[jog_axis], 2);
+            centered_text(legend, 197, active_setting == 1 ? WHITE : DARKGREY);
         }
 
         const char* back = "Back";

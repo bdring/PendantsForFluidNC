@@ -5,18 +5,24 @@
 #include "Scene.h"
 #include "menu_img.h"
 
+extern Scene mainScene;
+
 class FileScene : public Scene {
 private:
     int current_file   = 2;
     int encoderCounter = 0;
 
-    String filenames[8] = { "Short", "Longer", "Very Very Long", "Hello", "World", "Test", "Foo", "Jog" };
+    String filenames[8] = { "Pendant_Top", "Pendant_Case", "Knob", "Cord_Clip", "Screw_Box", "End_Cap", "Foot", "Post" };
 
 public:
     FileScene() : Scene("Files") {}
 
     void onDialButtonPress() { pop_scene(); }
-    void onGreenButtonPress() {}
+    void onGreenButtonPress() {
+        send_line("$SD/Run=dial.gcode");
+        activate_scene(&mainScene);
+        return;
+    }
     void onRedButtonPress() {}
     void onTouchRelease(m5::touch_detail_t t) {}
     void onEncoder(int delta) {
@@ -89,7 +95,8 @@ public:
         text(fn, 110, 133, BLACK, TINY, middle_center);
 
         drawMenuTitle(current_scene->name());
-        drawButtonLegends("Back", "Sel", "Menu");
+        centered_text("SD Card", 30, WHITE, TINY);
+        drawButtonLegends("", "Run", "Menu");
         showError();  // if there is one
         refreshDisplay();
     }

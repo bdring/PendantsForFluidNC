@@ -14,7 +14,7 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
-            String line = "$H";
+            String line = "";
             switch (current_button) {
                 case 0:
                     line = "M7";
@@ -23,14 +23,13 @@ public:
                     line = "M8";
                     break;
                 case 2:
+                    line = "G28";
                     break;
                 case 3:
+                    line = "G30";
                     break;
                 default:
                     break;
-            }
-            if (current_button != 0) {
-                line += axisNumToString(current_button - 1);
             }
             log_msg(line);
             send_line(line);
@@ -60,15 +59,14 @@ public:
         button.draw("Flood", current_button == 0);
         y = button.y();  // LEDs start with the Home X button
         button.draw("Mist", current_button == 1);
-        button.draw("Macro 0", current_button == 2);
-        button.draw("Macro 1", current_button == 3);
+        button.draw("G28", current_button == 2);
+        button.draw("G30", current_button == 3);
 
         String redLabel, grnLabel, orangeLabel = "";
         if (state == Homing) {
             //redLabel = "E-Stop";
         } else {
-
-           // grnLabel = "Home ";
+            // grnLabel = "Home ";
             //grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
         }
         switch (current_button) {
@@ -79,20 +77,17 @@ public:
                 grnLabel = "Mist";
                 break;
             case 2:
-                grnLabel = "Macro 0";
+                grnLabel = "G28";
                 break;
             case 3:
-                grnLabel = "Maco 1";
+                grnLabel = "G30";
                 break;
             default:
                 grnLabel = "";
                 break;
         }
-
         drawButtonLegends(redLabel, grnLabel, "Back");
-
         showError();
-
         refreshDisplay();
     }
 };
