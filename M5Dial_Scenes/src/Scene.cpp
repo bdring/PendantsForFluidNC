@@ -70,7 +70,7 @@ void dispatch_events() {
     auto this_touch = touch.getDetail();
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
-        debugPort.printf("Touch %d\r\n", this_touch.state);
+        // debugPort.printf("Touch %d\r\n", this_touch.state);
         if (this_touch.state == m5::touch_state_t::touch) {
             speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch.x, this_touch.y);
@@ -79,7 +79,7 @@ void dispatch_events() {
         } else if (this_touch.wasHold()) {
             current_scene->onTouchHold(this_touch.x, this_touch.y);
         } else if (this_touch.state == m5::touch_state_t::flick_end) {
-            current_scene->onTouchFlick(this_touch.distanceX(), this_touch.distanceY());
+            current_scene->onTouchFlick(this_touch.x, this_touch.y, this_touch.distanceX(), this_touch.distanceY());
         }
     }
 }

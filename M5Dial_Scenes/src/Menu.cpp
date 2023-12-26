@@ -13,7 +13,7 @@ void RoundButton::show(const xy_t& where) {
     int y = (-where.y) + display.height() / 2;
     canvas.fillCircle(x, y, _radius, _highlighted ? _hl_fill_color : _fill_color);
     canvas.drawCircle(x, y, _radius, _highlighted ? _hl_outline_color : _outline_color);
-    text(name(), x, y, WHITE, MEDIUM);
+    text(name().substring(0, 1), x, y, _highlighted ? MAROON : WHITE, MEDIUM);
 }
 void ImageButton::show(const xy_t& where) {
     display.drawPngFile(LittleFS, _filename, where.x, where.y, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
@@ -47,15 +47,38 @@ void Menu::rotate(int delta) {
     reDisplay();
 }
 
+void PieMenu::calculatePositions() {
+    _num_slopes = num_items() / 2;  // Rounded down
+
+    _slopes.clear();
+    float theta      = 2 * M_PI / num_items();
+    float half_theta = theta / 2.0;
+
+    float angle = M_PI / 2 - half_theta;
+    for (size_t i = 0; i < _num_slopes; i++) {
+        int slope = tanf(angle) * 1024;
+        _slopes.push_back(slope);
+        angle -= theta;
+    }
+
+    int layout_radius = display.width() / 2 - _item_radius - 2;
+    angle             = M_PI / 2;
+    for (size_t i = 0; i < num_items(); i++) {
+        xy_t center = { (int)(cosf(angle) * layout_radius), (int)(sinf(angle) * layout_radius) };
+        setPosition(i, center);
+        angle -= theta;
+    }
+}
+
 int PieMenu::touchedItem(int x, int y) {
     // Convert from screen coordinates to 0,0 in the center
     x = x - display.width() / 2;
     y = -(y - display.height() / 2);
 
-    if ((x * x + y * y) < _dead_radius_sq) {
-        // return -1;  // In middle dead zone
-        rotate(1);
-        return -1;
+    int dead_radius = display.width() / 2 - _item_radius * 2;
+
+    if ((x * x + y * y) < (dead_radius * dead_radius)) {
+        return -1;  // In middle dead zone
     }
     if (x == 0) {
         x = 1;  // Don't divide by zero
@@ -71,7 +94,7 @@ int PieMenu::touchedItem(int x, int y) {
     // Side items
     size_t i;
     for (i = 1; i < _num_slopes; ++i) {
-        debugPort.printf("slope %d [] %d\r\n", slope, _slopes[i]);
+        // debugPort.printf("slope %d [] %d\r\n", slope, _slopes[i]);
         if (slope > _slopes[i]) {
             return x > 0 ? i : num_items() - i;
         }
@@ -82,23 +105,27 @@ int PieMenu::touchedItem(int x, int y) {
 }
 void PieMenu::menuBackground() {
     drawBackground(NAVY);
-    text(selectedItem()->name(), display.width() / 2, display.height() / 2, WHITE, MEDIUM);
+    int center_x = display.width() / 2;
+    int center_y = display.height() / 2;
+    text(name(), center_x, center_y - 24, YELLOW, TINY);
+    text(selectedItem()->name(), center_x, center_y + 8, WHITE, SMALL);
 }
 
-void PieMenu::onTouchFlick(int x, int y) {
-    debugPort.printf("Flick %d %d\r\n", x, y);
-    if (x > 50) {
+void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
+    // debugPort.printf("Flick %d %d %d %d\r\n", x, y, dx, dy);
+    int item = touchedItem(x, y);
+    if (item != -1) {
+        select(item);
         invoke();
-    } else if (x < 50) {
-        pop_scene();
     }
 }
+void PieMenu::onDialButtonPress() {
+    invoke();
+}
 void PieMenu::onTouchHold(int x, int y) {
-    x = x - display.width() / 2;
-    y = -(y - display.height() / 2);
-
-    if ((x * x + y * y) < _dead_radius_sq) {
-        debugPort.printf("Invoking %s\r\n", selectedItem()->name());
+    int item = touchedItem(x, y);
+    if (item != -1) {
+        select(item);
         invoke();
     }
 }

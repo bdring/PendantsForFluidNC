@@ -144,10 +144,8 @@ void setup() {
     fnc_realtime(StatusReport);  // Request fresh status
     speaker.setVolume(255);
 
-    extern void   initPieMenu();
-    extern Scene* pieMenu0;
-    initPieMenu();
-    activate_scene(pieMenu0);
+    extern Scene* initMenus();
+    activate_scene(initMenus());
 }
 
 void loop() {

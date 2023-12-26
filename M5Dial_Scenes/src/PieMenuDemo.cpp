@@ -2,28 +2,30 @@
 
 void noop(void* arg) {}
 
-PieMenu* pieMenu0;
-PieMenu* sm1;
-void     runSubmenu1(void* arg) {
-    push_scene(sm1);
-}
-void initPieMenu() {
-    const int pmRadius = 40;
+const int buttonRadius = 35;
 
-    pieMenu0 = new PieMenu("PinMenu0", 50, display.width() / 2 - pmRadius - 2);
+PieMenu jogMenu("Jogging", buttonRadius);
+PieMenu mainMenu("Main", buttonRadius);
 
-    pieMenu0->addItem(new RoundButton("A", noop, pmRadius, RED, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("B", runSubmenu1, pmRadius, DARKCYAN, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("C", noop, pmRadius, MAROON, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("D", noop, pmRadius, ORANGE, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("E", noop, pmRadius, OLIVE, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("F", noop, pmRadius, BLUE, GREEN, BLUE, WHITE));
-    pieMenu0->addItem(new RoundButton("G", noop, pmRadius, PINK, GREEN, BLUE, WHITE));
-    // pieMenu0->addItem(new RoundButton("H", noop, pmRadius, SILVER, GREEN, BLUE, WHITE));
-    //    pieMenu0->addItem(new RoundButton("F", noop, pmRadius, BLUE, GREEN, BLUE, WHITE));
+class LB : public RoundButton {
+public:
+    LB(const char* text, callback_t callback, color_t base_color) :
+        RoundButton(text, callback, buttonRadius, base_color, GREEN, BLUE, WHITE) {}
+    LB(const char* text, Scene* scene, color_t base_color) : RoundButton(text, scene, buttonRadius, base_color, GREEN, BLUE, WHITE) {}
+};
 
-    sm1 = new PieMenu("Submenu1", 50, display.width() / 2 - pmRadius - 2);
-    sm1->addItem(new RoundButton("X", noop, pmRadius, RED, GREEN, BLUE, WHITE));
-    sm1->addItem(new RoundButton("Y", noop, pmRadius, RED, GREEN, BLUE, WHITE));
-    sm1->addItem(new RoundButton("Z", pop_scene, pmRadius, RED, GREEN, BLUE, WHITE));
+Scene* initMenus() {
+    jogMenu.addItem(new LB("XAxis", noop, RED));
+    jogMenu.addItem(new LB("YAxis", noop, RED));
+    jogMenu.addItem(new LB("ZAxis", noop, RED));
+    jogMenu.addItem(new LB("<Back", pop_scene, RED));
+
+    mainMenu.addItem(new LB("Home", noop, RED));
+    mainMenu.addItem(new LB("Jog", (Scene*)&jogMenu, DARKCYAN));
+    mainMenu.addItem(new LB("Set", noop, MAROON));
+    mainMenu.addItem(new LB("Probe", noop, ORANGE));
+    mainMenu.addItem(new LB("Files", noop, OLIVE));
+    mainMenu.addItem(new LB("Config", noop, BLUE));
+
+    return &mainMenu;
 }

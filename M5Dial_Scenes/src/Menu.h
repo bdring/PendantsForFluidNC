@@ -16,18 +16,29 @@ struct xy_t {
 void do_nothing(void* arg);
 class Item {
 protected:
+    String     _name;
     bool       _highlighted;
     callback_t _callback;
-    String     _name;
+    Scene*     _scene = nullptr;
 
 public:
     Item(const String& name, callback_t callback = do_nothing) : _name(name), _highlighted(false), _callback(callback) {}
     Item(const char* name, callback_t callback = do_nothing) : _name(name), _highlighted(false), _callback(callback) {}
+    Item(const char* name, Scene* scene) : _name(name), _highlighted(false), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
 
     virtual void show(const xy_t& where) = 0;
 
-    void invoke(void* arg = nullptr) { _callback(arg); };
+    void invoke(void* arg = nullptr) {
+        if (_scene) {
+            push_scene(_scene, arg);
+            return;
+        }
+        if (_callback) {
+            _callback(arg);
+            return;
+        }
+    };
 
     String name() { return _name; }
     void   highlight() { _highlighted = true; }
@@ -37,13 +48,13 @@ public:
 
 class RoundButton : public Item {
 private:
-    int     _radius;
-    color_t _fill_color;
     color_t _hl_fill_color;
     color_t _outline_color;
     color_t _hl_outline_color;
 
 public:
+    int     _radius;
+    color_t _fill_color;
     RoundButton(const char* name,
                 callback_t  callback,
                 int         radius,
@@ -52,6 +63,11 @@ public:
                 color_t     outline_color,
                 color_t     hl_outline_color) :
         Item(name, callback),
+        _radius(radius), _fill_color(fill_color), _hl_fill_color(hl_fill_color), _outline_color(outline_color),
+        _hl_outline_color(hl_outline_color) {}
+    RoundButton(
+        const char* name, Scene* scene, int radius, color_t fill_color, color_t hl_fill_color, color_t outline_color, color_t hl_outline_color) :
+        Item(name, scene),
         _radius(radius), _fill_color(fill_color), _hl_fill_color(hl_fill_color), _outline_color(outline_color),
         _hl_outline_color(hl_outline_color) {}
     void show(const xy_t& where) override;
@@ -103,7 +119,7 @@ private:
 
     int       _num_items        = 0;
     int       _encoder_accum    = 0;
-    const int encoder_threshold = 2;
+    const int encoder_threshold = 1;
 
 public:
     std::vector<xy_t>  _positions;
@@ -120,8 +136,7 @@ public:
 
     Item* selectedItem() { return _items[_selected]; }
 
-    int  num_items() { return _num_items; }
-    void select(int n) { _selected = n; }
+    int num_items() { return _num_items; }
 
     void reDisplay();
 
@@ -131,7 +146,7 @@ public:
 
     void onEncoder(int delta) override {
         _encoder_accum += delta;
-        if (abs(_encoder_accum) > encoder_threshold) {
+        if (abs(_encoder_accum) >= encoder_threshold) {
             rotate(_encoder_accum / encoder_threshold);
             // _encoder_accum %= encoder_threshold;
             _encoder_accum = 0;
@@ -146,74 +161,47 @@ public:
         ++_num_items;
     }
 
-    void init() {
+    void init(void* arg) override {
         if (_selected != -1) {
             _items[_selected]->highlight();
         }
     }
 
-    void onTouchRelease(int x, int y) override {
-        int selection = touchedItem(x, y);
-        if (selection == -1 || selection >= _num_items) {
-            // Leave _selection as-is
+    void select(int item) {
+        if (item == -1 || item >= _num_items) {
             return;
         }
         if (_selected != -1) {
             _items[_selected]->unhighlight();
         }
-        _selected = selection;
-        _items[_selected]->highlight();
+        _selected = item;
+        _items[item]->highlight();
         reDisplay();
     }
+    void onTouchRelease(int x, int y) override { select(touchedItem(x, y)); }
     void invoke() { _items[_selected]->invoke(); }
 };
 
 // Pie menus were originally invented by Don Hopkins at Sun Microsystems
 class PieMenu : public Menu {
 private:
-    int _dead_radius_sq;
     int _item_radius;
     int _num_slopes;
 
     std::vector<int> _slopes;  // Slopes of lines dividing switch positions
 
 public:
-    PieMenu(const char* name, int dead_radius, int item_radius) :
-        Menu(name), _dead_radius_sq(dead_radius * dead_radius), _item_radius(item_radius) {}
-    PieMenu(const char* name, int dead_radius, int item_radius, int num_items) :
-        Menu(name, num_items), _dead_radius_sq(dead_radius * dead_radius), _item_radius(item_radius) {
-        calculatePositions();
-    }
+    PieMenu(const char* name, int item_radius) : Menu(name), _item_radius(item_radius) {}
+    PieMenu(const char* name, int item_radius, int num_items) : Menu(name, num_items), _item_radius(item_radius) { calculatePositions(); }
     void menuBackground() override;
-    void calculatePositions() {
-        _num_slopes = num_items() / 2;  // Rounded down
-
-        _slopes.clear();
-        float theta      = 2 * M_PI / num_items();
-        float half_theta = theta / 2.0;
-
-        float angle = M_PI / 2 - half_theta;
-        for (size_t i = 0; i < _num_slopes; i++) {
-            int slope = tanf(angle) * 1024;
-            _slopes.push_back(slope);
-            angle -= theta;
-        }
-
-        angle = M_PI / 2;
-        for (size_t i = 0; i < num_items(); i++) {
-            xy_t center = { (int)(cosf(angle) * _item_radius), (int)(sinf(angle) * _item_radius) };
-            setPosition(i, center);
-            angle -= theta;
-        }
-    }
+    void calculatePositions();
     void onEncoder(int delta) override { Menu::onEncoder(delta); }
     void onTouchHold(int x, int y) override;
-    void onTouchFlick(int x, int y) override;
+    void onTouchFlick(int x, int y, int dx, int dy) override;
+    void onDialButtonPress() override;
     void addItem(Item* item) {
         Menu::addItem(item);
         calculatePositions();
     }
     int touchedItem(int x, int y) override;
-    // XXX Need some way to display the selected item's name in
-    // the middle.
 };

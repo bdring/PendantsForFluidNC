@@ -26,7 +26,7 @@ public:
     virtual void onTouchPress(int x, int y) {}
     virtual void onTouchRelease(int x, int y) {}
     virtual void onTouchHold(int x, int y) {}
-    virtual void onTouchFlick(int x, int y) {}
+    virtual void onTouchFlick(int x, int y, int dx, int dy) {}
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
