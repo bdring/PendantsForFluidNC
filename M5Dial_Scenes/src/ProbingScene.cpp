@@ -105,7 +105,6 @@ public:
     }
 
     void reDisplay() {
-        canvas.createSprite(240, 240);
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();

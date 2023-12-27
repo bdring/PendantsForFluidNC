@@ -33,4 +33,5 @@ void init_system() {
         return;
     }
     debugPort.println("LittleFS Mounted");
+    canvas.createSprite(display.width(), display.height());
 }

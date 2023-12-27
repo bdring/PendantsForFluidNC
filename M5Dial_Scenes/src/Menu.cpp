@@ -27,7 +27,6 @@ void RectangularButton::show(const xy_t& where) {
 }
 
 void Menu::reDisplay() {
-    canvas.createSprite(display.width(), display.height());
     menuBackground();
     show_items();
     canvas.pushSprite(0, 0);
