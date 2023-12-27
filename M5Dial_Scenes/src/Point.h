@@ -9,10 +9,18 @@ public:
         x += other.x;
         y += other.y;
     }
+    void operator+=(int addend) {
+        x += addend;
+        y += addend;
+    }
 
     void operator-=(Point const& other) {
         x -= other.x;
         y -= other.y;
+    }
+    void operator-=(int subtrahend) {
+        x -= subtrahend;
+        y -= subtrahend;
     }
 
     void operator/=(Point const& other) {
@@ -41,8 +49,21 @@ public:
         ret += b;
         return ret;
     }
+    friend Point operator+(Point const& a, int b) {
+        Point ret(a);
+
+        ret += b;
+        return ret;
+    }
 
     friend Point operator-(Point const& a, Point const& b) {
+        Point ret(a);
+
+        ret -= b;
+        return ret;
+    }
+
+    friend Point operator-(Point const& a, int b) {
         Point ret(a);
 
         ret -= b;
