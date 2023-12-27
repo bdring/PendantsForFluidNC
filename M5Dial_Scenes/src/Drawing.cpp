@@ -10,9 +10,53 @@ void drawBackground(int color) {
     canvas.fillSprite(color);
 }
 
+void drawCircle(int x, int y, int radius, int fillcolor) {
+    canvas.fillCircle(x, y, radius, fillcolor);
+}
+void drawCircle(Point xy, int radius, int fillcolor) {
+    Point dispxy = xy.to_display();
+    drawCircle(dispxy.x, dispxy.y, radius, fillcolor);
+}
+
+void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor) {
+    canvas.fillCircle(x, y, radius, fillcolor);
+    canvas.drawCircle(x, y, radius, outlinecolor);
+}
+void drawOutlinedCircle(Point xy, int radius, int fillcolor, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawOutlinedCircle(dispxy.x, dispxy.y, radius, fillcolor, outlinecolor);
+}
+
+void drawRect(int x, int y, int width, int height, int radius, int bgcolor) {
+    canvas.fillRoundRect(x, y, width, height, radius, bgcolor);
+}
+void drawRect(Point xy, int width, int height, int radius, int bgcolor) {
+    Point offsetxy = { width / 2, -height / 2 };
+    Point dispxy   = (xy - offsetxy).to_display();
+    drawRect(dispxy.x, dispxy.y, width, height, radius, bgcolor);
+}
+void drawRect(Point xy, Point wh, int radius, int bgcolor) {
+    drawRect(xy, wh.x, wh.y, radius, bgcolor);
+}
+
 void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outlinecolor) {
     canvas.fillRoundRect(x, y, width, height, 5, bgcolor);
     canvas.drawRoundRect(x, y, width, height, 5, outlinecolor);
+}
+void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawOutlinedRect(dispxy.x, dispxy.y, width, height, bgcolor, outlinecolor);
+}
+
+void drawPngFile(const String& filename, int x, int y, int width, int height) {
+    canvas.drawPngFile(LittleFS, filename, x, y, width, height);
+}
+void drawPngFile(const String& filename, Point xy, int width, int height) {
+    Point dispxy = xy.to_display();
+    drawPngFile(filename, dispxy.x, dispxy.y, width, height);
+}
+void drawPngBackground(const String& filename) {
+    drawPngFile(filename, 0, 0, display.width(), display.height());
 }
 
 // clang-format off
@@ -75,8 +119,7 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
 }
 
 void LED::draw(bool highlighted) {
-    canvas.fillCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY);
-    canvas.drawCircle(_x, _y, _radius, WHITE);
+    drawOutlinedCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY, WHITE);
     _y += _gap;
 }
 

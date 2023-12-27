@@ -10,8 +10,10 @@ class FileItem : public Item {
 private:
 public:
     FileItem(const String& name) : Item(name) {}
-    void show(const xy_t& where) override;
-    void invoke(void* arg = nullptr) override;
+    void   show(const Point& where) override;
+    void   invoke(void* arg = nullptr) override;
+    bool   isDirectory() { return name().endsWith("/"); }
+    String baseName();
 };
 
 class FileMenu : public Menu {

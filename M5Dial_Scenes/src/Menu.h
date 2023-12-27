@@ -11,10 +11,6 @@
 typedef int color_t;
 typedef void (*callback_t)(void*);
 
-struct xy_t {
-    int x;
-    int y;
-};
 void do_nothing(void* arg);
 class Item {
 protected:
@@ -29,7 +25,7 @@ public:
     Item(const char* name, Scene* scene) : _name(name), _highlighted(false), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
 
-    virtual void show(const xy_t& where) = 0;
+    virtual void show(const Point& where) = 0;
 
     virtual void invoke(void* arg = nullptr) {
         if (_scene) {
@@ -72,7 +68,7 @@ public:
         Item(name, scene),
         _radius(radius), _fill_color(fill_color), _hl_fill_color(hl_fill_color), _outline_color(outline_color),
         _hl_outline_color(hl_outline_color) {}
-    void show(const xy_t& where) override;
+    void show(const Point& where) override;
 };
 
 class ImageButton : public Item {
@@ -81,7 +77,7 @@ private:
 
 public:
     ImageButton(const char* name, callback_t callback, const char* filename) : Item(name, callback), _filename(filename) {}
-    void show(const xy_t& where) override;
+    void show(const Point& where) override;
 };
 
 class RectangularButton : public Item {
@@ -107,7 +103,7 @@ public:
         Item(name, callback),
         _text(text), _width(width), _height(height), _radius(radius), _bg_color(bg_color), _text_color(text_color),
         _outline_color(outline_color) {}
-    void show(const xy_t& where) override;
+    void show(const Point& where) override;
 };
 
 class Menu : public Scene {
@@ -124,7 +120,7 @@ private:
     const int encoder_threshold = 1;
 
 public:
-    std::vector<xy_t>  _positions;
+    std::vector<Point> _positions;
     std::vector<Item*> _items;
 
     int _selected = 0;
@@ -155,9 +151,9 @@ public:
         }
     }
 
-    void setPosition(int item_num, xy_t position) { _positions[item_num] = position; }
+    void setPosition(int item_num, Point position) { _positions[item_num] = position; }
     void setItem(int item_num, Item* item) { _items[item_num] = item; }
-    void addItem(Item* item, xy_t position = { 0, 0 }) {
+    void addItem(Item* item, Point position = { 0, 0 }) {
         _items.push_back(item);
         _positions.push_back(position);
         ++_num_items;

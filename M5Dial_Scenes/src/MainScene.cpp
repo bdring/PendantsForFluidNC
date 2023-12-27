@@ -88,12 +88,13 @@ public:
 
         int y = 170;
         if (state == Cycle || state == Hold) {
-            int width = 192;
+            int width  = 192;
+            int height = 10;
             if (myPercent > 0) {
-                canvas.fillRoundRect(20, y, width, 10, 5, LIGHTGREY);
+                drawRect(20, y, width, height, 5, LIGHTGREY);
                 width = (float)width * myPercent / 100.0;
                 if (width > 0) {
-                    canvas.fillRoundRect(20, y, width, 10, 5, GREEN);
+                    drawRect(20, y, width, height, 5, GREEN);
                 }
             }
 

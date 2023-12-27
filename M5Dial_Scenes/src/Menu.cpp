@@ -7,29 +7,25 @@
 
 void do_nothing(void* foo) {}
 
-void RoundButton::show(const xy_t& where) {
-    // Canvas coordinates start at the top.
-    int x = where.x + display.width() / 2;
-    int y = (-where.y) + display.height() / 2;
-    canvas.fillCircle(x, y, _radius, _highlighted ? _hl_fill_color : _fill_color);
-    canvas.drawCircle(x, y, _radius, _highlighted ? _hl_outline_color : _outline_color);
-    text(name().substring(0, 1), x, y, _highlighted ? MAROON : WHITE, MEDIUM);
+void RoundButton::show(const Point& where) {
+    drawOutlinedCircle(where, _radius, _highlighted ? _hl_fill_color : _fill_color, _highlighted ? _hl_outline_color : _outline_color);
+    text(name().substring(0, 1), where, _highlighted ? MAROON : WHITE, MEDIUM);
 }
-void ImageButton::show(const xy_t& where) {
+void ImageButton::show(const Point& where) {
     display.drawPngFile(LittleFS, _filename, where.x, where.y, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
     if (_highlighted) {
         // What?
     }
 }
-void RectangularButton::show(const xy_t& where) {
-    drawOutlinedRect(where.x, where.y, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);
-    text(_text, where.x, where.y, _text_color, SMALL);
+void RectangularButton::show(const Point& where) {
+    drawOutlinedRect(where, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);
+    text(_text, where, _text_color, SMALL);
 }
 
 void Menu::reDisplay() {
     menuBackground();
     show_items();
-    canvas.pushSprite(0, 0);
+    refreshDisplay();
 }
 void Menu::rotate(int delta) {
     if (_selected != -1) {
@@ -63,7 +59,7 @@ void PieMenu::calculatePositions() {
     int layout_radius = display.width() / 2 - _item_radius - 2;
     angle             = M_PI / 2;
     for (size_t i = 0; i < num_items(); i++) {
-        xy_t center = { (int)(cosf(angle) * layout_radius), (int)(sinf(angle) * layout_radius) };
+        Point center = { (int)(cosf(angle) * layout_radius), (int)(sinf(angle) * layout_radius) };
         setPosition(i, center);
         angle -= theta;
     }
@@ -71,8 +67,10 @@ void PieMenu::calculatePositions() {
 
 int PieMenu::touchedItem(int x, int y) {
     // Convert from screen coordinates to 0,0 in the center
-    x = x - display.width() / 2;
-    y = -(y - display.height() / 2);
+    Point ctr = Point { x, y }.from_display();
+
+    x = ctr.x;
+    y = ctr.y;
 
     int dead_radius = display.width() / 2 - _item_radius * 2;
 
@@ -104,10 +102,9 @@ int PieMenu::touchedItem(int x, int y) {
 }
 void PieMenu::menuBackground() {
     drawBackground(NAVY);
-    int center_x = display.width() / 2;
-    int center_y = display.height() / 2;
-    text(name(), center_x, center_y - 24, YELLOW, TINY);
-    text(selectedItem()->name(), center_x, center_y + 8, WHITE, SMALL);
+
+    text(name(), { 0, 24 }, YELLOW, TINY);
+    text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);
 }
 
 void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {

@@ -47,11 +47,32 @@ public:
 };
 
 // draw stuff
+// Routines that take Point as an argument work in a coordinate
+// space where 0,0 is at the center of the display and +Y is up
+
 void drawBackground(int color);
 void drawStatus();
+
+void drawCircle(int x, int y, int radius, int fillcolor);
+void drawCircle(Point xy, int radius, int fillcolor);
+
+void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor);
+void drawOutlinedCircle(Point xy, int radius, int fillcolor, int outlinecolor);
+
+void drawRect(int x, int y, int width, int height, int radius, int bgcolor);
+void drawRect(Point xy, int width, int height, int radius, int bgcolor);
+void drawRect(Point xy, Point wh, int radius, int bgcolor);
+
 void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outlinecolor);
+void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinecolor);
+
 void drawButtonLegends(const String& red, const String& green, const String& orange);
 void drawMenuTitle(const String& name);
+
+void drawPngFile(const String& filename, int x, int y, int width, int height);
+void drawPngFile(const String& filename, Point xy, int width, int height);
+void drawPngBackground(const String& filename);
+
 void refreshDisplay();
 
 void showImageFile(const char* name, int x, int y, int width, int height);

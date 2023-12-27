@@ -5,6 +5,7 @@
 
 #pragma once
 #include "System.h"
+#include "Point.h"
 
 enum fontnum_t {
     TINY        = 0,
@@ -15,4 +16,5 @@ enum fontnum_t {
 };
 
 void text(const String& msg, int x, int y, int color, fontnum_t fontnum = TINY, int datum = middle_center);
+void text(const String& msg, Point xy, int color, fontnum_t fontnum = TINY, int datum = middle_center);
 void centered_text(const String& msg, int y, int color = WHITE, fontnum_t fontnum = TINY);

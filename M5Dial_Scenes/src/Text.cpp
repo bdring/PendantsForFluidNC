@@ -19,6 +19,10 @@ void text(const String& msg, int x, int y, int color, fontnum_t fontnum, int dat
     canvas.setTextColor(color);
     canvas.drawString(msg, x, y);
 }
+void text(const String& msg, Point xy, int color, fontnum_t fontnum, int datum) {
+    Point dispxy = xy.to_display();
+    text(msg, dispxy.x, dispxy.y, color, fontnum, datum);
+}
 void centered_text(const String& msg, int y, int color, fontnum_t fontnum) {
     text(msg, display.width() / 2, y, color, fontnum);
 }
