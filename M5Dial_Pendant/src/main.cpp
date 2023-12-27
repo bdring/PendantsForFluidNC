@@ -29,8 +29,10 @@ Saved
 
 constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
 constexpr static const int GREEN_BUTTON_PIN = GPIO_NUM_15;
-constexpr static const int UPDATE_RATE_MS   = 30;  // minimum refresh rate in milliseconds
-constexpr static const int MAX_JOG_INC      = 5;
+constexpr static const int DIAL_BUTTON_PIN  = GPIO_NUM_42;
+
+constexpr static const int UPDATE_RATE_MS = 30;  // minimum refresh rate in milliseconds
+constexpr static const int MAX_JOG_INC    = 5;
 
 #define DEBUG_TO_FNC
 #define DEBUG_TO_USB
@@ -62,6 +64,7 @@ static m5::touch_state_t prev_state;
 HardwareSerial           Serial_FNC(1);  // Serial port for comm with FNC
 Button                   greenButton;
 Button                   redButton;
+Button                   dialButton;
 
 // The menus
 void main_menu(int32_t delta);
@@ -80,6 +83,7 @@ void menuTitle();
 void refreshDisplaySprite();
 
 // helper functions
+bool   touchEnd();
 void   rotateNumberLoop(int& currentVal, int increment, int min, int max);
 void   feedRateRotator(int& rate, bool up);
 bool   dial_button();
@@ -169,6 +173,7 @@ void setup() {
 
     greenButton.init(GREEN_BUTTON_PIN, true);
     redButton.init(RED_BUTTON_PIN, true);
+    dialButton.init(DIAL_BUTTON_PIN, true);
 
     USBSerial.begin(115200);
     Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // assign pins to the M5Stamp Port B
@@ -234,39 +239,19 @@ void loop() {
 void main_menu(int32_t delta) {
     static int menu_item = 0;
 
-    if (M5Dial.BtnA.isPressed()) {  // if jog dial buttom was press
-        while (M5Dial.BtnA.isPressed())
-            M5Dial.update();
-        delay(20);
-        //USBSerial.println("dial btn");
-        if (stateString == "Idle" || stateString == "Alarm") {
-            switch (menu_item) {
-                case 0:
-                    menu_number = MenuName::Jogging;
-                    return;
-                case 1:
-                    menu_number = MenuName::Homing;
-                    return;
-                case 2:
-                    menu_number = MenuName::Probing;
-                    return;
+    if (dialButton.changed()) {
+        if (dialButton.active()) {
+            if (stateString == "Idle" || stateString == "Alarm") {
+                menu_number = MenuName::Jogging;
+                return;
+            } else if (stateString == "Run") {
+                displayer.putchar((uint8_t)Cmd::FeedOvrReset);
             }
-        } else if (stateString == "Run") {
-            displayer.putchar((uint8_t)Cmd::FeedOvrReset);
         }
     }
 
-    auto t = M5Dial.Touch.getDetail();
-    if (prev_state != t.state) {
-        //USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        if (t.state == m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 30);
-            if (!stateString.equals("Run")) {
-                rotateNumberLoop(menu_item, 1, 0, 2);
-            }
-            displayer.putchar((uint8_t)Cmd::StatusReport);  // sometimes you want an extra status
-        }
-        prev_state = t.state;
+    if (touchEnd()) {
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
     }
 
     if (redButton.changed()) {
@@ -278,7 +263,7 @@ void main_menu(int32_t delta) {
             } else if (stateString.equals("Hold")) {
                 displayer.putchar((uint8_t)Cmd::Reset);
             } else if (stateString.equals("Idle")) {
-                menu_number = MenuName::Homing;
+                menu_number = MenuName::Probing;
                 return;
             }
         }
@@ -291,7 +276,7 @@ void main_menu(int32_t delta) {
             } else if (stateString.equals("Hold")) {
                 displayer.putchar((uint8_t)Cmd::CycleStart);
             } else if (stateString.equals("Idle")) {
-                menu_number = MenuName::Probing;
+                menu_number = MenuName::Homing;
                 return;
             } else if (stateString.equals("Alarm")) {
                 menu_number = MenuName::Homing;
@@ -310,9 +295,9 @@ void main_menu(int32_t delta) {
 
     int y       = 68;
     int spacing = 33;
-    drawDRO(10, y, 220, 0, myAxes[0], menu_item == 0);
-    drawDRO(10, y += spacing, 220, 1, myAxes[1], menu_item == 0);
-    drawDRO(10, y += spacing, 220, 2, myAxes[2], menu_item == 0);
+    drawDRO(10, y, 220, 0, myAxes[0], false);
+    drawDRO(10, y += spacing, 220, 1, myAxes[1], false);
+    drawDRO(10, y += spacing, 220, 2, myAxes[2], false);
 
     y = 170;
     if (stateString == "Run" || (stateString.equals("Hold"))) {
@@ -329,11 +314,6 @@ void main_menu(int32_t delta) {
         canvas.setFont(&fonts::FreeSansBold9pt7b);
         canvas.setTextDatum(middle_center);
         canvas.drawString("Feed Rate Ovr:" + floatToString(myFro, 0) + "%", 120, y + 23);
-    }
-
-    if (!stateString.equals("Run") && !stateString.equals("Hold")) {
-        drawButton(38, 170, 74, 30, 12, "Home", menu_item == 1);
-        drawButton(128, 170, 74, 30, 12, "Probe", menu_item == 2);
     }
 
     String encoder_button_text = "";
@@ -363,8 +343,8 @@ void main_menu(int32_t delta) {
     } else if (stateString == "Jog") {
         redButtonText = "Jog Cancel";
     } else if (stateString == "Idle") {
-        redButtonText   = "Home";
-        greenButtonText = "Probe";
+        redButtonText   = "Probe";
+        greenButtonText = "Home";
     }
 
     buttonLegends(redButtonText, greenButtonText, encoder_button_text);
@@ -387,9 +367,11 @@ void main_menu(int32_t delta) {
 void homingMenu() {
     static int current_button = 0;
 
-    if (dial_button()) {  // if jog dial buttom was press
-        menu_number = MenuName::Main;
-        return;
+    if (dialButton.changed()) {
+        if (dialButton.active()) {
+            menu_number = MenuName::Main;
+            return;
+        }
     }
 
     if (greenButton.changed()) {
@@ -414,17 +396,10 @@ void homingMenu() {
         }
     }
 
-    auto t = M5Dial.Touch.getDetail();
-    if (prev_state != t.state) {
-        if (t.state == m5::touch_state_t::touch) {
-            M5Dial.Speaker.tone(1800, 20);
-            rotateNumberLoop(current_button, 1, 0, 3);
-        }
-        USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        prev_state = t.state;
+    if (touchEnd()) {
+        rotateNumberLoop(current_button, 1, 0, 3);
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
     }
-
-    //
 
     canvas.fillSprite(BLACK);
     drawStatus();
@@ -469,13 +444,11 @@ void joggingMenu(int32_t delta) {
 
     float jog_increment = pow(10.0, abs(myPrefs.jog_inc_level[jog_axis])) / 100.0;
 
-    // Dial Button handling
-    if (M5Dial.BtnA.isPressed()) {
-        while (M5Dial.BtnA.isPressed())
-            M5Dial.update();
-        delay(20);
-        menu_number = MenuName::Main;
-        return;
+    if (dialButton.changed()) {
+        if (dialButton.active()) {
+            menu_number = MenuName::Main;
+            return;
+        }
     }
 
     if (greenButton.changed()) {
@@ -570,7 +543,7 @@ void joggingMenu(int32_t delta) {
             } else {
                 rotateNumberLoop(active_setting, 1, 0, 1);
             }
-            USBSerial.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
+            displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
             update = true;
             return;
         }
@@ -677,12 +650,11 @@ void probeMenu() {
     menuTitle();
     drawStatus();
 
-    if (M5Dial.BtnA.isPressed()) {  // if jog dial buttom was press
-        while (M5Dial.BtnA.isPressed())
-            M5Dial.update();
-        delay(20);
-        menu_number = MenuName::Main;
-        return;
+    if (dialButton.changed()) {
+        if (dialButton.active()) {
+            menu_number = MenuName::Main;
+            return;
+        }
     }
 
     if (greenButton.changed()) {
@@ -722,15 +694,9 @@ void probeMenu() {
         }
     }
 
-    // A touch allows you to rotate through the items to be adjusted.
-    auto t = M5Dial.Touch.getDetail();
-    if (prev_state != t.state) {
-        if (t.state == m5::touch_state_t::touch_end) {
-            M5Dial.Speaker.tone(1800, 20);
-            rotateNumberLoop(selection, 1, 0, 4);
-        }
-        //USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        prev_state = t.state;
+    if (touchEnd()) {
+        rotateNumberLoop(selection, 1, 0, 4);
+        displayer.putchar((uint8_t)Cmd::StatusReport);  // get an extra status
     }
 
     if (abs(delta) > 0) {
@@ -938,18 +904,6 @@ void refreshDisplaySprite() {
     M5Dial.Display.endWrite();
 }
 
-bool dial_button() {
-    M5Dial.update();
-    if (M5Dial.BtnA.isPressed()) {
-        while (M5Dial.BtnA.isPressed())
-            M5Dial.update();
-        delay(20);
-        USBSerial.println("dial btn");  // debug info
-        return true;
-    }
-    return false;
-}
-
 // Helpful for debugging touch development.
 String M5TouchStateName(m5::touch_state_t state_num) {
     static constexpr const char* state_name[16] = { "none", "touch", "touch_end", "touch_begin", "___", "hold", "hold_end", "hold_begin",
@@ -1003,6 +957,18 @@ void debug(const char* info) {
 #ifdef DEBUG_TO_USB
     USBSerial.println(info);
 #endif
+}
+
+bool touchEnd() {
+    auto t = M5Dial.Touch.getDetail();
+    if (prev_state != t.state) {
+        prev_state = t.state;
+        if (t.state == m5::touch_state_t::touch_end) {
+            M5Dial.Speaker.tone(1800, 20);
+            return true;
+        }
+    }
+    return false;
 }
 
 String AlarmNames(int num) {

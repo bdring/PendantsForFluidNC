@@ -10,7 +10,7 @@ UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
 UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
 
 // DMA ring buffer for the serial port connected to FluidNC
-#define UART_DMA_LEN 256
+#define UART_DMA_LEN 8192
 static int     last_dma_count = 0;
 static uint8_t dma_buf[UART_DMA_LEN];
 
@@ -73,7 +73,23 @@ void poll_extra() {
 
 // Send MSG: messages to the IO Expander code for processing
 void handle_msg(char* command, char* arguments) {
-    expander_handle_msg(command, arguments);
+    if (!expander_handle_msg(command, arguments)) {
+        debug_print("[MSG:");
+        debug_print(command);
+        debug_putchar(':');
+        debug_print(arguments);
+        debug_println("]");
+    }
+}
+
+void handle_signon(char* version, char* arguments) {
+    debug_print("Grbl ");
+    debug_print(version);
+    debug_print(" ");
+    debug_println(arguments);
+}
+void handle_other(char* line) {
+    debug_println(line);
 }
 
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
@@ -83,7 +99,6 @@ void setup() {
     last_dma_count = UART_DMA_LEN;
 
     debug_println("[MSG:INFO: Hello from STM32_Expander]");
-    //HAL_UART_Transmit(DebugSerial, (uint8_t*)"Hello from STM32_Expander\r\n", 27, 1000);
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
     // expander has been reset.  At startup, that would be okay, but

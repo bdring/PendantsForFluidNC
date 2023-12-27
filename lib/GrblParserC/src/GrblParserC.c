@@ -22,6 +22,13 @@ static int _n_axis;
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
 
+static void dbg(const char* line) {
+    char msg[100];
+    strcpy(msg, "$Msg/Uart0=");
+    strcat(msg, line);
+    fnc_send_line(msg, 1000);
+}
+
 bool split(char* input, char** next, char delim) {
     char* pos = strchr(input, delim);
     if (pos) {
@@ -47,9 +54,6 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     while (isdigit((int)(c = *p++))) {
         numerator = numerator * 10 + (c - '0');
     }
-    if (negate) {
-        numerator = -numerator;
-    }
     if (c == '.') {
         while (isdigit((int)(c = *p++))) {
             numerator = numerator * 10 + (c - '0');
@@ -67,8 +71,12 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
         denominator *= 100;
         c = *p++;
     }
+    if (negate) {
+        numerator = -numerator;
+    }
     *pnumerator   = numerator;
     *pdenominator = denominator;
+
     return c == '\0';
 }
 
@@ -155,23 +163,30 @@ static void parse_alarm(const char* body) {
     show_alarm(atoi(body));
 }
 
+static void parse_signon(char* body) {
+    char* arguments;
+    split(body, &arguments, ' ');
+    handle_signon(body, arguments);
+}
+
 static pos_t atopos(const char* s) {
     int32_t  numerator;
     uint32_t denominator;
     atofraction(s, &numerator, &denominator);
-    return numerator * 10000 / denominator;
+    return (pos_t)numerator / denominator;
 }
 
-static void parse_axes(char* s, pos_t* axes) {
-    char* next;
-    _n_axis = 0;
+static size_t parse_axes(char* s, pos_t* axes) {
+    char*  next;
+    size_t n_axis = 0;
     do {
         split(s, &next, ',');
         if (_n_axis < MAX_N_AXIS) {
-            axes[_n_axis++] = atopos(s);
+            axes[n_axis++] = atopos(s);
         }
         s = next;
-    } while (*next);
+    } while (*s);
+    return n_axis;
 }
 
 static void parse_integers(char* s, uint32_t* nums, int maxnums) {
@@ -216,15 +231,21 @@ static void parse_status_report(char* field) {
     pos_t axes[MAX_N_AXIS];
     bool  isMpos = false;
 
+    bool has_override        = false;
+
     bool           has_filename = false;
     char*          filename     = '\0';
     file_percent_t file_percent = 0;
     //unused values
     pos_t wcos[MAX_N_AXIS] = { 0 };
     //unused values end
-    override_percent_t frs[MAX_N_AXIS] = { 0 };
+
     // feedrate,spindle_speed
     uint32_t fs[2];
+    override_percent_t frs[MAX_N_AXIS] = { 0 };
+
+    size_t n_axis = 0;
+
     // ... handle it
     while (*next) {
         field = next;
@@ -235,13 +256,13 @@ static void parse_status_report(char* field) {
 
         if (strcmp(field, "MPos") == 0) {
             // x,y,z,...
-            parse_axes(value, axes);
+            n_axis = parse_axes(value, axes);
             isMpos = true;
             continue;
         }
         if (strcmp(field, "WPos") == 0) {
             // x,y,z...
-            parse_axes(value, axes);
+            n_axis = parse_axes(value, axes);
             isMpos = false;
             continue;
         }
@@ -337,7 +358,7 @@ static void parse_status_report(char* field) {
             int32_t  numerator;
             uint32_t denominator;
             atofraction(value, &numerator, &denominator);
-            file_percent = 100 * numerator / denominator;
+            file_percent = numerator / denominator;
             continue;
         }
     }
@@ -348,17 +369,23 @@ static void parse_status_report(char* field) {
     if (has_filename) {
         show_file(filename, file_percent);
     }
-    show_limits(probe, limits, _n_axis);
-    show_dro(axes, wcos, isMpos, limits, _n_axis);
+    if (n_axis) {
+    	show_limits(probe, limits, _n_axis);
+    	show_dro(axes, wcos, isMpos, limits, n_axis);
+    }
     show_feed_spindle(fs[0], fs[1]);
     if (has_override) {
-        show_override(frs);
+        show_overrides(frs[0], frs[1], frs[2]);
     }
     if (has_linenum) {
         show_linenum(linenum);
     }
     if (has_a_field) {
         show_spindle_coolant(spindle, flood, mist);
+    }
+    show_feed_spindle(fs[0], fs[1]);
+    if (has_override) {
+        show_overrides(frs[0], frs[1], frs[2]);
     }
 
     end_status_report();
@@ -477,6 +504,10 @@ void fnc_send_line(const char* line, int timeout_ms) {
     _ackwait        = true;
 }
 
+void fnc_realtime(realtime_cmd_t c) {
+    fnc_putchar((uint8_t)c);
+}
+
 static void parse_report() {
     if (*_report == '\0') {
         return;
@@ -491,6 +522,7 @@ static void parse_report() {
         parse_grbl_version(_report + 5);
         return;
     }
+
     char* body;
     if (is_report_type(_report, &body, "<", ">")) {
         parse_status_report(body);
@@ -517,6 +549,13 @@ static void parse_report() {
         parse_alarm(body);
         return;
     }
+
+    if (is_report_type(_report, &body, "Grbl ", "")) {
+        parse_signon(body);
+        return;
+    }
+
+    handle_other(_report);
 }
 // Receive an incoming byte
 void collect(uint8_t data) {
@@ -563,6 +602,9 @@ void __attribute__((weak)) show_timeout() {}
 // expander message was handled.
 void __attribute__((weak)) handle_msg(char* command, char* arguments) {}
 
+void __attribute__((weak)) handle_signon(char* version, char* extra) {}
+void __attribute__((weak)) handle_other(char* line) {}
+
 // Data parsed from <...> status reports
 void __attribute__((weak)) show_limits(bool probe, const bool* limits, size_t n_axis) {};
 void __attribute__((weak)) show_state(const char* state) {};
@@ -570,8 +612,7 @@ void __attribute__((weak)) show_dro(const pos_t* axes, const pos_t* wcos, bool i
 void __attribute__((weak)) show_file(const char* filename, file_percent_t percent) {}
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
 void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed) {}
-void __attribute__((weak)) show_override(override_percent_t * overrides) {}
-
+void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 

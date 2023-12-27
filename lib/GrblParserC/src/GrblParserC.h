@@ -21,10 +21,47 @@ extern "C" {
 #define B_AXIS 4
 #define C_AXIS 5
 
-typedef int32_t  pos_t;
+typedef float    pos_t;
 typedef int32_t  feedrate_t;
 typedef uint32_t override_percent_t;
 typedef int32_t  file_percent_t;
+
+typedef enum {
+    None                  = 0,
+    Reset                 = 0x18,  // Ctrl-X
+    StatusReport          = '?',
+    CycleStart            = '~',
+    FeedHold              = '!',
+    SafetyDoorEvent       = 0x84,
+    JogCancel             = 0x85,
+    DebugReport           = 0x86,  // Only when DEBUG_REPORT_REALTIME enabled, sends debug report in '{}' braces.
+    Macro0                = 0x87,
+    Macro1                = 0x88,
+    Macro2                = 0x89,
+    Macro3                = 0x8a,
+    FeedOvrReset          = 0x90,  // Restores feed override value to 100%.
+    FeedOvrCoarsePlus     = 0x91,
+    FeedOvrCoarseMinus    = 0x92,
+    FeedOvrFinePlus       = 0x93,
+    FeedOvrFineMinus      = 0x94,
+    RapidOvrReset         = 0x95,  // Restores rapid override value to 100%.
+    RapidOvrMedium        = 0x96,
+    RapidOvrLow           = 0x97,
+    RapidOvrExtraLow      = 0x98,  // *NOT SUPPORTED*
+    SpindleOvrReset       = 0x99,  // Restores spindle override value to 100%.
+    SpindleOvrCoarsePlus  = 0x9A,  // 154
+    SpindleOvrCoarseMinus = 0x9B,
+    SpindleOvrFinePlus    = 0x9C,
+    SpindleOvrFineMinus   = 0x9D,
+    SpindleOvrStop        = 0x9E,
+    CoolantFloodOvrToggle = 0xA0,
+    CoolantMistOvrToggle  = 0xA1,
+    // UART Extender
+    PinLow  = 0xB0,  // Start of two-character sequence; second is event number
+    PinHigh = 0xB1,  // Start of two-character sequence; second is event number
+    ACK     = 0xB2,  // IO Expander accepted command
+    NAK     = 0xB3,  // IO Expander rejected command
+} realtime_cmd_t;
 
 struct gcode_modes {
     const char* modal;
@@ -67,6 +104,8 @@ extern void fnc_putchar(uint8_t ch);  // Must implement
 // Get the time in milliseconds
 extern int milliseconds();  // Must implement
 
+extern void fnc_realtime(realtime_cmd_t c);
+
 // Optional debug port routines
 extern void debug_putchar(char c);
 extern void debug_print(const char* msg);
@@ -95,6 +134,14 @@ extern void expander_pin_msg(uint8_t pin_num, bool active);
 // General handler that can be ovverridden
 extern void handle_msg(char* command, char* arguments);
 
+extern void handle_grbl(char* line);
+
+// Handle signon messages like "Grbl 3.4 [stuff]"
+extern void handle_signon(char* version, char* extra);
+
+// Handle anything not otherwise recognized
+extern void handle_other(char* line);
+
 extern uint32_t parse_io_mode(const char* params);
 
 // Data parsed from <...> status reports
@@ -105,8 +152,7 @@ extern void show_file(const char* filename, file_percent_t percent);
 extern void show_linenum(int linenum);
 extern void show_spindle_coolant(int spindle, bool flood, bool mist);
 extern void show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed);
-extern void show_override(override_percent_t * overrides);
-
+extern void show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr);
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);

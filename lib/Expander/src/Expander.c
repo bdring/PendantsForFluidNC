@@ -19,17 +19,14 @@ extern "C" {
 const uint8_t PinLowUTF8Prefix  = 0xC4;
 const uint8_t PinHighUTF8Prefix = 0xC5;
 
-const uint8_t ACK = 0xB2;
-const uint8_t NAK = 0xB3;
-
 // With no arguments, return an ACK for okay
 void expander_ack() {
-    fnc_putchar(ACK);
+    fnc_realtime(ACK);
 }
 
 void expander_nak(const char* msg) {
     debug_println(msg);
-    fnc_putchar(NAK);
+    fnc_realtime(NAK);
 }
 
 void expander_pin_msg(uint8_t pin_num, bool active) {
