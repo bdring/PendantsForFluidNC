@@ -1,6 +1,8 @@
 // Copyright (c) 2023 - Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+#pragma once
+
 #include <Arduino.h>
 #include "Scene.h"
 #include <math.h>
@@ -29,7 +31,7 @@ public:
 
     virtual void show(const xy_t& where) = 0;
 
-    void invoke(void* arg = nullptr) {
+    virtual void invoke(void* arg = nullptr) {
         if (_scene) {
             push_scene(_scene, arg);
             return;

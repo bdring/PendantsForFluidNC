@@ -1,11 +1,13 @@
 #include "Menu.h"
+#include "FileMenu.h"
 
 void noop(void* arg) {}
 
 const int buttonRadius = 35;
 
-PieMenu jogMenu("Jogging", buttonRadius);
-PieMenu mainMenu("Main", buttonRadius);
+FileMenu fileMenu("Files");
+PieMenu  jogMenu("Jogging", buttonRadius);
+PieMenu  mainMenu("Main", buttonRadius);
 
 class LB : public RoundButton {
 public:
@@ -15,16 +17,25 @@ public:
 };
 
 Scene* initMenus() {
+    fileMenu.addItem(new FileItem("BigTree.nc"));
+    fileMenu.addItem(new FileItem("BotCustom.nc"));
+    fileMenu.addItem(new FileItem("Engraving.gcode"));
+    fileMenu.addItem(new FileItem("Fixtures/"));
+    fileMenu.addItem(new FileItem("Pucks.nc"));
+    fileMenu.addItem(new FileItem("TopCutout.nc"));
+    fileMenu.addItem(new FileItem("TopTLines.nc"));
+    fileMenu.setFolder("/");
+
     jogMenu.addItem(new LB("XAxis", noop, RED));
     jogMenu.addItem(new LB("YAxis", noop, RED));
     jogMenu.addItem(new LB("ZAxis", noop, RED));
     jogMenu.addItem(new LB("<Back", pop_scene, RED));
 
     mainMenu.addItem(new LB("Home", noop, RED));
-    mainMenu.addItem(new LB("Jog", (Scene*)&jogMenu, DARKCYAN));
+    mainMenu.addItem(new LB("Jog", &jogMenu, DARKCYAN));
     mainMenu.addItem(new LB("Set", noop, MAROON));
     mainMenu.addItem(new LB("Probe", noop, ORANGE));
-    mainMenu.addItem(new LB("Files", noop, OLIVE));
+    mainMenu.addItem(new LB("Files", &fileMenu, OLIVE));
     mainMenu.addItem(new LB("Config", noop, BLUE));
 
     return &mainMenu;
