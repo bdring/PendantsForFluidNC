@@ -227,6 +227,7 @@ static void parse_status_report(char* field) {
     while (*next) {
         field = next;
         split(field, &next, '|');
+
         // MPos:, WPos:, Bf:, Ln:, FS:, Pn:, WCO:, Ov:, A:, SD: (ISRs:, Heap:)
         char* value;
         split(field, &value, ':');
@@ -295,8 +296,8 @@ static void parse_status_report(char* field) {
             continue;
         }
         if (strcmp(field, "Ov") == 0) {
-            // feed_ovr,rapid_ovr,spindle_ovr
             has_override = true;
+            // feed_ovr,rapid_ovr,spindle_ovr
             parse_integers(value, frs, 3);  // feed in [0], rapid in [1], spindle in [2]
             continue;
         }
@@ -347,8 +348,8 @@ static void parse_status_report(char* field) {
         show_file(filename, file_percent);
     }
     if (n_axis) {
-    	show_limits(probe, limits, n_axis);
-    	show_dro(axes, wcos, isMpos, limits, n_axis);
+	show_limits(probe, limits, n_axis);
+	show_dro(axes, wcos, isMpos, limits, n_axis);
     }
     show_feed_spindle(fs[0], fs[1]);
     if (has_override) {
