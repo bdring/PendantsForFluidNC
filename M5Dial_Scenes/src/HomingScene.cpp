@@ -7,6 +7,7 @@
 class HomingScene : public Scene {
 private:
     int current_button = 0;
+    int encoderCounter = 0;
 
 public:
     HomingScene() : Scene("Home") {}
@@ -27,11 +28,16 @@ public:
             fnc_realtime(Reset);
         }
     }
-    void onTouchRelease(m5::touch_detail_t t) {
-        rotateNumberLoop(current_button, 1, 0, 3);
-        USBSerial.printf("%s\r\n", M5TouchStateName(t.state));
-        display();
+    void onEncoder(int delta) {
+        if (abs(delta) > 0) {
+            encoderCounter += delta;
+            if (encoderCounter % 4 == 0) {
+                rotateNumberLoop(current_button, delta > 0 ? 1 : -1, 0, 3);
+                display();
+            }
+        }
     }
+
     void display() {
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());

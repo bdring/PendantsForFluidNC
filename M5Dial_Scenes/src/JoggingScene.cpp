@@ -59,11 +59,7 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
-            if (selection % 2) {  // Zero WCO
-                String cmd = "G10L20P0" + axisNumToString(jog_axis) + "0";
-                log_msg(cmd);
-                send_line(cmd);
-            } else {
+            {
                 if (jog_continuous) {
                     // $J=G91F1000X10000
                     send_line("$J=G91F" + floatToString(jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) + "10000");
@@ -128,18 +124,19 @@ public:
     }
 
     void onTouchRelease(m5::touch_detail_t t) {
-        // Rotate through the axis being jogged
-        //USBSerial.printf("Touch x:%i y:%i\r\n", t.x, t.y);
-        //Use dial to break out of continuous mode
         if (t.y < 70) {
             jog_continuous = !jog_continuous;
         } else if (t.y < 140) {
-            rotateNumberLoop(selection, 1, 0, 5);
-            jog_axis = (selection) / 2;
+            rotateNumberLoop(jog_axis, 1, 0, 2);
+        } else if (t.y > 116 && t.y < 158) {
+            String cmd = "G10L20P0" + axisNumToString(jog_axis) + "0";
+            log_msg(cmd);
+            send_line(cmd);
         } else {
             rotateNumberLoop(active_setting, 1, 0, 1);
         }
         USBSerial.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
+        M5Dial.Speaker.tone(2000, 20);
         display();
     }
 
@@ -193,33 +190,31 @@ public:
         drawBackground(BLACK);
         drawStatus();
 
-        int x      = 9;
-        int y      = 69;
-        int width  = 180;
-        int height = 33;
+        int x      = 15;
+        int y      = 68;
+        int width  = 210;
+        int height = 40;
 
         DRO dro(x, y, width, height);
-        dro.draw(0, jog_axis == 0);
-        dro.draw(1, jog_axis == 1);
-        dro.draw(2, jog_axis == 2);
-
-        Stripe stripe(x + width + 1, y, 42, height, TINY);
-        stripe.draw("zro", selection == 1);
-        stripe.draw("zro", selection == 3);
-        stripe.draw("zro", selection == 5);
+        dro.draw(jog_axis, true);
 
         String legend;
-        legend = jog_continuous ? "Bttn Jog" : "Knob Jog";
+
+        legend = "Zero " + String("XYZ").substring(jog_axis, jog_axis + 1) + " Axis";
+        Stripe stripe(60, 116, 120, 42, TINY);
+        stripe.draw(legend, false);
+
+        legend = jog_continuous ? "Btn Jog" : "MPG Jog";
         centered_text(legend, 12);
 
         if (jog_continuous) {
-            legend = "Rate: " + floatToString(jog_cont_speed[jog_axis], 0);
-            centered_text(legend, 193);
+            legend = "Speed: " + floatToString(jog_cont_speed[jog_axis], 0);
+            centered_text(legend, 184);
         } else {
-            legend = "Dist: " + floatToString(jog_increment(), 2);
-            centered_text(legend, 181, active_setting == 0 ? WHITE : DARKGREY);
-            legend = "Rate: " + floatToString(jog_rate_level[jog_axis], 2);
-            centered_text(legend, 197, active_setting == 1 ? WHITE : DARKGREY);
+            legend = "MPG Incr: " + floatToString(jog_increment(), 2);
+            centered_text(legend, 173, active_setting == 0 ? WHITE : DARKGREY);
+            legend = "Rate: " + floatToString(jog_rate_level[jog_axis], 0);
+            centered_text(legend, 195, active_setting == 1 ? WHITE : DARKGREY);
         }
 
         const char* back = "Back";
