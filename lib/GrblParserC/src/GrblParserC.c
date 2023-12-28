@@ -16,9 +16,6 @@ static char   _report[REPORT_BUFFER_LEN];
 static bool _ackwait = false;
 static int  _ack_time_limit;
 
-static int _n_axis;
-
-
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
 
@@ -163,7 +160,7 @@ static size_t parse_axes(char* s, pos_t* axes) {
     size_t n_axis = 0;
     do {
         split(s, &next, ',');
-        if (_n_axis < MAX_N_AXIS) {
+        if (n_axis < MAX_N_AXIS) {
             axes[n_axis++] = atopos(s);
         }
         s = next;
@@ -350,7 +347,7 @@ static void parse_status_report(char* field) {
         show_file(filename, file_percent);
     }
     if (n_axis) {
-    	show_limits(probe, limits, _n_axis);
+    	show_limits(probe, limits, n_axis);
     	show_dro(axes, wcos, isMpos, limits, n_axis);
     }
     show_feed_spindle(fs[0], fs[1]);
