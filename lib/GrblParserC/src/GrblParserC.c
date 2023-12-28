@@ -351,10 +351,6 @@ static void parse_status_report(char* field) {
         show_limits(probe, limits, n_axis);
         show_dro(axes, wcos, isMpos, limits, n_axis);
     }
-    show_feed_spindle(fs[0], fs[1]);
-    if (has_override) {
-        show_overrides(frs[0], frs[1], frs[2]);
-    }
     if (has_linenum) {
         show_linenum(linenum);
     }
