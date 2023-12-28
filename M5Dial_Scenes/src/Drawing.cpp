@@ -104,4 +104,12 @@ void refreshDisplay() {
     M5Dial.Display.endWrite();
 }
 
-void drawMenuView(std::vector<String> labels, int start, int selected) {}
+void drawCapsule(int y, int width, int height, int color) {
+    int x = 120 - width / 2;
+    int yleft= y - height / 2;
+    int rad  = height / 2;
+
+    canvas.fillRoundRect(x, yleft, width, height, rad, color);
+}
+
+    void drawMenuView(std::vector<String> labels, int start, int selected) {}

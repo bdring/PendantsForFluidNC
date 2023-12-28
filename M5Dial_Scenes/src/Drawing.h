@@ -57,3 +57,4 @@ void drawMenuTitle(const String& name);
 void refreshDisplay();
 void showError();
 void drawThickCircle(int x, int y, int outsideRaius, int thickness, int color);
+void drawCapsule(int y, int width, int height, int color);

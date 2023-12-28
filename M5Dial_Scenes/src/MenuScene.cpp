@@ -6,7 +6,7 @@
 #include "menu_img.h"
 
 // these should not be here...move
-extern Scene fileScene;
+extern Scene filesScene;
 extern Scene controlScene;
 extern Scene mainScene;
 extern Scene probingScene;
@@ -44,7 +44,7 @@ public:
                 push_scene(&setupScene);
                 break;
             case 1:
-                push_scene(&fileScene);
+                push_scene(&filesScene);
                 break;
             case 2:
                 push_scene(&mainScene);

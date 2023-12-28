@@ -22,5 +22,5 @@ void text(const String& msg, int x, int y, int color, fontnum_t fontnum, int dat
     canvas.drawString(msg, x, y);
 }
 void centered_text(const String& msg, int y, int color, fontnum_t fontnum) {
-    text(msg, CENTER, y, color, fontnum);
+    text(msg, CENTER, y, color, fontnum, middle_center);
 }

@@ -9,7 +9,7 @@ extern Scene homingScene;
 extern Scene joggingScene;
 extern Scene controlScene;
 extern Scene menuScene;
-extern Scene fileScene;
+//extern Scene fileScene;
 
 class MainScene : public Scene {
 private:
