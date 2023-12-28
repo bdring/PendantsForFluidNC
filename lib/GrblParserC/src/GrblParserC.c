@@ -348,8 +348,8 @@ static void parse_status_report(char* field) {
         show_file(filename, file_percent);
     }
     if (n_axis) {
-	show_limits(probe, limits, n_axis);
-	show_dro(axes, wcos, isMpos, limits, n_axis);
+        show_limits(probe, limits, n_axis);
+        show_dro(axes, wcos, isMpos, limits, n_axis);
     }
     show_feed_spindle(fs[0], fs[1]);
     if (has_override) {
@@ -490,6 +490,7 @@ static void parse_report() {
     if (*_report == '\0') {
         return;
     }
+
     if (strcmp(_report, "ok") == 0) {
         _ackwait = false;
         show_ok();
