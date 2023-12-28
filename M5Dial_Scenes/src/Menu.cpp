@@ -12,9 +12,9 @@ void RoundButton::show(const Point& where) {
     text(name().substring(0, 1), where, _highlighted ? MAROON : WHITE, MEDIUM);
 }
 void ImageButton::show(const Point& where) {
-    display.drawPngFile(LittleFS, _filename, where.x, where.y, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
+    drawPngFile(_filename, where);
     if (_highlighted) {
-        // What?
+        drawCircle(where, _radius, _outline_color);
     }
 }
 void RectangularButton::show(const Point& where) {

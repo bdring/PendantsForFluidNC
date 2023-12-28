@@ -10,12 +10,20 @@ void drawBackground(int color) {
     canvas.fillSprite(color);
 }
 
-void drawCircle(int x, int y, int radius, int fillcolor) {
+void drawFilledCircle(int x, int y, int radius, int fillcolor) {
     canvas.fillCircle(x, y, radius, fillcolor);
 }
-void drawCircle(Point xy, int radius, int fillcolor) {
+void drawFilledCircle(Point xy, int radius, int fillcolor) {
     Point dispxy = xy.to_display();
-    drawCircle(dispxy.x, dispxy.y, radius, fillcolor);
+    drawFilledCircle(dispxy.x, dispxy.y, radius, fillcolor);
+}
+
+void drawCircle(int x, int y, int radius, int outlinecolor) {
+    canvas.drawCircle(x, y, radius, outlinecolor);
+}
+void drawCircle(Point xy, int radius, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawCircle(dispxy.x, dispxy.y, radius, outlinecolor);
 }
 
 void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor) {
@@ -48,15 +56,16 @@ void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinec
     drawOutlinedRect(dispxy.x, dispxy.y, width, height, bgcolor, outlinecolor);
 }
 
-void drawPngFile(const String& filename, int x, int y, int width, int height) {
-    canvas.drawPngFile(LittleFS, filename, x, y, width, height);
+void drawPngFile(const String& filename, int x, int y) {
+    // When datum is middle_center, the origin is the center of the canvas and the
+    // +Y direction is down.
+    canvas.drawPngFile(LittleFS, filename, x, -y, 0, 0, 0, 0, 1.0f, 1.0f, datum_t::middle_center);
 }
-void drawPngFile(const String& filename, Point xy, int width, int height) {
-    Point dispxy = xy.to_display();
-    drawPngFile(filename, dispxy.x, dispxy.y, width, height);
+void drawPngFile(const String& filename, Point xy) {
+    drawPngFile(filename, xy.x, xy.y);
 }
 void drawPngBackground(const String& filename) {
-    drawPngFile(filename, 0, 0, display.width(), display.height());
+    drawPngFile(filename, 0, 0);
 }
 
 // clang-format off

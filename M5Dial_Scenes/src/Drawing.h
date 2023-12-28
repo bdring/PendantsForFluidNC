@@ -53,8 +53,11 @@ public:
 void drawBackground(int color);
 void drawStatus();
 
-void drawCircle(int x, int y, int radius, int fillcolor);
-void drawCircle(Point xy, int radius, int fillcolor);
+void drawFilledCircle(int x, int y, int radius, int fillcolor);
+void drawFilledCircle(Point xy, int radius, int fillcolor);
+
+void drawCircle(int x, int y, int radius, int outlinecolor);
+void drawCircle(Point xy, int radius, int outlinecolor);
 
 void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor);
 void drawOutlinedCircle(Point xy, int radius, int fillcolor, int outlinecolor);
@@ -69,8 +72,8 @@ void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinec
 void drawButtonLegends(const String& red, const String& green, const String& orange);
 void drawMenuTitle(const String& name);
 
-void drawPngFile(const String& filename, int x, int y, int width, int height);
-void drawPngFile(const String& filename, Point xy, int width, int height);
+void drawPngFile(const String& filename, int x, int y);
+void drawPngFile(const String& filename, Point xy);
 void drawPngBackground(const String& filename);
 
 void refreshDisplay();

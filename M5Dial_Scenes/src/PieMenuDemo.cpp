@@ -31,12 +31,12 @@ Scene* initMenus() {
     jogMenu.addItem(new LB("ZAxis", noop, RED));
     jogMenu.addItem(new LB("<Back", pop_scene, RED));
 
+    mainMenu.addItem(new ImageButton("Run", noop, "/run.png", buttonRadius));
     mainMenu.addItem(new LB("Home", noop, RED));
     mainMenu.addItem(new LB("Jog", &jogMenu, DARKCYAN));
     mainMenu.addItem(new LB("Set", noop, MAROON));
     mainMenu.addItem(new LB("Probe", noop, ORANGE));
     mainMenu.addItem(new LB("Files", &fileMenu, OLIVE));
-    mainMenu.addItem(new LB("Config", noop, BLUE));
 
     return &mainMenu;
 }

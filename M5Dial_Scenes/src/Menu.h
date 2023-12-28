@@ -73,10 +73,13 @@ public:
 
 class ImageButton : public Item {
 private:
-    String _filename;
+    String  _filename;
+    int     _radius;
+    color_t _outline_color;
 
 public:
-    ImageButton(const char* name, callback_t callback, const char* filename) : Item(name, callback), _filename(filename) {}
+    ImageButton(const char* name, callback_t callback, const char* filename, int radius, color_t outline_color = WHITE) :
+        Item(name, callback), _filename(filename), _radius(radius), _outline_color(outline_color) {}
     void show(const Point& where) override;
 };
 
