@@ -114,24 +114,6 @@ static void parse_msg(char* command) {
 
     handle_msg(command, arguments);
 }
-//Grbl 3 [FluidNC v3.7,2 (wifi) '$' for help]
-static void parse_grbl_version(char* report) {
-        char * grbl_ver = report;
-        char * fspace = strpbrk(grbl_ver, " \t\n\r");
-        if (fspace) {
-            *fspace = 0;
-            char * reportp = fspace + 1;
-            char * body;
-            if (is_report_type(reportp, &body, "[FluidNC ", "]")) {
-                char * fspace2 = strpbrk(body, " \t\n\r");
-                if (fspace2) {
-                    *fspace2 = 0;
-                    char * fluidnc_ver = body;
-                    show_versions(grbl_ver, fluidnc_ver);
-                }
-            }
-        }
-}
 
 //[VER:3.4 FluidNC v3.4.8:]
 static void parse_version_report(char* body) {
@@ -230,8 +212,6 @@ static void parse_status_report(char* field) {
 
     pos_t axes[MAX_N_AXIS];
     bool  isMpos = false;
-
-    bool has_override        = false;
 
     bool           has_filename = false;
     char*          filename     = '\0';
@@ -515,11 +495,6 @@ static void parse_report() {
     if (strcmp(_report, "ok") == 0) {
         _ackwait = false;
         show_ok();
-        return;
-    }
-    //Grbl 3.7 [FluidNC v3.7.11 (main-5b844e65-dirty) (wifi) '$' for help]
-    if (strncmp(_report, "Grbl ", 5) == 0) {
-        parse_grbl_version(_report + 5);
         return;
     }
 
