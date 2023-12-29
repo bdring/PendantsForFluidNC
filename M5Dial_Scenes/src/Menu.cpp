@@ -15,7 +15,7 @@ void ImageButton::show(const Point& where) {
     if (_highlighted) {
         drawFilledCircle(where, _radius + 3, _outline_color);
     } else {
-        drawFilledCircle(where, _radius - 2, WHITE);
+        drawFilledCircle(where, _radius - 2, LIGHTGREY);
     }
     drawPngFile(_filename, where);
 }

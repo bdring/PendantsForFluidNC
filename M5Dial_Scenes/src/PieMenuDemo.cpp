@@ -19,8 +19,8 @@ public:
 constexpr int LIGHTYELLOW = 0xFFF0;
 class IB : public ImageButton {
 public:
-    IB(const char* text, callback_t callback, const char* filename) : ImageButton(text, callback, filename, buttonRadius, LIGHTYELLOW) {}
-    IB(const char* text, Scene* scene, const char* filename) : ImageButton(text, scene, filename, buttonRadius, LIGHTYELLOW) {}
+    IB(const char* text, callback_t callback, const char* filename) : ImageButton(text, callback, filename, buttonRadius, WHITE) {}
+    IB(const char* text, Scene* scene, const char* filename) : ImageButton(text, scene, filename, buttonRadius, WHITE) {}
 };
 
 extern Scene homingScene;

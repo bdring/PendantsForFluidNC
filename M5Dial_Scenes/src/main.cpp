@@ -19,8 +19,9 @@ HardwareSerial Serial_FNC(1);  // Serial port for comm with FNC
 
 void drawSplashScreen() {
     display.clear();
-    display.fillScreen(WHITE);
-    display.drawPngFile(LittleFS, "/fnc_logo.png", 0, 0, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
+    display.fillScreen(BLACK);
+    //display.drawPngFile(LittleFS, "/fnc_logo.png", 0, 0, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
+    display.drawPngFile(LittleFS, "/fluid_dial.png", 0, 0, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
     centered_text("Fluid Dial", 36, BLACK, SMALL);
     centered_text("Pendant", 65, BLACK, SMALL);
     centered_text("B. Dring", 190, BLACK, SMALL);
