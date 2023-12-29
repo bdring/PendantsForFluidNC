@@ -13,7 +13,7 @@ void init_encoder() {
         .lctrl_mode = PCNT_MODE_KEEP,     // Rising A on HIGH B = CW Step
         .hctrl_mode = PCNT_MODE_REVERSE,  // Rising A on LOW B = CCW Step
         .pos_mode   = PCNT_COUNT_INC,     //Count Only On Rising-Edges
-        .neg_mode   = PCNT_COUNT_DIS,     // Discard Falling-Edge
+        .neg_mode   = PCNT_COUNT_DEC,     // Discard Falling-Edge
 
         .counter_h_lim = INT16_MAX,
         .counter_l_lim = INT16_MIN,
@@ -26,7 +26,7 @@ void init_encoder() {
     enc_config.pulse_gpio_num = GPIO_NUM_41;
     enc_config.ctrl_gpio_num  = GPIO_NUM_40;
     enc_config.channel        = PCNT_CHANNEL_1;
-    enc_config.pos_mode       = PCNT_COUNT_DIS;  //Count Only On Falling-Edges
+    enc_config.pos_mode       = PCNT_COUNT_DEC;  //Count Only On Falling-Edges
     enc_config.neg_mode       = PCNT_COUNT_INC;  // Discard Rising-Edge
     pcnt_unit_config(&enc_config);
 
