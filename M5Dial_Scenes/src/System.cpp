@@ -7,7 +7,6 @@ M5Canvas           canvas(&M5Dial.Display);
 M5GFX&             display = M5Dial.Display;
 m5::Speaker_Class& speaker = M5Dial.Speaker;
 m5::Touch_Class&   touch   = M5Dial.Touch;
-ENCODER&           encoder = M5Dial.Encoder;
 
 Stream& debugPort = USBSerial;
 
@@ -24,8 +23,11 @@ String M5TouchStateName(m5::touch_state_t state_num) {
 void init_system() {
     USBSerial.begin(921600);
 
+    init_encoder();
+
     auto cfg = M5.config();
-    M5Dial.begin(cfg, true, false);
+    // Don't enable the encoder because M5's encoder driver is flaky
+    M5Dial.begin(cfg, false, false);
     touch.setFlickThresh(30);
 
     if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {

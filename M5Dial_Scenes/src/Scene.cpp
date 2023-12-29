@@ -30,12 +30,15 @@ void pop_scene(void* arg) {
 }
 
 void dispatch_events() {
-    static int32_t           oldEncoderPos    = 0;
     static m5::touch_state_t last_touch_state = {};
 
     M5Dial.update();
-    int32_t encoderDelta = encoder.readAndReset();
+
+    static int16_t oldEncoder   = 0;
+    int16_t        newEncoder   = get_encoder();
+    int16_t        encoderDelta = newEncoder - oldEncoder;
     if (encoderDelta) {
+        oldEncoder = newEncoder;
         current_scene->onEncoder(encoderDelta);
     }
 

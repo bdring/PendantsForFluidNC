@@ -154,11 +154,6 @@ public:
                 feedRateRotator(_cont_speed[_axis], delta > 0);
             }
         } else {
-            // encoder filtering
-            if (abs(delta) == 2) {
-                return;
-            }
-            
             String enc_msg = "delta: " + String(delta);
             debugPort.println(enc_msg);
 

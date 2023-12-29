@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 #include "M5Dial.h"
+#include "Encoder.h"
 
 extern M5Canvas           canvas;
 extern M5GFX&             display;
