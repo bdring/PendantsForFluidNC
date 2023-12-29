@@ -6,16 +6,15 @@
 
 class ProbingScene : public Scene {
 private:
-    int  selection    = 0;
-    bool prefsChanged = false;
-    long oldPosition  = 0;
+    int  selection   = 0;
+    long oldPosition = 0;
 
-    // prefs
-    float probe_offset  = 0.0;
-    float probe_travel  = -20.0;
-    float probe_rate    = 80.0;
-    float probe_retract = 20.0;
-    int   probe_axis    = 2;  // Z is default
+    // Saved to NVS
+    float _offset  = 0.0;
+    float _travel  = -20.0;
+    float _rate    = 80.0;
+    float _retract = 20.0;
+    int   _axis    = 2;  // Z is default
 
 public:
     ProbingScene() : Scene("Probe") {}
@@ -26,20 +25,18 @@ public:
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
             String gcode = "G38.2G91";
-            gcode += "F" + floatToString(probe_rate, 0);
-            gcode += axisNumToString(probe_axis) + floatToString(probe_travel, 0);
-            gcode += "P" + floatToString(probe_offset, 2);
+            gcode += "F" + floatToString(_rate, 0);
+            gcode += axisNumToString(_axis) + floatToString(_travel, 0);
+            gcode += "P" + floatToString(_offset, 2);
             debugPort.println(gcode);
             send_line(gcode);
             return;
         }
         if (state == Cycle) {
-            debugPort.println("Hold");
             fnc_realtime(FeedHold);
             return;
         }
         if (state == Hold) {
-            debugPort.println("Resume");
             fnc_realtime(CycleStart);
             return;
         }
@@ -48,15 +45,14 @@ public:
     void onRedButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Cycle) {
-            Serial1.println("Reset");
             fnc_realtime(Reset);
             return;
         }
         if (state == Idle) {
             String gcode = "$J=G91F1000";
-            gcode += axisNumToString(probe_axis);
-            gcode += (probe_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToString(probe_retract, 0);
+            gcode += axisNumToString(_axis);
+            gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
+            gcode += floatToString(_retract, 0);
             send_line(gcode);
             return;
         }
@@ -72,35 +68,41 @@ public:
         if (abs(delta) > 0) {
             switch (selection) {
                 case 0:
-                    probe_offset += (float)delta / 100;
+                    _offset += (float)delta / 100;
+                    setPref("Offset", _offset);
                     break;
                 case 1:
-                    probe_travel += delta;
+                    _travel += delta;
+                    setPref("Travel", _travel);
                     break;
                 case 2:
-                    probe_rate += delta;
-                    if (probe_rate < 1) {
-                        probe_rate = 1;
+                    _rate += delta;
+                    if (_rate < 1) {
+                        _rate = 1;
                     }
+                    setPref("Rate", _rate);
                     break;
                 case 3:
-                    probe_retract += delta;
-                    if (probe_retract < 0) {
-                        probe_retract = 0;
+                    _retract += delta;
+                    if (_retract < 0) {
+                        _retract = 0;
                     }
+                    setPref("Retract", _retract);
                     break;
                 case 4:
-                    rotateNumberLoop(probe_axis, 1, 0, 2);
+                    rotateNumberLoop(_axis, 1, 0, 2);
+                    setPref("Axis", _axis);
             }
             reDisplay();
-            prefsChanged = true;
         }
     }
-
-    void savePrefs() {
-        if (prefsChanged) {
-            prefsChanged = false;
-            // NVS.write(name(), prefsStruct);
+    void init(void* arg) override {
+        if (initPrefs()) {
+            getPref("Offset", &_offset);
+            getPref("Travel", &_travel);
+            getPref("Rate", &_rate);
+            getPref("Retract", &_retract);
+            getPref("Axis", &_axis);
         }
     }
 
@@ -115,13 +117,13 @@ public:
         int    height = 25;
         int    pitch  = 27;  // for spacing of buttons
         Stripe button(x, y, width, height, TINY);
-        button.draw("Offset", floatToString(probe_offset, 2), selection == 0);
-        button.draw("Max Travel", floatToString(probe_travel, 0), selection == 1);
+        button.draw("Offset", floatToString(_offset, 2), selection == 0);
+        button.draw("Max Travel", floatToString(_travel, 0), selection == 1);
         y = button.y();  // For LED
-        button.draw("Feed Rate", floatToString(probe_rate, 0), selection == 2);
+        button.draw("Feed Rate", floatToString(_rate, 0), selection == 2);
 
-        button.draw("Retract", floatToString(probe_retract, 0), selection == 3);
-        button.draw("Axis", axisNumToString(probe_axis), selection == 4);
+        button.draw("Retract", floatToString(_retract, 0), selection == 3);
+        button.draw("Axis", axisNumToString(_axis), selection == 4);
 
         LED led(x - 20, y + height / 2, 10, button.gap());
         led.draw(myProbeSwitch);

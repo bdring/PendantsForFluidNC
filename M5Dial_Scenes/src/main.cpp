@@ -1,10 +1,6 @@
 // Copyright (c) 2023 -	Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-/*  TO DO
-    Save prefs to flash
-*/
-
 #include <Arduino.h>
 #include <Esp.h>  // ESP.restart()
 #include <EEPROM.h>

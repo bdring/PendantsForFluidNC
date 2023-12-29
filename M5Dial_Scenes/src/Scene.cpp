@@ -83,3 +83,62 @@ void dispatch_events() {
         }
     }
 }
+
+void Scene::setPref(const char* name, int value) {
+    if (!_prefs) {
+        return;
+    }
+    nvs_set_i32(_prefs, name, value);
+}
+void Scene::getPref(const char* name, int* value) {
+    if (!_prefs) {
+        return;
+    }
+    nvs_get_i32(_prefs, name, value);
+}
+void Scene::setPref(const char* name, float value) {
+    if (!_prefs) {
+        return;
+    }
+    union {
+        int32_t i;
+        float   f;
+    } val;
+    val.f = value;
+    nvs_set_i32(_prefs, name, val.i);
+}
+void Scene::getPref(const char* name, float* value) {
+    if (!_prefs) {
+        return;
+    }
+    union {
+        int32_t i;
+        float   f;
+    } val;
+
+    esp_err_t err = nvs_get_i32(_prefs, name, &val.i);
+    if (err == ESP_OK) {
+        *value = val.f;
+    }
+}
+void Scene::setPref(const char* base_name, int axis, int value) {
+    if (!_prefs) {
+        return;
+    }
+    String setting_name = base_name + axisNumToString(axis);
+    nvs_set_i32(_prefs, setting_name.c_str(), value);
+}
+void Scene::getPref(const char* base_name, int axis, int* value) {
+    if (!_prefs) {
+        return;
+    }
+    String setting_name = base_name + axisNumToString(axis);
+    nvs_get_i32(_prefs, setting_name.c_str(), value);
+}
+bool Scene::initPrefs() {
+    if (_prefs) {
+        return false;  // Already open
+    }
+    esp_err_t err = nvs_open(name().c_str(), NVS_READWRITE, &_prefs);
+    return err == ESP_OK;
+}

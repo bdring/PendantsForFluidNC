@@ -6,17 +6,19 @@
 #include "GrblParserC.h"
 #include "Button.h"
 #include "Drawing.h"
+#include "nvs_flash.h"
 
 class Scene {
 private:
     String _name;
+
+    nvs_handle_t _prefs {};
 
 public:
     Scene(const char* name) : _name(name) {}
 
     const String& name() { return _name; }
 
-    virtual void savePrefs() {}
     virtual void onRedButtonPress() {}
     virtual void onRedButtonRelease() {}
     virtual void onGreenButtonPress() {}
@@ -32,7 +34,16 @@ public:
     virtual void onLimitsChange() {}
     virtual void onEncoder(int delta) {}
     virtual void reDisplay() {}
-    virtual void init(void* arg) {}
+    virtual void init(void* arg = nullptr) {}
+
+    bool initPrefs();
+
+    void setPref(const char* name, int value);
+    void getPref(const char* name, int* value);
+    void setPref(const char* name, float value);
+    void getPref(const char* name, float* value);
+    void setPref(const char* name, int axis, int value);
+    void getPref(const char* name, int axis, int* value);
 };
 
 void activate_scene(Scene* scene, void* arg = nullptr);

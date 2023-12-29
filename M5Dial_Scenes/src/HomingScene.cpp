@@ -6,7 +6,7 @@
 
 class HomingScene : public Scene {
 private:
-    int current_button = 0;
+    int _current_button = 0;
 
 public:
     HomingScene() : Scene("Home") {}
@@ -15,8 +15,8 @@ public:
     void onGreenButtonPress() {
         if (state == Idle || state == Alarm) {
             String line = "$H";
-            if (current_button != 0) {
-                line += axisNumToString(current_button - 1);
+            if (_current_button != 0) {
+                line += axisNumToString(_current_button - 1);
             }
             log_msg(line);
             send_line(line);
@@ -28,7 +28,7 @@ public:
         }
     }
     void onTouchRelease(int x, int y) {
-        rotateNumberLoop(current_button, 1, 0, 3);
+        rotateNumberLoop(_current_button, 1, 0, 3);
         reDisplay();
     }
     void reDisplay() {
@@ -42,11 +42,11 @@ public:
         int height = 32;
 
         Stripe button(x, y, width, height, SMALL);
-        button.draw("Home All", current_button == 0);
+        button.draw("Home All", _current_button == 0);
         y = button.y();  // LEDs start with the Home X button
-        button.draw("Home X", current_button == 1);
-        button.draw("Home Y", current_button == 2);
-        button.draw("Home Z", current_button == 3);
+        button.draw("Home X", _current_button == 1);
+        button.draw("Home Y", _current_button == 2);
+        button.draw("Home Z", _current_button == 3);
 
         LED led(x - 16, y + height / 2, 10, button.gap());
         led.draw(myLimitSwitches[0]);
@@ -58,7 +58,7 @@ public:
             redLabel = "E-Stop";
         } else {
             grnLabel = "Home ";
-            grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
+            grnLabel += _current_button ? axisNumToString(_current_button - 1) : "All";
         }
 
         drawButtonLegends(redLabel, grnLabel, "Back");
