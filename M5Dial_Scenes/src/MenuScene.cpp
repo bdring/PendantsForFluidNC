@@ -7,7 +7,7 @@ const int buttonRadius = 30;
 
 FileMenu fileMenu("Files");
 PieMenu  axisMenu("Axes", buttonRadius);
-PieMenu  mainMenu("Main", buttonRadius);
+PieMenu  menuScene("Main", buttonRadius);
 
 class LB : public RoundButton {
 public:
@@ -26,7 +26,16 @@ public:
 extern Scene homingScene;
 extern Scene joggingScene;
 extern Scene probingScene;
-extern Scene mainScene;
+extern Scene statusScene;
+
+Item* statusButton;
+Item* homingButton;
+Item* jogButton;
+Item* probeButton;
+Item* filesButton;
+Item* controlButton;
+Item* setupButton;
+Item* powerButton;
 
 Scene* initMenus() {
     fileMenu.addItem(new FileItem("BigTree.nc"));
@@ -43,14 +52,24 @@ Scene* initMenus() {
     axisMenu.addItem(new LB("ZAxis", noop, RED));
     axisMenu.addItem(new LB("<Back", pop_scene, RED));
 
-    mainMenu.addItem(new IB("Status", &mainScene, "/statustp.png"));
-    mainMenu.addItem(new IB("Homing", &homingScene, "/hometp.png"));
-    mainMenu.addItem(new IB("Jog", &joggingScene, "/jogtp.png"));
-    mainMenu.addItem(new IB("Probe", &probingScene, "/probetp.png"));
-    mainMenu.addItem(new IB("Files", &fileMenu, "/filestp.png"));
-    mainMenu.addItem(new IB("Control", noop, "/controltp.png"));
-    mainMenu.addItem(new IB("Setup", noop, "/setuptp.png"));
-    mainMenu.addItem(new IB("Power", noop, "/powertp.png"));
+    statusButton  = new IB("Status", &statusScene, "/statustp.png");
+    homingButton  = new IB("Homing", &homingScene, "/hometp.png");
+    jogButton     = new IB("Jog", &joggingScene, "/jogtp.png");
+    probeButton   = new IB("Probe", &probingScene, "/probetp.png");
+    filesButton   = new IB("Files", &fileMenu, "/filestp.png");
+    controlButton = new IB("Control", noop, "/controltp.png");
+    setupButton   = new IB("Setup", noop, "/setuptp.png");
+    powerButton   = new IB("Power", noop, "/powertp.png");
+    setupButton->disable();
 
-    return &mainMenu;
+    menuScene.addItem(statusButton);
+    menuScene.addItem(homingButton);
+    menuScene.addItem(jogButton);
+    menuScene.addItem(probeButton);
+    menuScene.addItem(filesButton);
+    menuScene.addItem(controlButton);
+    menuScene.addItem(setupButton);
+    menuScene.addItem(powerButton);
+
+    return &menuScene;
 }

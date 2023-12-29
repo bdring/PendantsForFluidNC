@@ -4,16 +4,12 @@
 #include <Arduino.h>
 #include "Scene.h"
 
-extern Scene probingScene;
-extern Scene homingScene;
-extern Scene joggingScene;
-
-class MainScene : public Scene {
+class StatusScene : public Scene {
 private:
     int menu_item = 0;
 
 public:
-    MainScene() : Scene("Main") {}
+    StatusScene() : Scene("Status") {}
 
     void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
@@ -33,7 +29,7 @@ public:
                 send_line("$X");
                 break;
             case Cycle:
-            case Homing:                
+            case Homing:
             case Hold:
                 fnc_realtime(Reset);
                 break;
@@ -95,7 +91,7 @@ public:
             centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
-        String encoder_button_text = "Menu";    
+        String encoder_button_text = "Menu";
 
         String redButtonText   = "";
         String greenButtonText = "";
@@ -123,4 +119,4 @@ public:
         refreshDisplay();
     }
 };
-MainScene mainScene;
+StatusScene statusScene;
