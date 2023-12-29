@@ -6,7 +6,7 @@
 
 /* clang-format: off */
 void init_encoder() {
-    pcnt_config_t r_enc_config = {
+    pcnt_config_t enc_config = {
         .pulse_gpio_num = GPIO_NUM_40,  //Rotary Encoder Chan A
         .ctrl_gpio_num  = GPIO_NUM_41,  //Rotary Encoder Chan B
 
@@ -21,9 +21,17 @@ void init_encoder() {
         .unit    = PCNT_UNIT_0,
         .channel = PCNT_CHANNEL_0,
     };
-    pcnt_unit_config(&r_enc_config);
+    pcnt_unit_config(&enc_config);
+
+    enc_config.pulse_gpio_num = GPIO_NUM_41;
+    enc_config.ctrl_gpio_num  = GPIO_NUM_40;
+    enc_config.channel        = PCNT_CHANNEL_1;
+    enc_config.pos_mode       = PCNT_COUNT_DIS;  //Count Only On Falling-Edges
+    enc_config.neg_mode       = PCNT_COUNT_INC;  // Discard Rising-Edge
+    pcnt_unit_config(&enc_config);
 
     pcnt_set_filter_value(PCNT_UNIT_0, 250);  // Filter Runt Pulses
+
     pcnt_filter_enable(PCNT_UNIT_0);
 
     gpio_pullup_en(GPIO_NUM_40);
