@@ -48,7 +48,7 @@ private:
     }
 
 public:
-    JoggingScene() : Scene("Jog Dial") {}
+    JoggingScene() : Scene("MPG Jog") {}
 
     void init(void* arg) {
         if (initPrefs()) {
@@ -62,27 +62,22 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
-            if (_selection % 2) {  // Zero WCO
-                String cmd = "G10L20P0" + axisNumToString(_axis) + "0";
-                log_msg(cmd);
-                send_line(cmd);
+            if (_continuous) {
+                // $J=G91F1000X10000
+                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "10000");
             } else {
-                if (_continuous) {
-                    // $J=G91F1000X10000
-                    send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "10000");
-                } else {
-                    if (_active_setting == 0) {
-                        if (_inc_level[_axis] != MAX_INC) {
-                            _inc_level[_axis]++;
-                            setPref("IncLevel", _axis, _inc_level[_axis]);
-                        }
-                    } else {
-                        feedRateRotator(_rate_level[_axis], true);
-                        setPref("RateLevel", _axis, _rate_level[_axis]);
+                if (_active_setting == 0) {
+                    if (_inc_level[_axis] != MAX_INC) {
+                        _inc_level[_axis]++;
+                        setPref("IncLevel", _axis, _inc_level[_axis]);
                     }
+                } else {
+                    feedRateRotator(_rate_level[_axis], true);
+                    setPref("RateLevel", _axis, _rate_level[_axis]);
                 }
-                reDisplay();
             }
+            reDisplay();
+
             return;
         }
         if (state == Jog) {
@@ -100,23 +95,21 @@ public:
 
     void onRedButtonPress() {
         if (state == Idle) {
-            if (!(_selection % 2)) {
-                if (_continuous) {
-                    // $J=G91F1000X-10000
-                    send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "-10000");
-                } else {
-                    if (_active_setting == 0) {
-                        if (_inc_level[_axis] > 0) {
-                            _inc_level[_axis]--;
-                            setPref("IncLevel", _axis, _inc_level[_axis]);
-                        }
-                    } else {
-                        feedRateRotator(_rate_level[_axis], false);
-                        setPref("RateLevel", _axis, _rate_level[_axis]);
+            if (_continuous) {
+                // $J=G91F1000X-10000
+                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "-10000");
+            } else {
+                if (_active_setting == 0) {
+                    if (_inc_level[_axis] > 0) {
+                        _inc_level[_axis]--;
+                        setPref("IncLevel", _axis, _inc_level[_axis]);
                     }
+                } else {
+                    feedRateRotator(_rate_level[_axis], false);
+                    setPref("RateLevel", _axis, _rate_level[_axis]);
                 }
-                reDisplay();
             }
+            reDisplay();
             return;
         }
         if (state == Jog) {
@@ -138,9 +131,12 @@ public:
         //Use dial to break out of continuous mode
         if (y < 70) {
             _continuous = !_continuous;
+        } else if (y < 105) {
+            rotateNumberLoop(_axis, 1, 0, 2);
         } else if (y < 140) {
-            rotateNumberLoop(_selection, 1, 0, 5);
-            _axis = (_selection) / 2;
+            String cmd = "G10L20P0" + axisNumToString(_axis) + "0";
+            log_msg(cmd);
+            send_line(cmd);
         } else {
             rotateNumberLoop(_active_setting, 1, 0, 1);
         }
@@ -158,6 +154,14 @@ public:
                 feedRateRotator(_cont_speed[_axis], delta > 0);
             }
         } else {
+            // encoder filtering
+            if (abs(delta) == 2) {
+                return;
+            }
+            
+            String enc_msg = "delta: " + String(delta);
+            debugPort.println(enc_msg);
+
             if (delta != 0) {
                 // $J=G91F200Z5.0
                 String jogRate      = floatToString(_rate_level[_axis], 0);
@@ -175,35 +179,38 @@ public:
 
     void reDisplay() {
         drawBackground(BLACK);
-        drawStatus();
-
-        int x      = 9;
-        int y      = 69;
-        int width  = 180;
-        int height = 33;
-
-        DRO dro(x, y, width, height);
-        dro.draw(0, _axis == 0);
-        dro.draw(1, _axis == 1);
-        dro.draw(2, _axis == 2);
-
-        Stripe stripe(x + width + 1, y, 42, height, TINY);
-        stripe.draw("zro", _selection == 1);
-        stripe.draw("zro", _selection == 3);
-        stripe.draw("zro", _selection == 5);
-
         String legend;
-        legend = _continuous ? "Bttn Jog" : "Knob Jog";
+
+        legend = _continuous ? "Bttn Jog" : "MPG Jog";
         centered_text(legend, 12);
 
+        drawStatus();
+
+        int x      = 14;
+        int y      = 67;
+        int width  = display.width() - x * 2;
+        int height = 38;
+
+        DRO dro(x, y, width, 35);
+        dro.draw(_axis, true);
+
+        x = 60;
+        y += height + 5;
+        width  = display.width() - x * 2;
+        height = 48;
+
+        Stripe stripe(x, y, width, height, TINY);
+        legend = "Zero " + String("XYZ").substring(_axis, _axis + 1) + " Axis";
+        stripe.draw(legend, true);
+
         if (_continuous) {
-            legend = "Jog Rate: " + floatToString(_cont_speed[_axis], 0);
-            centered_text(legend, 185);
+            legend = "Rate: " + floatToString(_cont_speed[_axis], 0);
+            centered_text(legend, 183);
         } else {
-            legend = "Jog Dist: " + floatToString(_increment(), 2);
-            centered_text(legend, 177, _active_setting == 0 ? WHITE : DARKGREY);
-            legend = "Jog Rate: " + floatToString(_rate_level[_axis], 2);
-            centered_text(legend, 193, _active_setting == 1 ? WHITE : DARKGREY);
+            legend = "Increment: " + floatToString(_increment(), 2);
+            centered_text(legend, 174, _active_setting == 0 ? WHITE : DARKGREY);
+            legend = "Rate: " + floatToString(_rate_level[_axis], 2);
+            centered_text(legend, 194, _active_setting == 1 ? WHITE : DARKGREY);
         }
 
         const char* back = "Back";
