@@ -124,7 +124,7 @@ private:
 
     int       _num_items        = 0;
     int       _encoder_accum    = 0;
-    const int encoder_threshold = 1;
+    const int encoder_threshold = 2;
 
 public:
     std::vector<Point> _positions;

@@ -16,6 +16,13 @@ public:
     LB(const char* text, Scene* scene, color_t base_color) : RoundButton(text, scene, buttonRadius, base_color, GREEN, BLUE, WHITE) {}
 };
 
+constexpr int LIGHTYELLOW = 0xFFF0;
+class IB : public ImageButton {
+public:
+    IB(const char* text, callback_t callback, const char* filename) : ImageButton(text, callback, filename, buttonRadius, LIGHTYELLOW) {}
+    IB(const char* text, Scene* scene, const char* filename) : ImageButton(text, scene, filename, buttonRadius, LIGHTYELLOW) {}
+};
+
 extern Scene homingScene;
 extern Scene joggingScene;
 extern Scene probingScene;
@@ -36,14 +43,14 @@ Scene* initMenus() {
     axisMenu.addItem(new LB("ZAxis", noop, RED));
     axisMenu.addItem(new LB("<Back", pop_scene, RED));
 
-    mainMenu.addItem(new ImageButton("Status", &mainScene, "/status.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Homing", &homingScene, "/home.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Jog", &joggingScene, "/jog.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Probe", &probingScene, "/probe.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Files", &fileMenu, "/files.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Control", noop, "/control.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Setup", noop, "/setup.png", buttonRadius));
-    mainMenu.addItem(new ImageButton("Power", noop, "/power.png", buttonRadius));
+    mainMenu.addItem(new IB("Status", &mainScene, "/statustp.png"));
+    mainMenu.addItem(new IB("Homing", &homingScene, "/hometp.png"));
+    mainMenu.addItem(new IB("Jog", &joggingScene, "/jogtp.png"));
+    mainMenu.addItem(new IB("Probe", &probingScene, "/probetp.png"));
+    mainMenu.addItem(new IB("Files", &fileMenu, "/filestp.png"));
+    mainMenu.addItem(new IB("Control", noop, "/controltp.png"));
+    mainMenu.addItem(new IB("Setup", noop, "/setuptp.png"));
+    mainMenu.addItem(new IB("Power", noop, "/powertp.png"));
 
     return &mainMenu;
 }

@@ -12,8 +12,12 @@ void RoundButton::show(const Point& where) {
     text(name().substring(0, 1), where, _highlighted ? MAROON : WHITE, MEDIUM);
 }
 void ImageButton::show(const Point& where) {
+    if (_highlighted) {
+        drawFilledCircle(where, _radius + 3, _outline_color);
+    } else {
+        drawFilledCircle(where, _radius - 2, WHITE);
+    }
     drawPngFile(_filename, where);
-    drawCircle(where, _radius, 3, _outline_color);
 }
 void RectangularButton::show(const Point& where) {
     drawOutlinedRect(where, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);
@@ -54,7 +58,7 @@ void PieMenu::calculatePositions() {
         angle -= theta;
     }
 
-    int layout_radius = display.width() / 2 - _item_radius - 2;
+    int layout_radius = display.width() / 2 - _item_radius - 3;
     angle             = M_PI / 2;
     for (size_t i = 0; i < num_items(); i++) {
         Point center = { (int)(cosf(angle) * layout_radius), (int)(sinf(angle) * layout_radius) };
