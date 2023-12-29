@@ -15,19 +15,23 @@ void do_nothing(void* arg);
 class Item {
 protected:
     String     _name;
-    bool       _highlighted;
-    callback_t _callback;
-    Scene*     _scene = nullptr;
+    bool       _highlighted = false;
+    bool       _disabled    = false;
+    callback_t _callback    = nullptr;
+    Scene*     _scene       = nullptr;
 
 public:
-    Item(const String& name, callback_t callback = do_nothing) : _name(name), _highlighted(false), _callback(callback) {}
-    Item(const char* name, callback_t callback = do_nothing) : _name(name), _highlighted(false), _callback(callback) {}
-    Item(const char* name, Scene* scene) : _name(name), _highlighted(false), _callback(nullptr), _scene(scene) {}
+    Item(const String& name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
+    Item(const char* name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
+    Item(const char* name, Scene* scene) : _name(name), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
 
     virtual void show(const Point& where) = 0;
 
     virtual void invoke(void* arg = nullptr) {
+        if (_disabled) {
+            return;
+        }
         if (_scene) {
             push_scene(_scene, arg);
             return;
@@ -41,7 +45,10 @@ public:
     String name() { return _name; }
     void   highlight() { _highlighted = true; }
     void   unhighlight() { _highlighted = false; }
-    void   set_action(callback_t callback) { _callback = callback; }
+    void   disable() { _disabled = true; }
+    void   enable() { _disabled = false; }
+
+    void set_action(callback_t callback) { _callback = callback; }
 };
 
 class RoundButton : public Item {

@@ -13,9 +13,9 @@ void RoundButton::show(const Point& where) {
 }
 void ImageButton::show(const Point& where) {
     if (_highlighted) {
-        drawFilledCircle(where, _radius + 3, _outline_color);
+        drawFilledCircle(where, _radius + 3, _disabled ? DARKGREY : _outline_color);
     } else {
-        drawFilledCircle(where, _radius - 2, LIGHTGREY);
+        drawFilledCircle(where, _radius - 2, _disabled ? DARKGREY : LIGHTGREY);
     }
     drawPngFile(_filename, where);
 }
