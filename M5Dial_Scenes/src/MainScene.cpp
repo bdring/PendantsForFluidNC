@@ -17,16 +17,13 @@ public:
 
     void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
-            push_scene(&joggingScene);
+            pop_scene();
         } else if (state == Cycle) {
             fnc_realtime(FeedOvrReset);
         }
     }
 
     void onTouchRelease(int x, int y) {
-        if (state == Cycle) {
-            rotateNumberLoop(menu_item, 1, 0, 2);
-        }
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
@@ -36,12 +33,9 @@ public:
                 send_line("$X");
                 break;
             case Cycle:
-            case Homing:
+            case Homing:                
             case Hold:
                 fnc_realtime(Reset);
-                break;
-            case Idle:
-                push_scene(&probingScene);
                 break;
         }
     }
@@ -54,9 +48,8 @@ public:
             case Hold:
                 fnc_realtime(CycleStart);
                 break;
-            case Idle:
             case Alarm:
-                push_scene(&homingScene);
+                send_line("$H");
                 return;  // no status report
         }
         fnc_realtime(StatusReport);
@@ -102,24 +95,16 @@ public:
             centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
-        String encoder_button_text = "";
-        switch (menu_item) {
-            case 0:
-                encoder_button_text = "Jog";
-                break;
-            case 1:
-                encoder_button_text = "Home";
-                break;
-            case 2:
-                encoder_button_text = "Probe";
-                break;
-        }
+        String encoder_button_text = "Menu";    
+
         String redButtonText   = "";
         String greenButtonText = "";
         switch (state) {
             case Alarm:
+                drawButtonLegends("Reset", "Home All", encoder_button_text);
+                break;
             case Homing:
-                drawButtonLegends("Reset", "Home", encoder_button_text);
+                drawButtonLegends("Reset", "", encoder_button_text);
                 break;
             case Cycle:
                 drawButtonLegends("E-Stop", "Hold", "FRO End");
@@ -131,7 +116,7 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("Probe", "Home", encoder_button_text);
+                drawButtonLegends("", "", encoder_button_text);
                 break;
         }
 

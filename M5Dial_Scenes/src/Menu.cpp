@@ -13,7 +13,7 @@ void RoundButton::show(const Point& where) {
 }
 void ImageButton::show(const Point& where) {
     drawPngFile(_filename, where);
-    drawCircle(where, _radius, 1, _outline_color);
+    drawCircle(where, _radius, 3, _outline_color);
 }
 void RectangularButton::show(const Point& where) {
     drawOutlinedRect(where, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);

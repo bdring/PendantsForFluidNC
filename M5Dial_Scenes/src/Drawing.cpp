@@ -20,7 +20,7 @@ void drawFilledCircle(Point xy, int radius, int fillcolor) {
 
 void drawCircle(int x, int y, int radius, int thickness, int outlinecolor) {
     for (int i = 0; i < thickness; i++) {
-        canvas.drawCircle(x, y, radius - thickness, outlinecolor);
+        canvas.drawCircle(x, y, radius - i, outlinecolor);
     }
 }
 void drawCircle(Point xy, int radius, int thickness, int outlinecolor) {
@@ -157,4 +157,13 @@ void showImageFile(const char* name, int x, int y, int width, int height) {
     auto      nread = file.read((uint8_t*)buf, len);
     display.pushImage(0, 70, width, height, buf, true);
     free(buf);
+}
+
+void showError() {
+    if (millis() < errorExpire) {
+        //errorCounter--;
+        canvas.fillCircle(120, 120, 95, RED);
+        drawCircle(120, 120, 95, 5, WHITE);
+        centered_text("Error " + String(lastError), 130, WHITE, MEDIUM);
+    }
 }

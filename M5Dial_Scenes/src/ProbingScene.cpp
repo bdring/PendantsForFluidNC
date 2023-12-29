@@ -147,6 +147,7 @@ public:
         }
 
         drawButtonLegends(redText, grnText, "Back");
+        showError();  // only if one just happened
         refreshDisplay();
     }
 };

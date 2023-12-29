@@ -79,3 +79,4 @@ void drawPngBackground(const String& filename);
 void refreshDisplay();
 
 void showImageFile(const char* name, int x, int y, int width, int height);
+void showError();

@@ -19,6 +19,7 @@ public:
 extern Scene homingScene;
 extern Scene joggingScene;
 extern Scene probingScene;
+extern Scene mainScene;
 
 Scene* initMenus() {
     fileMenu.addItem(new FileItem("BigTree.nc"));
@@ -35,7 +36,7 @@ Scene* initMenus() {
     axisMenu.addItem(new LB("ZAxis", noop, RED));
     axisMenu.addItem(new LB("<Back", pop_scene, RED));
 
-    mainMenu.addItem(new ImageButton("Status", &mainMenu, "/status.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Status", &mainScene, "/status.png", buttonRadius));
     mainMenu.addItem(new ImageButton("Homing", &homingScene, "/home.png", buttonRadius));
     mainMenu.addItem(new ImageButton("Jog", &joggingScene, "/jog.png", buttonRadius));
     mainMenu.addItem(new ImageButton("Probe", &probingScene, "/probe.png", buttonRadius));

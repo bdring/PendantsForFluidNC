@@ -37,9 +37,8 @@ void DRO::draw(int axis, bool highlight) {
 }
 
 extern "C" void show_error(int error) {
-    drawErrorScreen(String(error));
-    speaker.tone(3000, 1000);
-    delay(1000);
+    errorExpire = millis() + 1000;
+    lastError   = error;
     current_scene->reDisplay();
 }
 
@@ -139,6 +138,8 @@ void setup() {
     debugPort.println("\r\nFluidNC Pendant Begin");
     fnc_realtime(StatusReport);  // Request fresh status
     speaker.setVolume(255);
+
+    errorExpire = millis();
 
     extern Scene* initMenus();
     activate_scene(initMenus());
