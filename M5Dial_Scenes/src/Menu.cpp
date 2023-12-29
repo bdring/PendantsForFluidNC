@@ -33,13 +33,24 @@ void Menu::rotate(int delta) {
     if (_selected != -1) {
         _items[_selected]->unhighlight();
     }
-    _selected += delta;
-    while (_selected < 0) {
-        _selected += _num_items;
-    }
-    while (_selected >= _num_items) {
-        _selected -= _num_items;
-    }
+
+    int previous = _selected;
+    do {
+        _selected += delta;
+        while (_selected < 0) {
+            _selected += _num_items;
+        }
+        while (_selected >= _num_items) {
+            _selected -= _num_items;
+        }
+        if (!_items[_selected]->hidden()) {
+            break;
+        }
+        // If we land on a hidden item, move to the next item in the
+        // same direction.
+        delta = delta < 0 ? -1 : 1;
+    } while (_selected != previous);
+
     _items[_selected]->highlight();
     reDisplay();
 }
