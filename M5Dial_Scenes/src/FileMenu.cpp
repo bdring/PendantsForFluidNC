@@ -88,7 +88,7 @@ void FileMenu::menuBackground() {
         int   dx     = (int)(radius * cosf(theta));
         int   dy     = (int)(radius * sinf(theta));
 
-        drawCircle({ dx, dy }, 8, WHITE);
+        drawCircle({ dx, dy }, 8, 1, WHITE);
     }
 }
 void FileMenu::onTouchFlick(int x, int y, int dx, int dy) {

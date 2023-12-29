@@ -3,7 +3,7 @@
 
 void noop(void* arg) {}
 
-const int buttonRadius = 35;
+const int buttonRadius = 30;
 
 FileMenu fileMenu("Files");
 PieMenu  axisMenu("Axes", buttonRadius);
@@ -35,12 +35,14 @@ Scene* initMenus() {
     axisMenu.addItem(new LB("ZAxis", noop, RED));
     axisMenu.addItem(new LB("<Back", pop_scene, RED));
 
-    mainMenu.addItem(new ImageButton("Run", noop, "/run.png", buttonRadius));
-    mainMenu.addItem(new LB("Home", &homingScene, RED));
-    mainMenu.addItem(new LB("Jog", &joggingScene, DARKCYAN));
-    mainMenu.addItem(new LB("Axes", &axisMenu, MAROON));
-    mainMenu.addItem(new LB("Probe", &probingScene, ORANGE));
-    mainMenu.addItem(new LB("Files", &fileMenu, OLIVE));
+    mainMenu.addItem(new ImageButton("Status", &mainMenu, "/status.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Homing", &homingScene, "/home.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Jog", &joggingScene, "/jog.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Probe", &probingScene, "/probe.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Files", &fileMenu, "/files.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Control", noop, "/control.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Setup", noop, "/setup.png", buttonRadius));
+    mainMenu.addItem(new ImageButton("Power", noop, "/power.png", buttonRadius));
 
     return &mainMenu;
 }

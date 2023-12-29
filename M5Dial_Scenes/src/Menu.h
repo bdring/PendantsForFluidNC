@@ -80,6 +80,10 @@ private:
 public:
     ImageButton(const char* name, callback_t callback, const char* filename, int radius, color_t outline_color = WHITE) :
         Item(name, callback), _filename(filename), _radius(radius), _outline_color(outline_color) {}
+
+    ImageButton(const char* name, Scene* scene, const char* filename, int radius, color_t outline_color = WHITE) :
+        Item(name, scene), _filename(filename), _radius(radius), _outline_color(outline_color) {}
+
     void show(const Point& where) override;
 };
 

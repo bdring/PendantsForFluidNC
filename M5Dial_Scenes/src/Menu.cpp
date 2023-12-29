@@ -13,9 +13,7 @@ void RoundButton::show(const Point& where) {
 }
 void ImageButton::show(const Point& where) {
     drawPngFile(_filename, where);
-    if (_highlighted) {
-        drawCircle(where, _radius, _outline_color);
-    }
+    drawCircle(where, _radius, 1, _outline_color);
 }
 void RectangularButton::show(const Point& where) {
     drawOutlinedRect(where, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);
@@ -101,7 +99,7 @@ int PieMenu::touchedItem(int x, int y) {
     return x > 0 ? i : num_items() - i;
 }
 void PieMenu::menuBackground() {
-    drawBackground(NAVY);
+    drawBackground(BLACK);
 
     text(name(), { 0, 24 }, YELLOW, TINY);
     text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);

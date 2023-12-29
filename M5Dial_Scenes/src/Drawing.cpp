@@ -18,12 +18,14 @@ void drawFilledCircle(Point xy, int radius, int fillcolor) {
     drawFilledCircle(dispxy.x, dispxy.y, radius, fillcolor);
 }
 
-void drawCircle(int x, int y, int radius, int outlinecolor) {
-    canvas.drawCircle(x, y, radius, outlinecolor);
+void drawCircle(int x, int y, int radius, int thickness, int outlinecolor) {
+    for (int i = 0; i < thickness; i++) {
+        canvas.drawCircle(x, y, radius - thickness, outlinecolor);
+    }
 }
-void drawCircle(Point xy, int radius, int outlinecolor) {
+void drawCircle(Point xy, int radius, int thickness, int outlinecolor) {
     Point dispxy = xy.to_display();
-    drawCircle(dispxy.x, dispxy.y, radius, outlinecolor);
+    drawCircle(dispxy.x, dispxy.y, radius, thickness, outlinecolor);
 }
 
 void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor) {
