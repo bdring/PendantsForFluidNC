@@ -8,6 +8,8 @@
 #include "Drawing.h"
 #include "nvs_flash.h"
 
+void pop_scene(void* arg = nullptr);
+
 class Scene {
 private:
     String _name;
@@ -28,7 +30,12 @@ public:
     virtual void onTouchPress(int x, int y) {}
     virtual void onTouchRelease(int x, int y) {}
     virtual void onTouchHold(int x, int y) {}
-    virtual void onTouchFlick(int x, int y, int dx, int dy) {}
+    virtual void onTouchFlick(int x, int y, int dx, int dy) {
+        if (dx < -60) {
+            pop_scene();
+        }
+    }
+
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
@@ -48,7 +55,6 @@ public:
 
 void activate_scene(Scene* scene, void* arg = nullptr);
 void push_scene(Scene* scene, void* arg = nullptr);
-void pop_scene(void* arg = nullptr);
 
 // helper functions
 
