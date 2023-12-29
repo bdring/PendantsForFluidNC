@@ -3,6 +3,9 @@
 
 #pragma once
 
+// #define DEBUG_TO_FNC
+#define DEBUG_TO_USB
+
 #include <Arduino.h>
 #include <LittleFS.h>
 #include "M5Dial.h"
@@ -18,3 +21,5 @@ extern Stream& debugPort;
 String M5TouchStateName(m5::touch_state_t state_num);
 
 void init_system();
+
+void log_msg(const String& s);

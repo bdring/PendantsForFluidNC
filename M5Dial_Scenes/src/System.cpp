@@ -35,3 +35,13 @@ void init_system() {
     debugPort.println("LittleFS Mounted");
     canvas.createSprite(display.width(), display.height());
 }
+
+void log_msg(const String& s) {
+#ifdef DEBUG_TO_FNC
+    extern void send_line(const String& s, int timeout = 2000);
+    send_line("$Msg/Uart0=" + s);
+#endif
+#ifdef DEBUG_TO_USB
+    debugPort.println(s);
+#endif
+}

@@ -1,9 +1,6 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-// #define DEBUG_TO_FNC
-#define DEBUG_TO_USB
-
 #include "FluidNCModel.h"
 #include <map>
 
@@ -73,14 +70,6 @@ void send_line(const String& s, int timeout) {
 }
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
-}
-void log_msg(const String& s) {
-#ifdef DEBUG_TO_FNC
-    send_line("$Msg/Uart0=" + s);
-#endif
-#ifdef DEBUG_TO_USB
-    debugPort.println(s);
-#endif
 }
 
 String axisNumToString(int axis) {
