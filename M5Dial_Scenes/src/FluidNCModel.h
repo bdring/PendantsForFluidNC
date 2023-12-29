@@ -32,13 +32,11 @@ extern String             myFile;
 extern file_percent_t     myPercent;
 extern override_percent_t myFro;
 extern int                lastAlarm;
+extern int                lastError;
+extern uint32_t           errorExpire;
 
 void send_line(const String& s, int timeout = 2000);
 void send_line(const char* s, int timeout = 2000);
-
-void log_msg(const String& s);
-
-void debug(const char* info);
 
 String floatToString(float val, int afterDecimal);
 String axisNumToString(int axis);

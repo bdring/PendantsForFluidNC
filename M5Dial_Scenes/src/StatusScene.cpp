@@ -4,29 +4,22 @@
 #include <Arduino.h>
 #include "Scene.h"
 
-extern Scene probingScene;
-extern Scene homingScene;
-extern Scene joggingScene;
-
-class MainScene : public Scene {
+class StatusScene : public Scene {
 private:
     int menu_item = 0;
 
 public:
-    MainScene() : Scene("Main") {}
+    StatusScene() : Scene("Status") {}
 
     void onDialButtonPress() {
         if (state == Idle || state == Alarm) {
-            push_scene(&joggingScene);
+            pop_scene();
         } else if (state == Cycle) {
             fnc_realtime(FeedOvrReset);
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
-        if (state == Cycle) {
-            rotateNumberLoop(menu_item, 1, 0, 2);
-        }
+    void onTouchRelease(int x, int y) {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
@@ -40,9 +33,6 @@ public:
             case Hold:
                 fnc_realtime(Reset);
                 break;
-            case Idle:
-                push_scene(&probingScene);
-                break;
         }
     }
 
@@ -54,9 +44,8 @@ public:
             case Hold:
                 fnc_realtime(CycleStart);
                 break;
-            case Idle:
             case Alarm:
-                push_scene(&homingScene);
+                send_line("$H");
                 return;  // no status report
         }
         fnc_realtime(StatusReport);
@@ -69,15 +58,14 @@ public:
             } else if (delta < 0 && myFro > 10) {
                 fnc_realtime(FeedOvrFineMinus);
             }
-            display();
+            reDisplay();
         }
     }
 
-    void onDROChange() { display(); }
-    void onLimitsChange() { display(); }
+    void onDROChange() { reDisplay(); }
+    void onLimitsChange() { reDisplay(); }
 
-    void display() {
-        canvas.createSprite(240, 240);
+    void reDisplay() {
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();
@@ -89,12 +77,13 @@ public:
 
         int y = 170;
         if (state == Cycle || state == Hold) {
-            int width = 192;
+            int width  = 192;
+            int height = 10;
             if (myPercent > 0) {
-                canvas.fillRoundRect(20, y, width, 10, 5, LIGHTGREY);
+                drawRect(20, y, width, height, 5, LIGHTGREY);
                 width = (float)width * myPercent / 100.0;
                 if (width > 0) {
-                    canvas.fillRoundRect(20, y, width, 10, 5, GREEN);
+                    drawRect(20, y, width, height, 5, GREEN);
                 }
             }
 
@@ -102,24 +91,16 @@ public:
             centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
-        String encoder_button_text = "";
-        switch (menu_item) {
-            case 0:
-                encoder_button_text = "Jog";
-                break;
-            case 1:
-                encoder_button_text = "Home";
-                break;
-            case 2:
-                encoder_button_text = "Probe";
-                break;
-        }
+        String encoder_button_text = "Menu";
+
         String redButtonText   = "";
         String greenButtonText = "";
         switch (state) {
             case Alarm:
+                drawButtonLegends("Reset", "Home All", encoder_button_text);
+                break;
             case Homing:
-                drawButtonLegends("Reset", "Home", encoder_button_text);
+                drawButtonLegends("Reset", "", encoder_button_text);
                 break;
             case Cycle:
                 drawButtonLegends("E-Stop", "Hold", "FRO End");
@@ -131,11 +112,11 @@ public:
                 drawButtonLegends("Jog Cancel", "", encoder_button_text);
                 break;
             case Idle:
-                drawButtonLegends("Probe", "Home", encoder_button_text);
+                drawButtonLegends("", "", encoder_button_text);
                 break;
         }
 
         refreshDisplay();
     }
 };
-MainScene mainScene;
+StatusScene statusScene;

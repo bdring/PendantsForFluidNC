@@ -4,14 +4,70 @@
 #include "Drawing.h"
 #include "alarm.h"
 #include <map>
+#include <LittleFS.h>
 
 void drawBackground(int color) {
     canvas.fillSprite(color);
 }
 
+void drawFilledCircle(int x, int y, int radius, int fillcolor) {
+    canvas.fillCircle(x, y, radius, fillcolor);
+}
+void drawFilledCircle(Point xy, int radius, int fillcolor) {
+    Point dispxy = xy.to_display();
+    drawFilledCircle(dispxy.x, dispxy.y, radius, fillcolor);
+}
+
+void drawCircle(int x, int y, int radius, int thickness, int outlinecolor) {
+    for (int i = 0; i < thickness; i++) {
+        canvas.drawCircle(x, y, radius - i, outlinecolor);
+    }
+}
+void drawCircle(Point xy, int radius, int thickness, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawCircle(dispxy.x, dispxy.y, radius, thickness, outlinecolor);
+}
+
+void drawOutlinedCircle(int x, int y, int radius, int fillcolor, int outlinecolor) {
+    canvas.fillCircle(x, y, radius, fillcolor);
+    canvas.drawCircle(x, y, radius, outlinecolor);
+}
+void drawOutlinedCircle(Point xy, int radius, int fillcolor, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawOutlinedCircle(dispxy.x, dispxy.y, radius, fillcolor, outlinecolor);
+}
+
+void drawRect(int x, int y, int width, int height, int radius, int bgcolor) {
+    canvas.fillRoundRect(x, y, width, height, radius, bgcolor);
+}
+void drawRect(Point xy, int width, int height, int radius, int bgcolor) {
+    Point offsetxy = { width / 2, -height / 2 };
+    Point dispxy   = (xy - offsetxy).to_display();
+    drawRect(dispxy.x, dispxy.y, width, height, radius, bgcolor);
+}
+void drawRect(Point xy, Point wh, int radius, int bgcolor) {
+    drawRect(xy, wh.x, wh.y, radius, bgcolor);
+}
+
 void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outlinecolor) {
     canvas.fillRoundRect(x, y, width, height, 5, bgcolor);
     canvas.drawRoundRect(x, y, width, height, 5, outlinecolor);
+}
+void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinecolor) {
+    Point dispxy = xy.to_display();
+    drawOutlinedRect(dispxy.x, dispxy.y, width, height, bgcolor, outlinecolor);
+}
+
+void drawPngFile(const String& filename, int x, int y) {
+    // When datum is middle_center, the origin is the center of the canvas and the
+    // +Y direction is down.
+    canvas.drawPngFile(LittleFS, filename, x, -y, 0, 0, 0, 0, 1.0f, 1.0f, datum_t::middle_center);
+}
+void drawPngFile(const String& filename, Point xy) {
+    drawPngFile(filename, xy.x, xy.y);
+}
+void drawPngBackground(const String& filename) {
+    drawPngFile(filename, 0, 0);
 }
 
 // clang-format off
@@ -36,7 +92,7 @@ void drawStatus() {
     static constexpr int width  = 140;
     static constexpr int height = 36;
 
-    canvas.fillRoundRect(CENTER - width / 2, y, width, height, 5, stateColors[state]);
+    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
     if (state == Alarm) {
         centered_text(stateString, y + height / 2 - 4, BLACK, SMALL);
         centered_text(alarm_name[lastAlarm], y + height / 2 + 12, BLACK);
@@ -74,8 +130,7 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
 }
 
 void LED::draw(bool highlighted) {
-    canvas.fillCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY);
-    canvas.drawCircle(_x, _y, _radius, WHITE);
+    drawOutlinedCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY, WHITE);
     _y += _gap;
 }
 
@@ -84,9 +139,31 @@ void drawMenuTitle(const String& name) {
 }
 
 void refreshDisplay() {
-    M5Dial.Display.startWrite();
+    display.startWrite();
     canvas.pushSprite(0, 0);
-    M5Dial.Display.endWrite();
+    display.endWrite();
 }
 
 void drawMenuView(std::vector<String> labels, int start, int selected) {}
+
+void showImageFile(const char* name, int x, int y, int width, int height) {
+    auto file = LittleFS.open(name);
+    if (!file) {
+        debugPort.println("Can't open logo_img.bin");
+        return;
+    }
+    auto      len   = file.size();
+    uint16_t* buf   = (uint16_t*)malloc(len);
+    auto      nread = file.read((uint8_t*)buf, len);
+    display.pushImage(0, 70, width, height, buf, true);
+    free(buf);
+}
+
+void showError() {
+    if (millis() < errorExpire) {
+        //errorCounter--;
+        canvas.fillCircle(120, 120, 95, RED);
+        drawCircle(120, 120, 95, 5, WHITE);
+        centered_text("Error " + String(lastError), 130, WHITE, MEDIUM);
+    }
+}
