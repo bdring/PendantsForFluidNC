@@ -23,10 +23,11 @@ public:
     IB(const char* text, Scene* scene, const char* filename) : ImageButton(text, scene, filename, buttonRadius, WHITE) {}
 };
 
-extern Scene homingScene;
-extern Scene joggingScene;
-extern Scene probingScene;
-extern Scene statusScene;
+extern Scene  homingScene;
+extern Scene  joggingScene;
+extern Scene  probingScene;
+extern Scene  statusScene;
+extern Scene* initJogAxisScene();
 
 Item* statusButton;
 Item* homingButton;
@@ -54,7 +55,7 @@ Scene* initMenus() {
 
     statusButton  = new IB("Status", &statusScene, "/statustp.png");
     homingButton  = new IB("Homing", &homingScene, "/hometp.png");
-    jogButton     = new IB("Jog", &joggingScene, "/jogtp.png");
+    jogButton     = new IB("JogAxis", initJogAxisScene(), "/jogtp.png");
     probeButton   = new IB("Probe", &probingScene, "/probetp.png");
     filesButton   = new IB("Files", &fileMenu, "/filestp.png");
     controlButton = new IB("Control", noop, "/controltp.png");
@@ -70,6 +71,5 @@ Scene* initMenus() {
     menuScene.addItem(controlButton);
     menuScene.addItem(setupButton);
     menuScene.addItem(powerButton);
-
     return &menuScene;
 }
