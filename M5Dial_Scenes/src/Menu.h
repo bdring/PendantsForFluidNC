@@ -231,4 +231,5 @@ public:
         calculatePositions();
     }
     int touchedItem(int x, int y) override;
+    void onStateChange(state_t state) override;
 };

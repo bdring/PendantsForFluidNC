@@ -38,8 +38,12 @@ extern "C" void show_error(int error) {
 }
 
 extern "C" void show_state(const char* state_string) {
+    static state_t old_state = Idle;
     decode_state_string(state_string);
-    current_scene->onStateChange(state);
+    if (state != old_state) {
+        current_scene->onStateChange(state);
+        old_state = state;
+    }    
 }
 
 extern "C" void end_status_report() {

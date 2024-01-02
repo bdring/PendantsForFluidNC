@@ -132,10 +132,15 @@ void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
 void PieMenu::onDialButtonPress() {
     invoke();
 }
+
 void PieMenu::onTouchHold(int x, int y) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
         invoke();
     }
+}
+
+void PieMenu::onStateChange(state_t state) {
+    reDisplay();
 }
