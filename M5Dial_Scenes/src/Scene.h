@@ -6,38 +6,55 @@
 #include "GrblParserC.h"
 #include "Button.h"
 #include "Drawing.h"
+#include "nvs_flash.h"
 
-
+void pop_scene(void* arg = nullptr);
 
 class Scene {
 private:
     String _name;
+
+    nvs_handle_t _prefs {};
 
 public:
     Scene(const char* name) : _name(name) {}
 
     const String& name() { return _name; }
 
-    virtual void savePrefs() {}
     virtual void onRedButtonPress() {}
     virtual void onRedButtonRelease() {}
     virtual void onGreenButtonPress() {}
     virtual void onGreenButtonRelease() {}
     virtual void onDialButtonPress() {}
     virtual void onDialButtonRelease() {}
-    virtual void onTouchPress(m5::touch_detail_t) {}
-    virtual void onTouchRelease(m5::touch_detail_t) {}
+    virtual void onTouchPress(int x, int y) {}
+    virtual void onTouchRelease(int x, int y) {}
+    virtual void onTouchHold(int x, int y) {}
+    virtual void onTouchFlick(int x, int y, int dx, int dy) {
+        if (dx < -60) {
+            pop_scene();
+        }
+    }
+
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
     virtual void onEncoder(int delta) {}
-    virtual void display() {}
-    virtual void init(void* arg) {}
+    virtual void reDisplay() {}
+    virtual void init(void* arg = nullptr) {}
+
+    bool initPrefs();
+
+    void setPref(const char* name, int value);
+    void getPref(const char* name, int* value);
+    void setPref(const char* name, float value);
+    void getPref(const char* name, float* value);
+    void setPref(const char* name, int axis, int value);
+    void getPref(const char* name, int axis, int* value);
 };
 
 void activate_scene(Scene* scene, void* arg = nullptr);
 void push_scene(Scene* scene, void* arg = nullptr);
-void pop_scene();
 
 // helper functions
 
@@ -57,8 +74,6 @@ void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
         currentVal = max;
     }
 }
-
-String M5TouchStateName(m5::touch_state_t state_num);
 
 extern Scene* current_scene;
 

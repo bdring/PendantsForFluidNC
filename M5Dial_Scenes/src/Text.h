@@ -4,13 +4,8 @@
 // Simplified ways to display text, hiding details of the graphics layer
 
 #pragma once
-#include <Arduino.h>
-#include "M5Dial.h"
-
-const int           WIDTH           = 240;
-const int           HEIGHT          = 240;
-constexpr const int CENTER          = WIDTH / 2;
-const int           VERTICAL_CENTER = HEIGHT / 2;
+#include "System.h"
+#include "Point.h"
 
 enum fontnum_t {
     TINY        = 0,
@@ -20,7 +15,11 @@ enum fontnum_t {
     MEDIUM_MONO = 4,
 };
 
-extern M5Canvas canvas;
+bool text_fits(const String& txt, fontnum_t fontnum, int w);
+// adjusts text to fit in (w) display area. reduces font size until it. tryfonts::false just uses fontnum
+void auto_text(const String& txt, int x, int y, int w, int color, fontnum_t fontnum = MEDIUM,
+               int datum = middle_center, bool tryfonts = true, bool trimleft = false);
 
 void text(const String& msg, int x, int y, int color, fontnum_t fontnum = TINY, int datum = middle_center);
+void text(const String& msg, Point xy, int color, fontnum_t fontnum = TINY, int datum = middle_center);
 void centered_text(const String& msg, int y, int color = WHITE, fontnum_t fontnum = TINY);

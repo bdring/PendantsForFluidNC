@@ -6,16 +6,15 @@
 
 class ProbingScene : public Scene {
 private:
-    int  selection    = 0;
-    bool prefsChanged = false;
-    long oldPosition  = 0;
+    int  selection   = 0;
+    long oldPosition = 0;
 
-    // prefs
-    float probe_offset  = 0.0;
-    float probe_travel  = -20.0;
-    float probe_rate    = 80.0;
-    float probe_retract = 20.0;
-    int   probe_axis    = 2;  // Z is default
+    // Saved to NVS
+    float _offset  = 0.0;
+    float _travel  = -20.0;
+    float _rate    = 80.0;
+    float _retract = 20.0;
+    int   _axis    = 2;  // Z is default
 
 public:
     ProbingScene() : Scene("Probe") {}
@@ -26,20 +25,18 @@ public:
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
             String gcode = "G38.2G91";
-            gcode += "F" + floatToString(probe_rate, 0);
-            gcode += axisNumToString(probe_axis) + floatToString(probe_travel, 0);
-            gcode += "P" + floatToString(probe_offset, 2);
-            USBSerial.println(gcode);
+            gcode += "F" + floatToString(_rate, 0);
+            gcode += axisNumToString(_axis) + floatToString(_travel, 0);
+            gcode += "P" + floatToString(_offset, 2);
+            log_println(gcode);
             send_line(gcode);
             return;
         }
         if (state == Cycle) {
-            USBSerial.println("Hold");
             fnc_realtime(FeedHold);
             return;
         }
         if (state == Hold) {
-            USBSerial.println("Resume");
             fnc_realtime(CycleStart);
             return;
         }
@@ -47,106 +44,134 @@ public:
 
     void onRedButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
-        if (state == Cycle) {
-            Serial1.println("Reset");
+        if (state == Cycle || state == Alarm) {
             fnc_realtime(Reset);
+            send_line("$X");
             return;
-        }
-        if (state == Idle) {
+        } else if (state == Idle) {
             String gcode = "$J=G91F1000";
-            gcode += axisNumToString(probe_axis);
-            gcode += (probe_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToString(probe_retract, 0);
+            gcode += axisNumToString(_axis);
+            gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
+            gcode += floatToString(_retract, 0);
             send_line(gcode);
             return;
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         // Rotate through the items to be adjusted.
         rotateNumberLoop(selection, 1, 0, 4);
-        display();
+        reDisplay();
     }
+
+    void onDROChange() { reDisplay(); }  // also covers any status change
 
     void onEncoder(int delta) {
         if (abs(delta) > 0) {
             switch (selection) {
                 case 0:
-                    probe_offset += (float)delta / 100;
+                    _offset += (float)delta / 100;
+                    setPref("Offset", _offset);
                     break;
                 case 1:
-                    probe_travel += delta;
+                    _travel += delta;
+                    setPref("Travel", _travel);
                     break;
                 case 2:
-                    probe_rate += delta;
-                    if (probe_rate < 1) {
-                        probe_rate = 1;
+                    _rate += delta;
+                    if (_rate < 1) {
+                        _rate = 1;
                     }
+                    setPref("Rate", _rate);
                     break;
                 case 3:
-                    probe_retract += delta;
-                    if (probe_retract < 0) {
-                        probe_retract = 0;
+                    _retract += delta;
+                    if (_retract < 0) {
+                        _retract = 0;
                     }
+                    setPref("Retract", _retract);
                     break;
                 case 4:
-                    rotateNumberLoop(probe_axis, 1, 0, 2);
+                    rotateNumberLoop(_axis, 1, 0, 2);
+                    setPref("Axis", _axis);
             }
-            display();
-            prefsChanged = true;
+            reDisplay();
+        }
+    }
+    void init(void* arg) override {
+        if (initPrefs()) {
+            getPref("Offset", &_offset);
+            getPref("Travel", &_travel);
+            getPref("Rate", &_rate);
+            getPref("Retract", &_retract);
+            getPref("Axis", &_axis);
         }
     }
 
-    void savePrefs() {
-        if (prefsChanged) {
-            prefsChanged = false;
-            // NVS.write(name(), prefsStruct);
-        }
-    }
-
-    void display() {
-        canvas.createSprite(240, 240);
+    void reDisplay() {
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        int    x      = 40;
-        int    y      = 62;
-        int    width  = WIDTH - (x * 2);
-        int    height = 25;
-        int    pitch  = 27;  // for spacing of buttons
-        Stripe button(x, y, width, height, TINY);
-        button.draw("Offset", floatToString(probe_offset, 2), selection == 0);
-        button.draw("Max Travel", floatToString(probe_travel, 0), selection == 1);
-        y = button.y();  // For LED
-        button.draw("Feed Rate", floatToString(probe_rate, 0), selection == 2);
+        String grnText, redText;
 
-        button.draw("Retract", floatToString(probe_retract, 0), selection == 3);
-        button.draw("Axis", axisNumToString(probe_axis), selection == 4);
+        if (state == Idle) {
+            int    x      = 40;
+            int    y      = 62;
+            int    width  = display.width() - (x * 2);
+            int    height = 25;
+            int    pitch  = 27;  // for spacing of buttons
+            Stripe button(x, y, width, height, TINY);
+            button.draw("Offset", floatToString(_offset, 2), selection == 0);
+            button.draw("Max Travel", floatToString(_travel, 0), selection == 1);
+            y = button.y();  // For LED
+            button.draw("Feed Rate", floatToString(_rate, 0), selection == 2);
 
-        LED led(x - 20, y + height / 2, 10, button.gap());
-        led.draw(myProbeSwitch);
+            button.draw("Retract", floatToString(_retract, 0), selection == 3);
+            button.draw("Axis", axisNumToString(_axis), selection == 4);
 
-        String grnText = "";
-        String redText = "";
+            //LED led(x - 20, y + height / 2, 10, button.gap());
+            //led.draw(myProbeSwitch);
 
-        switch (state) {
-            case Idle:
-                grnText = "Probe";
-                redText = "Retract";
-                break;
-            case Cycle:
+            grnText = "Probe";
+            redText = "Retract";
+        } else {
+            if (state == Jog || state == Alarm) {  // there is no Probing state, so Cycle is a valid state on this
+                centered_text("Invalid State", 105, WHITE, MEDIUM);
+                centered_text("For Probing", 145, WHITE, MEDIUM);
                 redText = "Reset";
-                grnText = "Hold";
-                break;
-            case Hold:
-                redText = "Reset";
-                grnText = "Resume";
-                break;
+            } else {
+                int x      = 14;
+                int height = 35;
+                int y      = 82 - height / 2;
+
+                LED led(120, 190, 10, 5);
+                led.draw(myProbeSwitch);
+
+                int width = display.width() - x * 2;
+                DRO dro(x, y, width, height);
+                dro.draw(0, _axis == 0);
+                dro.draw(1, _axis == 1);
+                dro.draw(2, _axis == 2);
+
+                switch (state) {
+                    case Cycle:
+                        redText = "Reset";
+                        grnText = "Hold";
+                        break;
+                    case Hold:
+                        redText = "Reset";
+                        grnText = "Resume";
+                        break;
+                    case Alarm:
+                        redText = "Reset";
+                        break;
+                }
+            }
         }
 
         drawButtonLegends(redText, grnText, "Back");
-        showError();  // if there is one
+        showError();  // only if one just happened
         refreshDisplay();
     }
 };

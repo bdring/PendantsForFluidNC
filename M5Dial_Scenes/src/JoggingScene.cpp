@@ -6,25 +6,22 @@
 
 class JoggingScene : public Scene {
 private:
-    static const int MAX_JOG_INC = 5;
+    static const int MAX_INC = 5;
+    static const int n_axes  = 3;
 
-    bool skippedLast;
-    bool lastJogFwd;
+    int  _active_setting = 0;  // Dist or Rate
+    int  _selection      = 0;
+    bool _continuous     = false;
 
-    bool prefsChanged = false;
+    int _axis = 0;  // the axis currently being jogged
 
-    int  active_setting = 0;  // Dist or Rate
-    int  selection      = 0;
-    int  continuous     = 0;  // 0 off 1 = pos, 2 = neg
-    bool jog_continuous = false;
+    int _cont_speed[3] = { 1000, 1000, 1000 };
 
-    int jog_axis = 0;  // the axis currently being jogged
+    // Saved to NVS
+    int _inc_level[3]  = { 2, 2, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
+    int _rate_level[3] = { 1000, 1000, 100 };
 
-    int jog_inc_level[3]  = { 2, 2, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
-    int jog_rate_level[3] = { 1000, 1000, 100 };
-    int jog_cont_speed[3] = { 1000, 1000, 1000 };
-
-    float jog_increment() { return pow(10.0, abs(jog_inc_level[jog_axis])) / 100.0; }
+    float _increment() { return pow(10.0, abs(_inc_level[_axis])) / 100.0; }
 
     void feedRateRotator(int& rate, bool up) {
         if (up) {
@@ -51,201 +48,197 @@ private:
     }
 
 public:
-    JoggingScene() : Scene("Jog Dial") {
-        skippedLast = true;
-        lastJogFwd  = true;
+    JoggingScene() : Scene("MPG Jog") {}
+
+    void init(void* arg) {
+        if (initPrefs()) {
+            for (size_t axis = 0; axis < n_axes; axis++) {
+                getPref("IncLevel", axis, &_inc_level[axis]);
+                getPref("RateLevel", axis, &_rate_level[axis]);
+            }
+        }
     }
 
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle) {
-            {
-                if (jog_continuous) {
-                    // $J=G91F1000X10000
-                    send_line("$J=G91F" + floatToString(jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) + "10000");
-                } else {
-                    if (active_setting == 0) {
-                        if (jog_inc_level[jog_axis] != MAX_JOG_INC) {
-                            jog_inc_level[jog_axis]++;
-                        }
-                    } else {
-                        feedRateRotator(jog_rate_level[jog_axis], true);
+            if (_continuous) {
+                // $J=G91F1000X10000
+                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "10000");
+            } else {
+                if (_active_setting == 0) {
+                    if (_inc_level[_axis] != MAX_INC) {
+                        _inc_level[_axis]++;
+                        setPref("IncLevel", _axis, _inc_level[_axis]);
                     }
-                    prefsChanged = true;
+                } else {
+                    feedRateRotator(_rate_level[_axis], true);
+                    setPref("RateLevel", _axis, _rate_level[_axis]);
                 }
-                display();
             }
+            reDisplay();
+
             return;
         }
         if (state == Jog) {
-            if (!jog_continuous) {
+            if (!_continuous) {
                 fnc_realtime(JogCancel);  // reset
             }
             return;
         }
     }
     void onGreenButtonRelease() {
-        if (jog_continuous) {
+        if (state == Jog && _continuous) {
             fnc_realtime(JogCancel);  // reset
         }
     }
 
     void onRedButtonPress() {
         if (state == Idle) {
-            if (!(selection % 2)) {
-                if (jog_continuous) {
-                    // $J=G91F1000X-10000
-                    send_line("$J=G91F" + floatToString(jog_cont_speed[jog_axis], 0) + axisNumToString(jog_axis) + "-10000");
-                } else {
-                    if (active_setting == 0) {
-                        if (jog_inc_level[jog_axis] > 0) {
-                            jog_inc_level[jog_axis]--;
-                        }
-                    } else {
-                        feedRateRotator(jog_rate_level[jog_axis], false);
+            if (_continuous) {
+                // $J=G91F1000X-10000
+                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "-10000");
+            } else {
+                if (_active_setting == 0) {
+                    if (_inc_level[_axis] > 0) {
+                        _inc_level[_axis]--;
+                        setPref("IncLevel", _axis, _inc_level[_axis]);
                     }
-                    prefsChanged = true;
+                } else {
+                    feedRateRotator(_rate_level[_axis], false);
+                    setPref("RateLevel", _axis, _rate_level[_axis]);
                 }
-                display();
             }
+            reDisplay();
             return;
         }
-        if (state == Jog) {
-            if (!jog_continuous) {
+        if (state == Jog || state == Cycle) {
+            if (!_continuous) {
                 fnc_realtime(Reset);
             }
             return;
         }
     }
     void onRedButtonRelease() {
-        if (jog_continuous) {
+        if (state == Jog && _continuous) {
             fnc_realtime(JogCancel);  // reset
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
-        if (t.y < 70) {
-            jog_continuous = !jog_continuous;
-        } else if (t.y < 140) {
-            rotateNumberLoop(jog_axis, 1, 0, 2);
-        } else if (t.y > 116 && t.y < 158) {
-            String cmd = "G10L20P0" + axisNumToString(jog_axis) + "0";
-            log_msg(cmd);
-            send_line(cmd);
-        } else {
-            rotateNumberLoop(active_setting, 1, 0, 1);
+    void onTouchRelease(int x, int y) {
+        //Use dial to break out of continuous mode
+        if (state == Idle) {
+            if (y < 70) {
+                _continuous = !_continuous;
+            } else if (y < 105) {
+                rotateNumberLoop(_axis, 1, 0, 2);
+            } else if (y < 140) {
+                String cmd = "G10L20P0" + axisNumToString(_axis) + "0";
+                log_println(cmd);
+                send_line(cmd);
+            } else {
+                rotateNumberLoop(_active_setting, 1, 0, 1);
+            }
         }
-        USBSerial.printf("Selection:%d Axis:%d\r\n", selection, jog_axis);
-        M5Dial.Speaker.tone(2000, 20);
-        display();
+        reDisplay();
     }
 
-    void onDROChange() { display(); }
-    void onLimitsChange() { display(); }
-    void onAlarm() { display(); }
+    void onDROChange() { reDisplay(); }
+    void onLimitsChange() { reDisplay(); }
+    void onAlarm() { reDisplay(); }
 
     void onEncoder(int delta) {
-        if (jog_continuous) {
-            if (delta != 0) {
-                feedRateRotator(jog_cont_speed[jog_axis], delta > 0);
-            }
+        if (state == Idle && _continuous) {
+            feedRateRotator(_cont_speed[_axis], delta > 0);
         } else {
-            if (delta != 0) {
-                // $J=G91F200Z5.0
-
-                USBSerial.print("Delta");
-                USBSerial.println(delta);
-
-                // encoder error filtering
-                if (abs(delta) > 1) {
-                    return;
-                }
-                bool jogFwd = delta > 0;
-                if (lastJogFwd != jogFwd) {  // are we changing direction
-                    if (!skippedLast) {
-                        skippedLast = true;
-                        return;
-                    } else {
-                        skippedLast = false;
-                    }
-                }
-                lastJogFwd = jogFwd;
-                // end filtering
-
-                String jogRate      = floatToString(jog_rate_level[jog_axis], 0);
-                String jogIncrement = floatToString(jog_increment(), 2);
-                String cmd          = "$J=G91F" + jogRate + axisNumToString(jog_axis);
-                if (delta < 0) {
-                    cmd += "-";
-                }
-                cmd += jogIncrement;
-                log_msg(cmd);
-                send_line(cmd);
+            // $J=G91F200Z5.0
+            String jogRate      = floatToString(_rate_level[_axis], 0);
+            String jogIncrement = floatToString(_increment(), 2);
+            String cmd          = "$J=G91F" + jogRate + axisNumToString(_axis);
+            if (delta < 0) {
+                cmd += "-";
             }
+            cmd += jogIncrement;
+            log_println(cmd);
+            send_line(cmd);
         }
-        display();
+        reDisplay();
     }
 
-    void display() {
+    void reDisplay() {
         drawBackground(BLACK);
-        drawStatus();
-
-        int x      = 15;
-        int y      = 68;
-        int width  = 210;
-        int height = 40;
-
-        DRO dro(x, y, width, height);
-        dro.draw(jog_axis, true);
-
         String legend;
 
-        legend = "Zero " + String("XYZ").substring(jog_axis, jog_axis + 1) + " Axis";
-        Stripe stripe(60, 116, 120, 42, TINY);
-        stripe.draw(legend, false);
-
-        legend = jog_continuous ? "Btn Jog" : "MPG Jog";
+        legend = _continuous ? "Bttn Jog" : "MPG Jog";
         centered_text(legend, 12);
 
-        if (jog_continuous) {
-            legend = "Speed: " + floatToString(jog_cont_speed[jog_axis], 0);
-            centered_text(legend, 184);
+        drawStatus();
+
+        if (state == Idle || state == Jog) {
+            int x      = 14;
+            int y      = 67;
+            int width  = display.width() - x * 2;
+            int height = 38;
+
+            DRO dro(x, y, width, 35);
+            dro.draw(_axis, true);
+
+            x = 60;
+            y += height + 5;
+            width  = display.width() - x * 2;
+            height = 48;
+
+            if (state == Idle) {
+                Stripe stripe(x, y, width, height, TINY);
+                legend = "Zero " + String("XYZ").substring(_axis, _axis + 1) + " Axis";
+                stripe.draw(legend, true);
+            }
+
+            if (_continuous) {
+                legend = "Rate: " + floatToString(_cont_speed[_axis], 0);
+                centered_text(legend, 183);
+            } else {
+                legend = "Increment: " + floatToString(_increment(), 2);
+                centered_text(legend, 174, _active_setting == 0 ? WHITE : DARKGREY);
+                legend = "Rate: " + floatToString(_rate_level[_axis], 2);
+                centered_text(legend, 194, _active_setting == 1 ? WHITE : DARKGREY);
+            }
+
+            const char* back = "Back";
+            switch (state) {
+                case Idle:
+                    if (_continuous) {
+                        if (_selection % 2) {
+                            drawButtonLegends("", "Zero " + axisNumToString(_axis), back);
+                        } else {
+                            drawButtonLegends("Jog-", "Jog+", back);
+                        }
+                    } else {
+                        if (_selection % 2) {  // if zro selected
+                            drawButtonLegends("", "Zero " + axisNumToString(_axis), back);
+                        } else {
+                            drawButtonLegends("Dec", "Inc", back);
+                        }
+                    }
+                    break;
+                case Jog:
+                    if (_continuous) {
+                        drawButtonLegends("Jog-", "Jog+", back);
+                    } else {
+                        drawButtonLegends("E-Stop", "Cancel", back);
+                    }
+                    break;
+                case Alarm:
+                    drawButtonLegends("", "", back);
+                    break;
+            }
         } else {
-            legend = "MPG Incr: " + floatToString(jog_increment(), 2);
-            centered_text(legend, 173, active_setting == 0 ? WHITE : DARKGREY);
-            legend = "Rate: " + floatToString(jog_rate_level[jog_axis], 0);
-            centered_text(legend, 195, active_setting == 1 ? WHITE : DARKGREY);
+            centered_text("Invalid State", 105, WHITE, MEDIUM);
+            centered_text("For Jogging", 145, WHITE, MEDIUM);
+
+            drawButtonLegends("E-Stop", "", "Menu");
         }
 
-        const char* back = "Back";
-        switch (state) {
-            case Idle:
-                if (jog_continuous) {
-                    if (selection % 2) {
-                        drawButtonLegends("", "Zero " + axisNumToString(jog_axis), back);
-                    } else {
-                        drawButtonLegends("Jog-", "Jog+", back);
-                    }
-                } else {
-                    if (selection % 2) {  // if zro selected
-                        drawButtonLegends("", "Zero " + axisNumToString(jog_axis), back);
-                    } else {
-                        drawButtonLegends("Dec", "Inc", back);
-                    }
-                }
-                break;
-            case Jog:
-                if (jog_continuous) {
-                    drawButtonLegends("Jog-", "Jog+", back);
-                } else {
-                    drawButtonLegends("E-Stop", "Cancel", back);
-                }
-                break;
-            case Alarm:
-                drawButtonLegends("", "", back);
-                break;
-        }
-        showError();  // if there is one
         refreshDisplay();
     }
 };

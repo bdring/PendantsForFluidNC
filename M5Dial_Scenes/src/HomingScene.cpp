@@ -6,8 +6,7 @@
 
 class HomingScene : public Scene {
 private:
-    int current_button = 0;
-    int encoderCounter = 0;
+    int _current_button = 0;
 
 public:
     HomingScene() : Scene("Home") {}
@@ -16,60 +15,77 @@ public:
     void onGreenButtonPress() {
         if (state == Idle || state == Alarm) {
             String line = "$H";
-            if (current_button != 0) {
-                line += axisNumToString(current_button - 1);
+            if (_current_button != 0) {
+                line += axisNumToString(_current_button - 1);
             }
-            log_msg(line);
+            log_println(line);
             send_line(line);
+        } else if (state == Cycle) {
+            fnc_realtime(FeedHold);
+        } else if (state == Hold) {
+            fnc_realtime(CycleStart);
         }
     }
     void onRedButtonPress() {
-        if (state == Homing) {
-            fnc_realtime(Reset);
-        }
-    }
-    void onEncoder(int delta) {
-        if (abs(delta) > 0) {
-            encoderCounter += delta;
-            if (encoderCounter % 4 == 0) {
-                rotateNumberLoop(current_button, delta > 0 ? 1 : -1, 0, 3);
-                display();
-            }
+        if (state == Homing || state == Cycle) {
+            fnc_realtime(FeedHold);
         }
     }
 
-    void display() {
+    void onTouchRelease(int x, int y) {
+        if (state == Idle || state == Homing) {
+                rotateNumberLoop(_current_button, 1, 0, 3);
+        reDisplay();
+        }         
+    }
+
+    void onDROChange() { reDisplay(); } // also covers any status change
+
+    void reDisplay() {
         drawBackground(BLACK);
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        int x      = 50;
-        int y      = 65;
-        int width  = WIDTH - (x * 2);
-        int height = 32;
-
-        Stripe button(x, y, width, height, SMALL);
-        button.draw("Home All", current_button == 0);
-        y = button.y();  // LEDs start with the Home X button
-        button.draw("Home X", current_button == 1);
-        button.draw("Home Y", current_button == 2);
-        button.draw("Home Z", current_button == 3);
-
-        LED led(x - 16, y + height / 2, 10, button.gap());
-        led.draw(myLimitSwitches[0]);
-        led.draw(myLimitSwitches[1]);
-        led.draw(myLimitSwitches[2]);
-
         String redLabel, grnLabel, orangeLabel = "";
-        if (state == Homing) {
-            redLabel = "E-Stop";
+
+        if (state == Idle || state == Homing || state == Alarm) {
+            int x      = 50;
+            int y      = 65;
+            int width  = display.width() - (x * 2);
+            int height = 32;
+
+            Stripe button(x, y, width, height, SMALL);
+            button.draw("Home All", _current_button == 0);
+            y = button.y();  // LEDs start with the Home X button
+            button.draw("Home X", _current_button == 1);
+            button.draw("Home Y", _current_button == 2);
+            button.draw("Home Z", _current_button == 3);
+
+            LED led(x - 16, y + height / 2, 10, button.gap());
+            led.draw(myLimitSwitches[0]);
+            led.draw(myLimitSwitches[1]);
+            led.draw(myLimitSwitches[2]);
+
+            
+            if (state == Homing) {
+                redLabel = "E-Stop";
+            } else {
+                grnLabel = "Home ";
+                grnLabel += _current_button ? axisNumToString(_current_button - 1) : "All";
+            }
         } else {
-            grnLabel = "Home ";
-            grnLabel += current_button ? axisNumToString(current_button - 1) : "All";
-        }
+            centered_text("Invalid State", 105, WHITE, MEDIUM);
+            centered_text("For Homing", 145, WHITE, MEDIUM);
+            redLabel = "E-Stop";
+            if (state == Cycle) {
+                grnLabel = "Hold";
+            } else if (state == Hold) {
+                grnLabel = "Resume";
+            }
+        }       
 
         drawButtonLegends(redLabel, grnLabel, "Back");
-        showError();  // if there is one
+
         refreshDisplay();
     }
 };

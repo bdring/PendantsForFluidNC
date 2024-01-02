@@ -14,9 +14,8 @@ String             myFile             = "";   // running SD filename
 file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
 int                lastAlarm          = 0;
-uint32_t           errorExpire        = 0;
 int                lastError          = 0;
-gcode_modes        myGcModes;
+uint32_t           errorExpire;
 
 // clang-format off
 std::map<String, state_t> state_map = {
@@ -71,14 +70,6 @@ void send_line(const String& s, int timeout) {
 }
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
-}
-void log_msg(const String& s) {
-#ifdef DEBUG_TO_FNC
-    send_line("$Msg/Uart0=" + s);
-#endif
-#ifdef DEBUG_TO_USB
-    USBSerial.println(s);
-#endif
 }
 
 String axisNumToString(int axis) {
