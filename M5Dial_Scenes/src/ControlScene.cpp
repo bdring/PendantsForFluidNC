@@ -58,7 +58,7 @@ public:
         reDisplay();
     }
 
-    void onDROChange() { reDisplay(); }  // also covers any status change
+    void onStateChange() { reDisplay(); }
 
     void reDisplay() {
         drawBackground(BLACK);

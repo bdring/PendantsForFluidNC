@@ -42,3 +42,4 @@ String floatToString(float val, int afterDecimal);
 String axisNumToString(int axis);
 
 void decode_state_string(const char* stateString);
+String decode_error_number(int error_num);

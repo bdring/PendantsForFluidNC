@@ -64,7 +64,7 @@ public:
         reDisplay();
     }
 
-    void onDROChange() { reDisplay(); }  // also covers any status change
+    void onDROChange() { reDisplay(); }
 
     void onEncoder(int delta) {
         if (abs(delta) > 0) {
@@ -137,8 +137,8 @@ public:
             redText = "Retract";
         } else {
             if (state == Jog || state == Alarm) {  // there is no Probing state, so Cycle is a valid state on this
-                centered_text("Invalid State", 105, WHITE, MEDIUM);
-                centered_text("For Probing", 145, WHITE, MEDIUM);
+                //centered_text("Invalid State", 105, WHITE, MEDIUM);
+                //centered_text("For Probing", 145, WHITE, MEDIUM);
                 redText = "Reset";
             } else {
                 int x      = 14;

@@ -172,6 +172,7 @@ void showError() {
         //errorCounter--;
         canvas.fillCircle(120, 120, 95, RED);
         drawCircle(120, 120, 95, 5, WHITE);
-        centered_text("Error " + String(lastError), 130, WHITE, MEDIUM);
+        centered_text("Error", 95, WHITE, MEDIUM);
+        centered_text(decode_error_number(lastError), 140, WHITE, TINY);
     }
 }

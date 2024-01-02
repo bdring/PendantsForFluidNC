@@ -42,7 +42,7 @@ public:
                 send_line("$H");
                 break;
         }
-        fnc_realtime(StatusReport);        
+        fnc_realtime(StatusReport);
     }
 
     void onEncoder(int delta) {
@@ -91,7 +91,7 @@ public:
         switch (state) {
             case Alarm:
                 redText = "Reset";
-                grnText = "Reset";
+                grnText = "Home All";
                 break;
             case Homing:
                 redText = "Reset";

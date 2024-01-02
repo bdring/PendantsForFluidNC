@@ -33,11 +33,39 @@ std::map<String, state_t> state_map = {
 };
 // clang-format on
 
+
+
 void decode_state_string(const char* state_string) {
     if (stateString != state_string) {
         stateString = state_string;
         state       = state_map[stateString];
     }
+}
+
+// clang-format off
+std::map<int, String> error_map = {  // Do here so abreviations are right for the dial
+    { 0, "None"},
+    { 1, "GCode letter"},
+    { 2, "GCode format"},
+    { 3, "Bad $ command"},
+    { 4, "Negative value"},
+    { 5, "Setting Diabled"},
+    { 10, "Soft limit error"},
+    { 13, "Check door"},
+    { 18, "No Homing Cycles"},
+    { 20, "Unsupported GCode"},
+    { 22, "Undefined feedrate"},
+    { 19, "No single axis"},
+    { 34, "Arc radius error"},
+    { 39, "P Param Exceeded"},
+};
+// clang-format on
+
+String decode_error_number(int error_num) {
+    if (error_map.find(error_num) != error_map.end()) {
+        return error_map[error_num];
+    }
+    return String(error_num);
 }
 
 extern "C" void begin_status_report() {
