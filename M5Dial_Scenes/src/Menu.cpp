@@ -82,6 +82,8 @@ int PieMenu::touchedItem(int x, int y) {
     // Convert from screen coordinates to 0,0 in the center
     Point ctr = Point { x, y }.from_display();
 
+    fnc_realtime(StatusReport); // used to update if status is out of sync
+
     x = ctr.x;
     y = ctr.y;
 

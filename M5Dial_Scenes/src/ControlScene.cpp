@@ -15,7 +15,7 @@ public:
     void onGreenButtonPress() {
         String line = "";
         switch (state) {
-            case Idle:                
+            case Idle:
                 switch (current_button) {
                     case 0:
                         line = "M7";
@@ -43,7 +43,14 @@ public:
                 break;
         }
     }
-    void onRedButtonPress() { fnc_realtime(Reset); }
+    void onRedButtonPress() {
+        switch (state) {
+            case Cycle:
+            case Hold:
+                fnc_realtime(Reset);
+                break;
+        }
+    }
 
     void onTouchRelease(int x, int y) {
         // Rotate through the items to be adjusted.
@@ -93,10 +100,12 @@ public:
         } else {
             centered_text("Invalid State", 105, WHITE, MEDIUM);
             centered_text("For Controls", 145, WHITE, MEDIUM);
-            redLabel = "E-Stop";
+
             if (state == Cycle) {
+                redLabel = "E-Stop";
                 grnLabel = "Hold";
             } else if (state == Hold) {
+                redLabel = "E-Stop";
                 grnLabel = "Resume";
             }
         }
