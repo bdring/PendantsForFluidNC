@@ -52,6 +52,7 @@ public:
 
 void drawBackground(int color);
 void drawStatus();
+void drawStatusTiny(int y);
 
 void drawFilledCircle(int x, int y, int radius, int fillcolor);
 void drawFilledCircle(Point xy, int radius, int fillcolor);

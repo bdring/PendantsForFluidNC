@@ -101,6 +101,14 @@ void drawStatus() {
     }
 }
 
+void drawStatusTiny(int y) {
+    static constexpr int width  = 90;
+    static constexpr int height = 20;
+
+    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
+    centered_text(stateString, y + height / 2 + 3, BLACK, TINY);
+}
+
 Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}
 
 void Stripe::draw(const String& left, const String& right, bool highlighted, int left_color) {

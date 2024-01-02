@@ -110,12 +110,13 @@ int PieMenu::touchedItem(int x, int y) {
     }
     // If num_items() is even, return the bottom item  (i == num_items()-i)
     // If it is odd, return one of two bottom items stradding -Y axis
+
+    reDisplay();
     return x > 0 ? i : num_items() - i;
 }
 void PieMenu::menuBackground() {
     drawBackground(BLACK);
-
-    text(name(), { 0, 24 }, YELLOW, TINY);
+    drawStatusTiny(91);
     text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);
 }
 

@@ -11,13 +11,7 @@ private:
 public:
     StatusScene() : Scene("Status") {}
 
-    void onDialButtonPress() {
-        if (state == Idle || state == Alarm) {
-            pop_scene();
-        } else if (state == Cycle) {
-            fnc_realtime(FeedOvrReset);
-        }
-    }
+    void onDialButtonPress() { pop_scene(); }
 
     void onTouchRelease(int x, int y) {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
@@ -46,9 +40,9 @@ public:
                 break;
             case Alarm:
                 send_line("$H");
-                return;  // no status report
+                break;
         }
-        fnc_realtime(StatusReport);
+        fnc_realtime(StatusReport);        
     }
 
     void onEncoder(int delta) {
@@ -70,6 +64,8 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
+        String grnText, redText = "";
+
         DRO dro(10, 68, 220, 32);
         dro.draw(0, false);
         dro.draw(1, false);
@@ -86,36 +82,36 @@ public:
                     drawRect(20, y, width, height, 5, GREEN);
                 }
             }
-
             // Feed override
             centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
         }
 
         String encoder_button_text = "Menu";
 
-        String redButtonText   = "";
-        String greenButtonText = "";
         switch (state) {
             case Alarm:
-                drawButtonLegends("Reset", "Home All", encoder_button_text);
+                redText = "Reset";
+                grnText = "Reset";
                 break;
             case Homing:
-                drawButtonLegends("Reset", "", encoder_button_text);
+                redText = "Reset";
                 break;
             case Cycle:
-                drawButtonLegends("E-Stop", "Hold", "FRO End");
+                redText = "E-Stop";
+                grnText = "Hold";
                 break;
             case Hold:
-                drawButtonLegends("Quit", "Start", encoder_button_text);
+                redText = "Quit";
+                grnText = "Resume";
                 break;
             case Jog:
-                drawButtonLegends("Jog Cancel", "", encoder_button_text);
+                redText = "Jog Cancel";
                 break;
             case Idle:
-                drawButtonLegends("", "", encoder_button_text);
                 break;
         }
 
+        drawButtonLegends(redText, grnText, "Back");
         refreshDisplay();
     }
 };
