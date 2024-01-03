@@ -3,6 +3,7 @@
 
 #include "FluidNCModel.h"
 #include <map>
+#include "System.h"
 
 // local copies of status items
 String             stateString        = "N/C";
@@ -13,8 +14,10 @@ bool               myProbeSwitch      = false;
 String             myFile             = "";   // running SD filename
 file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
-int                lastAlarm          = 0;
-int                lastError          = 0;
+struct gcode_modes myGcodeModes;
+String             myModeString = "";
+int                lastAlarm = 0;
+int                lastError = 0;
 uint32_t           errorExpire;
 
 // clang-format off
@@ -32,8 +35,6 @@ std::map<String, state_t> state_map = {
     { "Sleep", Sleep },
 };
 // clang-format on
-
-
 
 void decode_state_string(const char* state_string) {
     if (stateString != state_string) {
@@ -93,6 +94,17 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
     }
 }
 
+extern "C" void show_gcode_modes(struct gcode_modes* modes) {
+    memcpy(&myGcodeModes, &modes, sizeof(modes));
+    myModeString = "";
+    myModeString += String(modes->distance);
+    log_println("Modes");
+}
+
+extern "C" void handle_other(char* line) {
+    log_println("Other");
+}
+
 void send_line(const String& s, int timeout) {
     send_line(s.c_str(), timeout);
 }
@@ -109,4 +121,10 @@ String floatToString(float val, int afterDecimal) {
     dtostrf(val, 1, afterDecimal, buffer);
     String str(buffer);
     return str;
+}
+
+String modeString() {
+    String modes = "";
+    modes += myGcodeModes.distance;
+    return myModeString;
 }

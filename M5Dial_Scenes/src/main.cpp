@@ -43,7 +43,11 @@ extern "C" void show_state(const char* state_string) {
     if (state != old_state) {
         current_scene->onStateChange(state);
         old_state = state;
-    }    
+    }
+}
+
+extern "C" void handle_msg(char* command, char* arguments) {
+    current_scene->onMessage(command, arguments);
 }
 
 extern "C" void end_status_report() {
@@ -52,8 +56,6 @@ extern "C" void end_status_report() {
 }
 
 extern "C" void show_alarm(int alarm) {
-    debug_print("Alarm:");
-    debug_println(String(alarm).c_str());
     lastAlarm = alarm;
     current_scene->reDisplay();
 }

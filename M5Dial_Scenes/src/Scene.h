@@ -39,6 +39,7 @@ public:
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}
+    virtual void onMessage(char* command, char* arguments) {}
     virtual void onEncoder(int delta) {}
     virtual void reDisplay() {}
     virtual void init(void* arg = nullptr) {}

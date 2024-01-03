@@ -1,5 +1,6 @@
 #include "Menu.h"
 #include "FileMenu.h"
+#include "System.h"
 
 void noop(void* arg) {}
 
@@ -41,19 +42,19 @@ Item* setupButton;
 Item* powerButton;
 
 Scene* initMenus() {
-    fileMenu.addItem(new FileItem("BigTree.nc"));
-    fileMenu.addItem(new FileItem("BotCustom.nc"));
-    fileMenu.addItem(new FileItem("Engraving.gcode"));
-    fileMenu.addItem(new FileItem("Fixtures/"));
-    fileMenu.addItem(new FileItem("Pucks.nc"));
-    fileMenu.addItem(new FileItem("TopCutout.nc"));
-    fileMenu.addItem(new FileItem("TopTLines.nc"));
-    fileMenu.setFolder("/");
+    // fileMenu.addItem(new FileItem("BigTree.nc"));
+    // fileMenu.addItem(new FileItem("BotCustom.nc"));
+    // fileMenu.addItem(new FileItem("Engraving.gcode"));
+    // fileMenu.addItem(new FileItem("Fixtures/"));
+    // fileMenu.addItem(new FileItem("Pucks.nc"));
+    // fileMenu.addItem(new FileItem("TopCutout.nc"));
+    // fileMenu.addItem(new FileItem("TopTLines.nc"));
+    // fileMenu.setFolder("/");
 
-    axisMenu.addItem(new LB("XAxis", noop, RED));
-    axisMenu.addItem(new LB("YAxis", noop, RED));
-    axisMenu.addItem(new LB("ZAxis", noop, RED));
-    axisMenu.addItem(new LB("<Back", pop_scene, RED));
+    // axisMenu.addItem(new LB("XAxis", noop, RED));
+    // axisMenu.addItem(new LB("YAxis", noop, RED));
+    // axisMenu.addItem(new LB("ZAxis", noop, RED));
+    // axisMenu.addItem(new LB("<Back", pop_scene, RED));
 
     statusButton  = new IB("Status", &statusScene, "/statustp.png");
     homingButton  = new IB("Homing", &homingScene, "/hometp.png");
