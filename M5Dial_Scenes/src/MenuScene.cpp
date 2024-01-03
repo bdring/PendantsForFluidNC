@@ -63,6 +63,7 @@ Scene* initMenus() {
     controlButton = new IB("Control", &controlScene, "/controltp.png");
     setupButton   = new IB("Setup", &setupScene, "/setuptp.png");
     powerButton   = new IB("Power", noop, "/powertp.png");
+    powerButton->disable();
 
     menuScene.addItem(statusButton);
     menuScene.addItem(homingButton);

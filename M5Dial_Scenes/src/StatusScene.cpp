@@ -20,7 +20,11 @@ public:
     void onRedButtonPress() {
         switch (state) {
             case Alarm:
-                send_line("$X");
+                if (lastAlarm == 14) {
+                    send_line("$X");
+                } else {
+                    fnc_realtime(Reset);
+                }
                 break;
             case Cycle:
             case Homing:
@@ -90,7 +94,11 @@ public:
 
         switch (state) {
             case Alarm:
-                redText = "Reset";
+                if (lastAlarm == 14) {
+                    redText = "Unlock";
+                } else {
+                    redText = "Reset";
+                }
                 grnText = "Home All";
                 break;
             case Homing:
