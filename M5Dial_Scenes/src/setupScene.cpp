@@ -12,21 +12,25 @@ private:
 public:
     SetupScene() : Scene("Setup") {}
 
+    void init() { send_line("$G"); }
+
     void onDialButtonPress() { activate_scene(&menuScene); }
     void onGreenButtonPress() {}
     void onRedButtonPress() {}
     void onTouchRelease(m5::touch_detail_t t) {
         fnc_realtime(StatusReport);
-        reDisplay(); 
-        }
+        reDisplay();
+    }
     void onEncoder(int delta) {}
     void onStateChange(state_t state) { reDisplay(); }
     void reDisplay() {
         drawBackground(BLACK);
         drawStatus();
 
-        //centered_text("Coming soon...", 90, WHITE, SMALL);
-        centered_text("Credits:", 115, LIGHTGREY, TINY);
+        centered_text("GCode modes:", 73, LIGHTGREY, TINY);
+        centered_text(modeString(), 91, GREEN, TINY);
+
+        centered_text("Credits:", 118, LIGHTGREY, TINY);
         centered_text("@bdring", 140, GREEN, TINY);
         centered_text("@MitchBradley", 160, GREEN, TINY);
         centered_text("@bDuthieDev ", 180, GREEN, TINY);
