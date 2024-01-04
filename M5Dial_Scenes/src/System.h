@@ -17,6 +17,7 @@ extern M5GFX&             display;
 extern m5::Speaker_Class& speaker;
 extern m5::Touch_Class&   touch;
 extern ENCODER&           encoder;
+extern String             myModeString;
 
 extern Stream& debugPort;
 

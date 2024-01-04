@@ -14,7 +14,6 @@ bool               myProbeSwitch      = false;
 String             myFile             = "";   // running SD filename
 file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
-String             myModeString       = "no data";
 int                lastAlarm          = 0;
 int                lastError          = 0;
 uint32_t           errorExpire;
@@ -93,14 +92,7 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
     }
 }
 
-extern "C" void show_gcode_modes(struct gcode_modes* modes) {
-    myModeString = String(modes->wcs);
-    myModeString += "|" + String(modes->units);
-    myModeString += "|" + String(modes->distance);
-    myModeString += "|" + String(modes->spindle);
-    myModeString += "|" + String(modes->coolant);
-    myModeString += "|T" + String(modes->tool);
-}
+
 
 extern "C" void handle_other(char* line) {
     log_println("Other");

@@ -8,6 +8,8 @@ M5GFX&             display = M5Dial.Display;
 m5::Speaker_Class& speaker = M5Dial.Speaker;
 m5::Touch_Class&   touch   = M5Dial.Touch;
 
+String myModeString = "no data";
+
 Stream& debugPort = USBSerial;
 
 // Helpful for debugging touch development.

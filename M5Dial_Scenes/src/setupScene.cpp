@@ -12,15 +12,17 @@ private:
 public:
     SetupScene() : Scene("Setup") {}
 
-    void init() { send_line("$G"); }
+    void init() { log_println("init"); }
 
     void onDialButtonPress() { activate_scene(&menuScene); }
     void onGreenButtonPress() {}
     void onRedButtonPress() {}
+
     void onTouchRelease(m5::touch_detail_t t) {
         fnc_realtime(StatusReport);
-        reDisplay();
+        send_line("$G");
     }
+
     void onEncoder(int delta) {}
     void onStateChange(state_t state) { reDisplay(); }
     void reDisplay() {

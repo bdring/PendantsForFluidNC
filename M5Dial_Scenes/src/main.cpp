@@ -60,6 +60,16 @@ extern "C" void show_alarm(int alarm) {
     current_scene->reDisplay();
 }
 
+extern "C" void show_gcode_modes(struct gcode_modes* modes) {
+    myModeString = String(modes->wcs);
+    myModeString += "|" + String(modes->units);
+    myModeString += "|" + String(modes->distance);
+    myModeString += "|" + String(modes->spindle);
+    myModeString += "|" + String(modes->coolant);
+    myModeString += "|T" + String(modes->tool);
+    current_scene->reDisplay();
+}
+
 extern "C" int fnc_getchar() {
     if (Serial_FNC.available()) {
         int c = Serial_FNC.read();
