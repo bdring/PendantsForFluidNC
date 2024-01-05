@@ -26,7 +26,7 @@ public:
         }
     }
 
-    void onTouchRelease(m5::touch_detail_t t) {
+    void onTouchRelease(int x, int y) {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
