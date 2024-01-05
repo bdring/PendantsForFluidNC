@@ -387,7 +387,7 @@ static struct GCodeMode {
 static void lookup_mode(const char* tag) {
     for (struct GCodeMode* p = modes_map; p->tag; p++) {
         if (strcmp(tag, p->tag) == 0) {
-            *p->variable = p->value;
+            *p->variable = p->tag;
             return;
         }
     }

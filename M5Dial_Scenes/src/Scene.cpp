@@ -25,7 +25,7 @@ void pop_scene(void* arg) {
     if (scene_stack.size()) {
         Scene* last_scene = scene_stack.back();
         scene_stack.pop_back();
-        activate_scene(last_scene);
+        activate_scene(last_scene, arg);
     }
 }
 
@@ -70,7 +70,6 @@ void dispatch_events() {
     auto this_touch = touch.getDetail();
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
-        // debugPort.printf("Touch %d\r\n", this_touch.state);
         if (this_touch.state == m5::touch_state_t::touch) {
             speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch.x, this_touch.y);

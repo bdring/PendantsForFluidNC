@@ -119,6 +119,8 @@ void Stripe::draw(const String& center, bool highlighted) {
     _y += gap();
 }
 
+void Stripe::draw(float n, int n_decimals, int hl_digit, bool highlighted) {}
+
 #define PUSH_BUTTON_LINE 212
 #define DIAL_BUTTON_LINE 228
 
@@ -132,6 +134,49 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
 void LED::draw(bool highlighted) {
     drawOutlinedCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY, WHITE);
     _y += _gap;
+}
+
+void DRO::putCharacter(char c, int& x, int& y, int color) {
+    char str[2] = "0";
+    str[0]      = c;
+    text(str, x, text_middle_y(), color, _font, middle_right);
+    x -= canvas.textWidth(str);
+}
+void DRO::putDigit(unsigned int& u, int& x, int& y, int color) {
+    putCharacter("0123456789"[u % 10], x, y, color);
+    u /= 10;
+}
+void DRO::fancyNumber(float fn, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
+    size_t i;
+    for (i = 0; i < n_decimals; i++) {
+        fn *= 10;
+    }
+    int n = (int)fn;
+
+    unsigned int u = std::abs(n);
+    for (i = 0; i < n_decimals; i++) {
+        putDigit(u, x, y, i == hl_digit ? hl_text_color : text_color);
+    }
+    if (n_decimals) {
+        putCharacter('.', x, y, text_color);
+    }
+    do {
+        putDigit(u, x, y, i == hl_digit ? hl_text_color : text_color);
+        ++i;
+    } while (u || i <= hl_digit);
+    if (n < 0) {
+        putCharacter('-', x, y, text_color);
+    }
+}
+
+void DRO::draw(int axis, bool highlight) {
+    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+}
+void DRO::draw(int axis, int n_decimals, int hl_digit, bool highlighted) {
+    // drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
+    text(axisNumToString(axis), text_left_x(), text_middle_y(), highlighted ? GREEN : WHITE, _font, middle_left);
+    fancyNumber(myAxes[axis], n_decimals, hl_digit, text_right_x(), _y, WHITE, RED);
+    _y += gap();
 }
 
 void drawMenuTitle(const String& name) {
@@ -149,7 +194,7 @@ void drawMenuView(std::vector<String> labels, int start, int selected) {}
 void showImageFile(const char* name, int x, int y, int width, int height) {
     auto file = LittleFS.open(name);
     if (!file) {
-        debugPort.println("Can't open logo_img.bin");
+        log_msg("Can't open logo_img.bin");
         return;
     }
     auto      len   = file.size();

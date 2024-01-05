@@ -28,13 +28,12 @@ void init_system() {
     auto cfg = M5.config();
     // Don't enable the encoder because M5's encoder driver is flaky
     M5Dial.begin(cfg, false, false);
-    touch.setFlickThresh(30);
+    touch.setFlickThresh(50);
 
     if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
-        debugPort.println("LittleFS Mount Failed");
+        log_msg("LittleFS Mount Failed");
         return;
     }
-    debugPort.println("LittleFS Mounted");
     canvas.createSprite(display.width(), display.height());
 }
 

@@ -127,7 +127,6 @@ public:
 
     void onTouchRelease(int x, int y) {
         // Rotate through the axis being jogged
-        //debugPort.printf("Touch x:%i y:%i\r\n", t.x, t.y);
         //Use dial to break out of continuous mode
         if (y < 70) {
             _continuous = !_continuous;
@@ -140,7 +139,6 @@ public:
         } else {
             rotateNumberLoop(_active_setting, 1, 0, 1);
         }
-        debugPort.printf("Selection:%d Axis:%d\r\n", _selection, _axis);
         reDisplay();
     }
 
@@ -154,9 +152,6 @@ public:
                 feedRateRotator(_cont_speed[_axis], delta > 0);
             }
         } else {
-            String enc_msg = "delta: " + String(delta);
-            debugPort.println(enc_msg);
-
             if (delta != 0) {
                 // $J=G91F200Z5.0
                 String jogRate      = floatToString(_rate_level[_axis], 0);

@@ -9,22 +9,25 @@
 
 class Stripe {
 private:
+protected:
     int       _x;
     int       _y;
     int       _width;
     int       _height;
     fontnum_t _font;
     const int _text_inset = 5;
-    int       text_left_x() { return _x + _text_inset; }
-    int       text_center_x() { return _x + _width / 2; }
-    int       text_right_x() { return _x + _width - _text_inset; }
-    int       text_middle_y() { return _y + _height / 2 + 2; }
-    int       widget_left_x() { return _x; }
+
+    int text_left_x() { return _x + _text_inset; }
+    int text_center_x() { return _x + _width / 2; }
+    int text_right_x() { return _x + _width - _text_inset; }
+    int text_middle_y() { return _y + _height / 2 + 2; }
+    int widget_left_x() { return _x; }
 
 public:
     Stripe(int x, int y, int width, int height, fontnum_t font);
     void draw(const String& left, const String& right, bool highlighted, int left_color = WHITE);
     void draw(const String& center, bool highlighted);
+    void draw(float n, int n_decimals, int hl_digit, bool highlighted);
     int  y() { return _y; }
     int  gap() { return _height + 1; }
 };
@@ -41,9 +44,14 @@ public:
 };
 
 class DRO : public Stripe {
+    void putCharacter(char c, int& x, int& y, int color);
+    void putDigit(unsigned int& u, int& x, int& y, int color);
+    void fancyNumber(float fn, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color);
+
 public:
     DRO(int x, int y, int width, int height) : Stripe(x, y, width, height, MEDIUM_MONO) {}
     void draw(int axis, bool highlight);
+    void draw(int axis, int n_decimals, int hl_digit, bool highlight);
 };
 
 // draw stuff

@@ -28,6 +28,7 @@ extern Scene  joggingScene;
 extern Scene  probingScene;
 extern Scene  statusScene;
 extern Scene* initJogAxisScene();
+extern Scene* initJog2AxisScene();
 
 Item* statusButton;
 Item* homingButton;
@@ -55,7 +56,7 @@ Scene* initMenus() {
 
     statusButton  = new IB("Status", &statusScene, "/statustp.png");
     homingButton  = new IB("Homing", &homingScene, "/hometp.png");
-    jogButton     = new IB("JogAxis", initJogAxisScene(), "/jogtp.png");
+    jogButton     = new IB("JogAxis", initJog2AxisScene(), "/jogtp.png");
     probeButton   = new IB("Probe", &probingScene, "/probetp.png");
     filesButton   = new IB("Files", &fileMenu, "/filestp.png");
     controlButton = new IB("Control", noop, "/controltp.png");

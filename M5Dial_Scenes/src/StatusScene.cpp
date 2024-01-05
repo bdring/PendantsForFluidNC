@@ -71,9 +71,9 @@ public:
         drawStatus();
 
         DRO dro(10, 68, 220, 32);
-        dro.draw(0, false);
-        dro.draw(1, false);
-        dro.draw(2, false);
+        dro.draw(0, 2, 0, true);
+        dro.draw(1, 3, -1, false);
+        dro.draw(2, 3, -2, false);
 
         int y = 170;
         if (state == Cycle || state == Hold) {

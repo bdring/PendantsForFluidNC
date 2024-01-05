@@ -33,10 +33,6 @@ void drawErrorScreen(const String& s) {
     text("Error " + s, display.height() / 2, WHITE, LARGE);
 }
 
-void DRO::draw(int axis, bool highlight) {
-    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
-}
-
 extern "C" void show_error(int error) {
     errorExpire = millis() + 1000;
     lastError   = error;
@@ -60,7 +56,7 @@ extern "C" void show_alarm(int alarm) {
 extern "C" int fnc_getchar() {
     if (Serial_FNC.available()) {
         int c = Serial_FNC.read();
-        debugPort.write(c);  // echo
+        debugPort.write(c);
         return c;
     }
     return -1;
@@ -74,48 +70,34 @@ extern "C" int milliseconds() {
 
 extern Scene mainScene;
 
-void printTime(time_t t) {
-    struct tm* tmstruct = localtime(&t);
-    debugPort.printf("  at %d-%02d-%02d %02d:%02d:%02d\n",
-                     (tmstruct->tm_year) + 1900,
-                     (tmstruct->tm_mon) + 1,
-                     tmstruct->tm_mday,
-                     tmstruct->tm_hour,
-                     tmstruct->tm_min,
-                     tmstruct->tm_sec);
-}
-
 void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
-    debugPort.printf("Listing directory: %s\r\n", dirname);
-
     File root = fs.open(dirname);
     if (!root) {
-        debugPort.println("- failed to open directory");
+        log_msg("- failed to open directory");
         return;
     }
     if (!root.isDirectory()) {
-        debugPort.println(" - not a directory");
+        log_msg(" - not a directory");
         return;
     }
 
     File file = root.openNextFile();
     while (file) {
+        String msg;
         if (file.isDirectory()) {
-            debugPort.print("  DIR : ");
-
-            debugPort.print(file.name());
-            printTime(file.getLastWrite());
+            String msg("  DIR : ");
+            msg += file.name();
+            log_msg(msg);
 
             if (levels) {
                 listDir(fs, file.name(), levels - 1);
             }
         } else {
-            debugPort.print("  FILE: ");
-            debugPort.print(file.name());
-            debugPort.print("  SIZE: ");
-
-            debugPort.print(file.size());
-            printTime(file.getLastWrite());
+            String msg("  FILE : ");
+            msg += file.name();
+            msg += "  SIZE: ";
+            msg += file.size();
+            log_msg(msg);
         }
         file = root.openNextFile();
     }
@@ -136,7 +118,6 @@ void setup() {
     listDir(LittleFS, "/", 0);
     log_msg("FluidNC Pendant v0.3");
 
-    debugPort.println("\r\nFluidNC Pendant Begin");
     fnc_realtime(StatusReport);  // Request fresh status
     speaker.setVolume(255);
 

@@ -104,7 +104,6 @@ int PieMenu::touchedItem(int x, int y) {
     // Side items
     size_t i;
     for (i = 1; i < _num_slopes; ++i) {
-        // debugPort.printf("slope %d [] %d\r\n", slope, _slopes[i]);
         if (slope > _slopes[i]) {
             return x > 0 ? i : num_items() - i;
         }
@@ -121,7 +120,6 @@ void PieMenu::menuBackground() {
 }
 
 void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
-    // debugPort.printf("Flick %d %d %d %d\r\n", x, y, dx, dy);
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
@@ -131,10 +129,13 @@ void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
 void PieMenu::onDialButtonPress() {
     invoke();
 }
-void PieMenu::onTouchHold(int x, int y) {
+void PieMenu::onTouchRelease(int x, int y) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
         invoke();
     }
+}
+void PieMenu::onTouchHold(int x, int y) {
+    select(touchedItem(x, y));
 }

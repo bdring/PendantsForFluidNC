@@ -164,8 +164,8 @@ public:
 
     void reDisplay();
 
-    virtual void menuBackground()          = 0;
-    virtual int  touchedItem(int x, int y) = 0;
+    virtual void menuBackground() {}
+    virtual int  touchedItem(int x, int y) { return -1; }
     virtual void rotate(int delta);
 
     void onEncoder(int delta) override {
@@ -223,6 +223,7 @@ public:
     void menuBackground() override;
     void calculatePositions();
     void onEncoder(int delta) override { Menu::onEncoder(delta); }
+    void onTouchRelease(int x, int y) override;
     void onTouchHold(int x, int y) override;
     void onTouchFlick(int x, int y, int dx, int dy) override;
     void onDialButtonPress() override;
