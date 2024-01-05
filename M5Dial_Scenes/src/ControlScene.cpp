@@ -56,6 +56,7 @@ public:
         // Rotate through the items to be adjusted.
         rotateNumberLoop(current_button, 1, 0, 3);
         reDisplay();
+        ackBeep();
     }
 
     void onStateChange() { reDisplay(); }

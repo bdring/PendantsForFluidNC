@@ -114,6 +114,7 @@ int PieMenu::touchedItem(int x, int y) {
     // If it is odd, return one of two bottom items stradding -Y axis
 
     reDisplay();
+    ackBeep();
     return x > 0 ? i : num_items() - i;
 }
 void PieMenu::menuBackground() {
@@ -126,6 +127,7 @@ void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
+        ackBeep();
         invoke();
     }
 }

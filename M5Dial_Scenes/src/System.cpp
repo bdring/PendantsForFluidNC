@@ -63,3 +63,7 @@ void log_print(const String& s) {
 void log_println(const String& s) {
     log_print(s + "\r\n");
 }
+
+void ackBeep() {
+    speaker.tone(1800, 50);
+}

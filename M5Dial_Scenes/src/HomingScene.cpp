@@ -34,12 +34,13 @@ public:
 
     void onTouchRelease(int x, int y) {
         if (state == Idle || state == Homing) {
-                rotateNumberLoop(_current_button, 1, 0, 3);
-        reDisplay();
-        }         
+            rotateNumberLoop(_current_button, 1, 0, 3);
+            reDisplay();
+            ackBeep();
+        }
     }
 
-    void onDROChange() { reDisplay(); } // also covers any status change
+    void onDROChange() { reDisplay(); }  // also covers any status change
 
     void reDisplay() {
         drawBackground(BLACK);
@@ -66,7 +67,6 @@ public:
             led.draw(myLimitSwitches[1]);
             led.draw(myLimitSwitches[2]);
 
-            
             if (state == Homing) {
                 redLabel = "E-Stop";
             } else {
@@ -82,7 +82,7 @@ public:
             } else if (state == Hold) {
                 grnLabel = "Resume";
             }
-        }       
+        }
 
         drawButtonLegends(redLabel, grnLabel, "Back");
 

@@ -20,7 +20,9 @@ public:
 
     void onTouchRelease(m5::touch_detail_t t) {
         fnc_realtime(StatusReport);
-        send_line("$G");
+        if (state == Idle) {
+            send_line("$G");
+        }        
     }
 
     void onEncoder(int delta) {}

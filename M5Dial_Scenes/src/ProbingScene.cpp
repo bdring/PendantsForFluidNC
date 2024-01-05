@@ -62,6 +62,7 @@ public:
         // Rotate through the items to be adjusted.
         rotateNumberLoop(selection, 1, 0, 4);
         reDisplay();
+        ackBeep();
     }
 
     void onDROChange() { reDisplay(); }

@@ -139,6 +139,7 @@ public:
             } else {
                 rotateNumberLoop(_active_setting, 1, 0, 1);
             }
+            ackBeep();
         }
         reDisplay();
     }

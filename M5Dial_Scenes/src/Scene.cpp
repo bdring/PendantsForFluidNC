@@ -72,7 +72,7 @@ void dispatch_events() {
         last_touch_state = this_touch.state;
         // debugPort.printf("Touch %d\r\n", this_touch.state);
         if (this_touch.state == m5::touch_state_t::touch) {
-            speaker.tone(1800, 50);
+            //speaker.tone(1800, 50);
             current_scene->onTouchPress(this_touch.x, this_touch.y);
         } else if (this_touch.wasClicked()) {
             current_scene->onTouchRelease(this_touch.x, this_touch.y);

@@ -205,7 +205,10 @@ public:
         _items[item]->highlight();
         reDisplay();
     }
-    void onTouchRelease(int x, int y) override { select(touchedItem(x, y)); }
+    void onTouchRelease(int x, int y) override {
+        select(touchedItem(x, y));
+        ackBeep();
+    }
     void invoke() { _items[_selected]->invoke(); }
 };
 
@@ -230,6 +233,6 @@ public:
         Menu::addItem(item);
         calculatePositions();
     }
-    int touchedItem(int x, int y) override;
+    int  touchedItem(int x, int y) override;
     void onStateChange(state_t state) override;
 };
