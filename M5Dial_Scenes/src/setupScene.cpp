@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "Scene.h"
-#include "menu_img.h"
 
 extern Scene menuScene;
 
@@ -22,7 +21,7 @@ public:
         fnc_realtime(StatusReport);
         if (state == Idle) {
             send_line("$G");
-        }        
+        }
     }
 
     void onEncoder(int delta) {}

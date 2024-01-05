@@ -82,7 +82,7 @@ int PieMenu::touchedItem(int x, int y) {
     // Convert from screen coordinates to 0,0 in the center
     Point ctr = Point { x, y }.from_display();
 
-    fnc_realtime(StatusReport); // used to update if status is out of sync
+    fnc_realtime(StatusReport);  // used to update if status is out of sync
 
     x = ctr.x;
     y = ctr.y;
@@ -114,7 +114,6 @@ int PieMenu::touchedItem(int x, int y) {
     // If it is odd, return one of two bottom items stradding -Y axis
 
     reDisplay();
-    ackBeep();
     return x > 0 ? i : num_items() - i;
 }
 void PieMenu::menuBackground() {
@@ -127,6 +126,7 @@ void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
+        log_println("Flick");
         ackBeep();
         invoke();
     }

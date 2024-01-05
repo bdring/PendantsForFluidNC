@@ -92,11 +92,7 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
     }
 }
 
-
-
-extern "C" void handle_other(char* line) {
-    log_println("Other");
-}
+extern "C" void handle_other(char* line) {}
 
 void send_line(const String& s, int timeout) {
     send_line(s.c_str(), timeout);
