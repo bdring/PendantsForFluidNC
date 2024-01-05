@@ -87,23 +87,6 @@ extern "C" int milliseconds() {
 
 extern Scene mainScene;
 
-void printTime(time_t t) {
-    struct tm* tmstruct = localtime(&t);
-
-    char s[30];
-
-    sprintf(s,
-            "  at %d-%02d-%02d %02d:%02d:%02d\n",
-            (tmstruct->tm_year) + 1900,
-            (tmstruct->tm_mon) + 1,
-            tmstruct->tm_mday,
-            tmstruct->tm_hour,
-            tmstruct->tm_min,
-            tmstruct->tm_sec);
-
-    log_print(s);
-}
-
 void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
     log_print("Listing directory: ");
     log_println(dirname);
@@ -122,9 +105,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
     while (file) {
         if (file.isDirectory()) {
             log_print("  DIR : ");
-
-            log_print(file.name());
-            printTime(file.getLastWrite());
+            log_println(file.name());
 
             if (levels) {
                 listDir(fs, file.name(), levels - 1);
@@ -134,8 +115,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
             log_print(file.name());
             log_print("  SIZE: ");
 
-            log_print(String(file.size()));
-            printTime(file.getLastWrite());
+            log_println(String(file.size()));
         }
         file = root.openNextFile();
     }
@@ -153,7 +133,7 @@ void setup() {
     drawSplashScreen();
     delay(3000);  // view the logo and wait for the debug port to connect
 
-    listDir(LittleFS, "/", 0);
+    //    listDir(LittleFS, "/", 0);
     log_println("FluidNC Pendant v0.3");
 
     log_println("\r\nFluidNC Pendant Begin");

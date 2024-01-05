@@ -55,7 +55,7 @@ void log_print(const String& s) {
 #endif
 #ifdef DEBUG_TO_USB
     if (debugPort.availableForWrite() > s.length()) {
-        debugPort.println(s);
+        debugPort.print(s);
     }
 #endif
 }
