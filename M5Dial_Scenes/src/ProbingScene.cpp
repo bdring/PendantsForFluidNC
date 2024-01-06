@@ -44,18 +44,25 @@ public:
 
     void onRedButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
-        if (state == Cycle || state == Alarm) {
-            fnc_realtime(Reset);
-            send_line("$X");
-            return;
-        } else if (state == Idle) {
-            String gcode = "$J=G91F1000";
-            gcode += axisNumToString(_axis);
-            gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToString(_retract, 0);
-            send_line(gcode);
-            return;
-        }
+        String gcode;
+        switch (state) {
+            case Idle:
+                gcode = "$J=G91F1000";
+                gcode += axisNumToString(_axis);
+                gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
+                gcode += floatToString(_retract, 0);
+                send_line(gcode);
+                return;
+                break;
+            case Cycle:
+            case Alarm:
+                fnc_realtime(Reset);
+                send_line("$X");
+                return;
+            case Hold:
+                fnc_realtime(Reset);
+                break;
+        }        
     }
 
     void onTouchRelease(int x, int y) {
@@ -161,7 +168,7 @@ public:
                         grnText = "Hold";
                         break;
                     case Hold:
-                        redText = "Reset";
+                        redText = "Quit";
                         grnText = "Resume";
                         break;
                     case Alarm:

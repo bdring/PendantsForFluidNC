@@ -29,6 +29,8 @@ public:
     void onRedButtonPress() {
         if (state == Homing || state == Cycle) {
             fnc_realtime(FeedHold);
+        } else if (state == Alarm && lastAlarm != 14) {
+            fnc_realtime(Reset);
         }
     }
 
@@ -69,6 +71,8 @@ public:
 
             if (state == Homing) {
                 redLabel = "E-Stop";
+            } else if (state == Alarm && lastAlarm != 14) {
+                redLabel = "Reset";
             } else {
                 grnLabel = "Home ";
                 grnLabel += _current_button ? axisNumToString(_current_button - 1) : "All";
