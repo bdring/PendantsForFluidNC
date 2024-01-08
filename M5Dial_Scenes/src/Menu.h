@@ -141,9 +141,7 @@ private:
         _items[_selected]->show(_positions[_selected]);
     }
 
-    int       _num_items        = 0;
-    int       _encoder_accum    = 0;
-    const int encoder_threshold = 4;
+    int _num_items = 0;
 
 public:
     std::vector<Point> _positions;
@@ -151,9 +149,9 @@ public:
 
     int _selected = 0;
 
-    Menu(const char* name) : Scene(name) {}
+    Menu(const char* name) : Scene(name, 4) {}
 
-    Menu(const char* name, int num_items) : Scene(name), _num_items(num_items) {
+    Menu(const char* name, int num_items) : Scene(name, 4), _num_items(num_items) {
         _items.reserve(num_items);
         _positions.reserve(num_items);
     }
@@ -168,14 +166,7 @@ public:
     virtual int  touchedItem(int x, int y) = 0;
     virtual void rotate(int delta);
 
-    void onEncoder(int delta) override {
-        _encoder_accum += delta;
-        if (abs(_encoder_accum) >= encoder_threshold) {
-            rotate(_encoder_accum / encoder_threshold);
-            // _encoder_accum %= encoder_threshold;
-            _encoder_accum = 0;
-        }
-    }
+    void onEncoder(int delta) override { rotate(delta); }
 
     void setPosition(int item_num, Point position) { _positions[item_num] = position; }
     void setItem(int item_num, Item* item) { _items[item_num] = item; }

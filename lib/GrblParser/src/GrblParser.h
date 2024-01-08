@@ -33,8 +33,8 @@ enum class Cmd : uint8_t {
     // UART Extender
     PinLow  = 0xB0,  // Start of two-character sequence; second is event number
     PinHigh = 0xB1,  // Start of two-character sequence; second is event number
-    NAK     = 0xB2,  // IO Expander rejected command
-    ACK     = 0xB3,  // IO Expander accepted command
+    ACK     = 0xB2,  // IO Expander accepted command
+    NAK     = 0xB3,  // IO Expander rejected command
 };
 
 constexpr static const int MAX_N_AXIS = 6;

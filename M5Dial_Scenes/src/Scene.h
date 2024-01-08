@@ -16,8 +16,11 @@ private:
 
     nvs_handle_t _prefs {};
 
+    int _encoder_accum = 0;
+    int _encoder_scale = 1;
+
 public:
-    Scene(const char* name) : _name(name) {}
+    Scene(const char* name, int encoder_scale = 1) : _name(name), _encoder_scale(encoder_scale) {}
 
     const String& name() { return _name; }
 
@@ -44,7 +47,12 @@ public:
     virtual void reDisplay() {}
     virtual void init(void* arg = nullptr) {}
 
+    virtual void onFileLines() {}
+    virtual void onFilesList() {}
+
     bool initPrefs();
+
+    int scale_encoder(int delta);
 
     void setPref(const char* name, int value);
     void getPref(const char* name, int* value);

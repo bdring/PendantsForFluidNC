@@ -39,7 +39,11 @@ void dispatch_events() {
     int16_t        encoderDelta = newEncoder - oldEncoder;
     if (encoderDelta) {
         oldEncoder = newEncoder;
-        current_scene->onEncoder(encoderDelta);
+
+        int16_t scaledDelta = current_scene->scale_encoder(encoderDelta);
+        if (scaledDelta) {
+            current_scene->onEncoder(scaledDelta);
+        }
     }
 
     bool this_button;
@@ -141,4 +145,11 @@ bool Scene::initPrefs() {
     }
     esp_err_t err = nvs_open(name().c_str(), NVS_READWRITE, &_prefs);
     return err == ESP_OK;
+}
+
+int Scene::scale_encoder(int delta) {
+    _encoder_accum += delta;
+    int res = _encoder_accum / _encoder_scale;
+    _encoder_accum %= _encoder_scale;
+    return res;
 }
