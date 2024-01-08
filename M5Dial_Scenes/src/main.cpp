@@ -20,11 +20,7 @@ HardwareSerial Serial_FNC(1);  // Serial port for comm with FNC
 void drawSplashScreen() {
     display.clear();
     display.fillScreen(BLACK);
-    //display.drawPngFile(LittleFS, "/fnc_logo.png", 0, 0, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
     display.drawPngFile(LittleFS, "/fluid_dial.png", 0, 0, display.width(), display.height(), 0, 0, 0.0f, 0.0f, datum_t::middle_center);
-    centered_text("Fluid Dial", 36, BLACK, SMALL);
-    centered_text("Pendant", 65, BLACK, SMALL);
-    centered_text("B. Dring", 190, BLACK, SMALL);
 }
 
 void DRO::draw(int axis, bool highlight) {
@@ -51,7 +47,6 @@ extern "C" void handle_msg(char* command, char* arguments) {
 }
 
 extern "C" void end_status_report() {
-    //current_scene->reDisplay();
     current_scene->onDROChange();
 }
 
@@ -133,7 +128,6 @@ void setup() {
     drawSplashScreen();
     delay(3000);  // view the logo and wait for the debug port to connect
 
-    //    listDir(LittleFS, "/", 0);
     log_println("FluidNC Pendant v0.3");
 
     log_println("\r\nFluidNC Pendant Begin");
