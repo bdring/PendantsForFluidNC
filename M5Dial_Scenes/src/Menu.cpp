@@ -126,7 +126,6 @@ void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
-        log_println("Flick");
         ackBeep();
         invoke();
     }
