@@ -55,12 +55,16 @@ private:
     const char* format_size(size_t size) {
         const int   buflen = 30;
         static char buffer[buflen];
-        if (size > 999999.9) {
-            snprintf(buffer, buflen, "%.3f MB", size / 1000000.0);
-        } else if (size > 999.9) {
-            snprintf(buffer, buflen, "%.3f KB", size / 1000.0);
+        if (size >= 1000000) {
+            int mb      = size / 1000000;
+            int residue = size % 1000000;
+            snprintf(buffer, buflen, "%d.%03d MB", mb, residue / 1000);
+        } else if (size > 1000) {
+            int kb      = size / 1000;
+            int residue = size % 1000;
+            snprintf(buffer, buflen, "%d.%03d KB", kb, residue);
         } else {
-            snprintf(buffer, buflen, "%.0f bytes", size);
+            snprintf(buffer, buflen, "%d bytes", size);
         }
         return buffer;
     }
