@@ -93,6 +93,8 @@ public:
         if (dirLevel) {
             exit_directory();
             _displayIndex = -1;
+        } else {
+            init_file_list();
         }
     }
 
@@ -271,11 +273,7 @@ public:
         showFiles(0);
 
         String grnText = "";
-        String redText = "";
-
-        if (dirLevel) {
-            redText = "Up...";
-        }
+        String redText = dirLevel ? "Up..." : "Refresh";
         if (fileVector.size()) {
             if (selectedFile > -1) {
                 switch (fileVector[selectedFile].fileType) {
