@@ -7,15 +7,20 @@
 
 class FilePreviewScene : public Scene {
     String _filename;
+    bool   _needlines;
 
 public:
     FilePreviewScene() : Scene("Preview") {}
     void init(void* arg) {
         char* fname = (char*)arg;
         _filename   = fname;
+        _needlines  = true;
         request_file_preview(fname);
     }
-    void onFileLines() { reDisplay(); }
+    void onFileLines() {
+        _needlines = false;
+        reDisplay();
+    }
 
     void onDialButtonPress() { pop_scene(); }
 
@@ -28,15 +33,19 @@ public:
         drawBackground(BLACK);
         drawMenuTitle(name());
 
-        int y  = 36;
-        int tl = 0;
-        if (fileLines.size()) {
-            for (auto const& line : fileLines) {
-                text(line, 25, y + tl * 22, WHITE, TINY, top_left);
-                ++tl;
+        if (_needlines == false) {
+            int y  = 36;
+            int tl = 0;
+            if (fileLines.size()) {
+                for (auto const& line : fileLines) {
+                    text(line, 25, y + tl * 22, WHITE, TINY, top_left);
+                    ++tl;
+                }
+            } else {
+                text("No Text", 120, 120, WHITE, SMALL, middle_center);
             }
         } else {
-            text("No Text", 120, 120, WHITE, SMALL, middle_center);
+            text("Reading File", 120, 120, WHITE, TINY, middle_center);
         }
 
         drawButtonLegends("", "Run", "Back");

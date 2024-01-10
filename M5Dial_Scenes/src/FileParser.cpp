@@ -42,10 +42,11 @@ void exit_directory() {
 }
 
 static bool fileinfoCompare(const fileinfo& f1, const fileinfo& f2) {
-    if (f1.fileType < f2.fileType) {
+    // sort into filename order, with files first and folders second (same as on webUI)
+    if (f1.fileType > f2.fileType) {
         return true;
     }
-    if (f1.fileType > f2.fileType) {
+    if (f1.fileType < f2.fileType) {
         return false;
     }
     if (f1.fileName.compareTo(f2.fileName) < 0) {
