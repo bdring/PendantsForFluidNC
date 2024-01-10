@@ -10,11 +10,6 @@
 #include "Scene.h"
 #include "Menu.h"
 
-constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
-constexpr static const int GREEN_BUTTON_PIN = GPIO_NUM_15;
-constexpr static const int DIAL_BUTTON_PIN  = GPIO_NUM_42;
-constexpr static const int UPDATE_RATE_MS   = 30;  // minimum refresh rate in milliseconds
-
 // hardware
 HardwareSerial Serial_FNC(1);  // Serial port for comm with FNC
 
@@ -116,11 +111,14 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
 void setup() {
     init_system();
 
+    pinMode(GPIO_NUM_46, OUTPUT);
+    digitalWrite(GPIO_NUM_46, 1);
+
     greenButton.init(GREEN_BUTTON_PIN, true);
     redButton.init(RED_BUTTON_PIN, true);
-    dialButton.init(DIAL_BUTTON_PIN, true);
+    //    dialButton.init(DIAL_BUTTON_PIN, true);
 
-    Serial_FNC.begin(115200, SERIAL_8N1, 1, 2);  // assign pins to the M5Stamp Port B
+    Serial_FNC.begin(115200, SERIAL_8N1, FNC_RX_PIN, FNC_TX_PIN);
 
     drawSplashScreen();
     delay(3000);  // view the logo and wait for the debug port to connect
