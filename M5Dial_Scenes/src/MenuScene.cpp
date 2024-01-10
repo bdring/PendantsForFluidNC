@@ -31,6 +31,7 @@ extern Scene statusScene;
 extern Scene filesScene;
 extern Scene controlScene;
 extern Scene setupScene;
+extern Scene powerScene;
 
 Item* statusButton;
 Item* homingButton;
@@ -63,8 +64,7 @@ Scene* initMenus() {
     filesButton   = new IB("Files", &filesScene, "/filestp.png");
     controlButton = new IB("Control", &controlScene, "/controltp.png");
     setupButton   = new IB("Setup", &setupScene, "/setuptp.png");
-    powerButton   = new IB("Power", noop, "/powertp.png");
-    powerButton->disable();
+    powerButton   = new IB("Power", &powerScene, "/powertp.png");
 
     menuScene.addItem(statusButton);
     menuScene.addItem(homingButton);
