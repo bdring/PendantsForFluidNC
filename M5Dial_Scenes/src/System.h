@@ -57,3 +57,5 @@ void ackBeep();
 void log_write(uint8_t c);
 void log_print(const String& s);
 void log_println(const String& s);
+
+void listDir(fs::FS& fs, const char* dirname, uint8_t levels);

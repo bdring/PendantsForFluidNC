@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "PieMenu.h"
 #include "FileMenu.h"
 #include "System.h"
 
@@ -8,7 +9,6 @@ const int buttonRadius = 30;
 
 FileMenu fileMenu("Files");
 PieMenu  axisMenu("Axes", buttonRadius);
-PieMenu  menuScene("Main", buttonRadius);
 
 class LB : public RoundButton {
 public:
@@ -33,47 +33,61 @@ extern Scene controlScene;
 extern Scene setupScene;
 extern Scene powerScene;
 
-Item* statusButton;
-Item* homingButton;
-Item* jogButton;
-Item* probeButton;
-Item* filesButton;
-Item* controlButton;
-Item* setupButton;
-Item* powerButton;
+IB statusButton("Status", &statusScene, "/statustp.png");
+IB homingButton("Homing", &homingScene, "/hometp.png");
+IB jogButton("Jog", &joggingScene, "/jogtp.png");
+IB probeButton("Probe", &probingScene, "/probetp.png");
+IB filesButton("Files", &filesScene, "/filestp.png");
+IB controlButton("Control", &controlScene, "/controltp.png");
+IB setupButton("Setup", &setupScene, "/setuptp.png");
+IB powerButton("Power", &powerScene, "/powertp.png");
+
+class MenuScene : public PieMenu {
+public:
+    MenuScene() : PieMenu("Main", buttonRadius) {}
+    void init(void* arg) {
+        PieMenu::init(arg);
+        if (state == Disconnected) {
+            log_println("Menu Scene in disconnected state");
+            statusButton.disable();
+            homingButton.disable();
+            jogButton.disable();
+            probeButton.disable();
+            filesButton.disable();
+            controlButton.disable();
+            setupButton.enable();
+            powerButton.enable();
+        } else {
+            log_println("Menu Scene in Connected state");
+        }
+    }
+    void onStateChange(state_t state) override {
+        if (state != Disconnected) {
+            log_println("Menu state change not disconnected");
+            statusButton.enable();
+            homingButton.enable();
+            jogButton.enable();
+            probeButton.enable();
+            filesButton.enable();
+            controlButton.enable();
+            setupButton.enable();
+            powerButton.enable();
+        } else {
+            log_println("Menu state change IS disconnected");
+        }
+        reDisplay();
+    }
+} menuScene;
 
 Scene* initMenus() {
-    // fileMenu.addItem(new FileItem("BigTree.nc"));
-    // fileMenu.addItem(new FileItem("BotCustom.nc"));
-    // fileMenu.addItem(new FileItem("Engraving.gcode"));
-    // fileMenu.addItem(new FileItem("Fixtures/"));
-    // fileMenu.addItem(new FileItem("Pucks.nc"));
-    // fileMenu.addItem(new FileItem("TopCutout.nc"));
-    // fileMenu.addItem(new FileItem("TopTLines.nc"));
-    // fileMenu.setFolder("/");
-
-    // axisMenu.addItem(new LB("XAxis", noop, RED));
-    // axisMenu.addItem(new LB("YAxis", noop, RED));
-    // axisMenu.addItem(new LB("ZAxis", noop, RED));
-    // axisMenu.addItem(new LB("<Back", pop_scene, RED));
-
-    statusButton  = new IB("Status", &statusScene, "/statustp.png");
-    homingButton  = new IB("Homing", &homingScene, "/hometp.png");
-    jogButton     = new IB("Jog", &joggingScene, "/jogtp.png");
-    probeButton   = new IB("Probe", &probingScene, "/probetp.png");
-    filesButton   = new IB("Files", &filesScene, "/filestp.png");
-    controlButton = new IB("Control", &controlScene, "/controltp.png");
-    setupButton   = new IB("Setup", &setupScene, "/setuptp.png");
-    powerButton   = new IB("Power", &powerScene, "/powertp.png");
-
-    menuScene.addItem(statusButton);
-    menuScene.addItem(homingButton);
-    menuScene.addItem(jogButton);
-    menuScene.addItem(probeButton);
-    menuScene.addItem(filesButton);
-    menuScene.addItem(controlButton);
-    menuScene.addItem(setupButton);
-    menuScene.addItem(powerButton);
+    menuScene.addItem(&statusButton);
+    menuScene.addItem(&homingButton);
+    menuScene.addItem(&jogButton);
+    menuScene.addItem(&probeButton);
+    menuScene.addItem(&filesButton);
+    menuScene.addItem(&controlButton);
+    menuScene.addItem(&setupButton);
+    menuScene.addItem(&powerButton);
 
     return &menuScene;
 }

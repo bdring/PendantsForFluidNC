@@ -36,7 +36,7 @@ void init_system() {
         log_println("LittleFS Mount Failed");
         return;
     }
-    log_println("LittleFS Mounted");
+
     canvas.createSprite(display.width(), display.height());
 }
 
@@ -66,4 +66,38 @@ void log_println(const String& s) {
 
 void ackBeep() {
     speaker.tone(1800, 50);
+}
+
+void listDir(fs::FS& fs, const char* dirname, uint8_t levels) {
+    log_print("Listing directory: ");
+    log_println(dirname);
+
+    File root = fs.open(dirname);
+    if (!root) {
+        log_println("- failed to open directory");
+        return;
+    }
+    if (!root.isDirectory()) {
+        log_println(" - not a directory");
+        return;
+    }
+
+    File file = root.openNextFile();
+    while (file) {
+        if (file.isDirectory()) {
+            log_print("  DIR : ");
+            log_println(file.name());
+
+            if (levels) {
+                listDir(fs, file.name(), levels - 1);
+            }
+        } else {
+            log_print("  FILE: ");
+            log_print(file.name());
+            log_print("  SIZE: ");
+
+            log_println(String(file.size()));
+        }
+        file = root.openNextFile();
+    }
 }

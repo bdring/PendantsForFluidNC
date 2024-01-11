@@ -62,6 +62,7 @@ public:
     void getPref(const char* name, int axis, int* value);
 };
 
+void activate_at_top_level(Scene* scene, void* arg = nullptr);
 void activate_scene(Scene* scene, void* arg = nullptr);
 void push_scene(Scene* scene, void* arg = nullptr);
 

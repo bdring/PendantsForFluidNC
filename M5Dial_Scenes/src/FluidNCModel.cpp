@@ -4,6 +4,7 @@
 #include "FluidNCModel.h"
 #include <map>
 #include "System.h"
+#include "Scene.h"
 
 // local copies of status items
 String             stateString        = "N/C";
@@ -19,6 +20,7 @@ int                lastError          = 0;
 uint32_t           errorExpire;
 
 // clang-format off
+// Maps the state strings in status reports to internal state enum values
 std::map<String, state_t> state_map = {
     { "Idle", Idle },
     { "Alarm", Alarm },
@@ -34,11 +36,18 @@ std::map<String, state_t> state_map = {
 };
 // clang-format on
 
-void decode_state_string(const char* state_string) {
+state_t decode_state_string(const char* state_string) {
     if (stateString != state_string) {
-        stateString = state_string;
-        state       = state_map[stateString];
+        stateString       = state_string;
+        state_t new_state = state_map[stateString];
+        return new_state;
     }
+    return state;
+}
+
+void set_disconnected_state() {
+    state       = Disconnected;
+    stateString = "N/C";
 }
 
 // clang-format off
@@ -112,4 +121,82 @@ String floatToString(float val, int afterDecimal) {
 
 String modeString() {
     return myModeString;
+}
+
+extern "C" void show_state(const char* state_string) {
+    state_t new_state = decode_state_string(state_string);
+    if (state != new_state) {
+        state = new_state;
+        current_scene->onStateChange(state);
+    }
+}
+
+extern "C" void show_error(int error) {
+    errorExpire = millis() + 1000;
+    lastError   = error;
+    current_scene->reDisplay();
+}
+
+extern "C" void show_timeout() {}
+
+extern "C" void end_status_report() {
+    current_scene->onDROChange();
+}
+
+extern "C" void show_alarm(int alarm) {
+    lastAlarm = alarm;
+    current_scene->reDisplay();
+}
+
+extern "C" void show_gcode_modes(struct gcode_modes* modes) {
+    myModeString = String(modes->wcs);
+    myModeString += "|" + String(modes->units);
+    myModeString += "|" + String(modes->distance);
+    myModeString += "|" + String(modes->spindle);
+    myModeString += "|" + String(modes->coolant);
+    myModeString += "|T" + String(modes->tool);
+    current_scene->reDisplay();
+}
+
+int disconnect_ms = 0;
+int next_ping_ms  = 0;
+
+// If we haven't heard from FluidNC in 4 seconds for some other reason,
+// send a status report request.
+const int ping_interval_ms = 4000;
+
+// If we haven't heard from FluidNC in 6 seconds for any reason, declare
+// FluidNC unresponsive.  After a ping, FluidNC has 2 seconds to respond.
+const int disconnect_interval_ms = 6000;
+
+bool starting = true;
+
+void request_status_report() {
+    fnc_realtime(StatusReport);  // Request fresh status
+    next_ping_ms = milliseconds() + ping_interval_ms;
+}
+
+bool fnc_is_connected() {
+    int now = milliseconds();
+    if (starting) {
+        starting      = false;
+        disconnect_ms = now + (disconnect_interval_ms - ping_interval_ms);
+        request_status_report();  // sets next_ping_ms
+        return false;             // Do we need a value for "unknown"?
+    }
+    if ((now - disconnect_ms) >= 0) {
+        next_ping_ms  = now + ping_interval_ms;
+        disconnect_ms = now + disconnect_interval_ms;
+        return false;
+    }
+    if ((now - next_ping_ms) >= 0) {
+        request_status_report();
+    }
+    return true;
+}
+
+void update_rx_time() {
+    int now       = milliseconds();
+    next_ping_ms  = now + ping_interval_ms;
+    disconnect_ms = now + disconnect_interval_ms;
 }

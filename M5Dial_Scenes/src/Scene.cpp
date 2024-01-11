@@ -28,6 +28,10 @@ void pop_scene(void* arg) {
         activate_scene(last_scene);
     }
 }
+void activate_at_top_level(Scene* scene, void* arg) {
+    scene_stack.clear();
+    activate_scene(scene, arg);
+}
 
 void dispatch_events() {
     static m5::touch_state_t last_touch_state = {};
@@ -84,6 +88,14 @@ void dispatch_events() {
             current_scene->onTouchHold(this_touch.x, this_touch.y);
         } else if (this_touch.state == m5::touch_state_t::flick_end) {
             current_scene->onTouchFlick(this_touch.x, this_touch.y, this_touch.distanceX(), this_touch.distanceY());
+        }
+    }
+
+    if (!fnc_is_connected()) {
+        if (state != Disconnected) {
+            set_disconnected_state();
+            extern Scene menuScene;
+            activate_at_top_level(&menuScene);
         }
     }
 }

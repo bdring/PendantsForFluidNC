@@ -83,6 +83,7 @@ std::map<state_t, int> stateColors = {
     { Sleep,       WHITE },
     { ConfigAlarm, WHITE },
     { Critical,    WHITE },
+    { Disconnected, RED },
 };
 // clang-format on
 
@@ -137,6 +138,10 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
 }
 
+void DRO::draw(int axis, bool highlight) {
+    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+}
+
 void LED::draw(bool highlighted) {
     drawOutlinedCircle(_x, _y, _radius, (highlighted) ? GREEN : DARKGREY, WHITE);
     _y += _gap;
@@ -168,8 +173,7 @@ void showImageFile(const char* name, int x, int y, int width, int height) {
 }
 
 void showError() {
-    if (millis() < errorExpire) {
-        //errorCounter--;
+    if ((milliseconds() - errorExpire) < 0) {
         canvas.fillCircle(120, 120, 95, RED);
         drawCircle(120, 120, 95, 5, WHITE);
         centered_text("Error", 95, WHITE, MEDIUM);

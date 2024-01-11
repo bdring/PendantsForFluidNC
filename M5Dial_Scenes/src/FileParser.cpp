@@ -201,6 +201,9 @@ void request_file_preview(const char* name) {
     send_line(command.c_str());
 }
 extern "C" void handle_msg(char* command, char* arguments) {
+    if (strcmp(command, "RST") == 0) {
+        log_println("FluidNC Reset");
+    }
     if (strcmp(command, "Files changed") == 0) {
         log_println("Files changed");
         init_file_list();
