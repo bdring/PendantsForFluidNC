@@ -106,7 +106,9 @@ public:
         }
     }
 
+//#define DEBUG_FILE_LIST
     void endDocument() override {
+#ifdef DEBUG_FILE_LIST
         int ix = 0;
         for (auto const& vi : fileVector) {
             USBSerial.printf("[%d] type: %d:%s:\"%s\", size: %d\r\n",
@@ -116,6 +118,7 @@ public:
                              vi.fileName.c_str(),
                              vi.fileSize);
         }
+#endif
         init_listener();
         current_scene->onFilesList();
     }
