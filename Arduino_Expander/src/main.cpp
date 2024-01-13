@@ -3,7 +3,7 @@
 #include "gpio_pin.h"
 #include "gpiomap.h"
 
-#define FNCSerial Serial1  // connects STM32 to ESP32 and FNC
+#define FNCSerial Serial  // connects STM32 to ESP32 and FNC
 #ifdef USE_DEBUG_SERIAL
 #    define DebugSerial Serial2  // connects STM32 to Debug terminal
 #endif
