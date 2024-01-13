@@ -6,6 +6,19 @@
 #include "FileParser.h"
 
 #define WRAP_FILE_LIST
+// clang-format off
+#if 0
+#define DBG_WRAP_FILES(...) log_printf(__VA_ARGS__)
+#else
+#define DBG_WRAP_FILES(...)
+#endif
+
+#if 0
+#define DBG_PREV_SELECT(...) log_printf(__VA_ARGS__)
+#else
+#define DBG_PREV_SELECT(...)
+#endif
+// clang-format on
 
 extern Scene filePreviewScene;
 
@@ -13,7 +26,8 @@ String displayTitle = "Files";
 
 class FileSelectScene : public Scene {
 private:
-    int _selected_file = 0;
+    int              _selected_file = 0;
+    std::vector<int> prevSelect;
 
     const char* format_size(size_t size) {
         const int   buflen = 30;
@@ -35,7 +49,13 @@ private:
 public:
     FileSelectScene() : Scene("Files", 2) {}
 
-    void init(void* arg) {}
+    void init(void* arg) {
+        // a first time only thing, because files are already loaded
+        if (prevSelect.size() == 0) {
+            prevSelect.push_back(0);
+        }
+        DBG_PREV_SELECT("prevSelect::init:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
+    }
 
     void onDialButtonPress() { pop_scene(); }
 
@@ -43,9 +63,13 @@ public:
     void onGreenButtonPress() {
         if (fileVector.size()) {
             String dName;
-            fileInfo = fileVector[_selected_file];
+            fileInfo                                 = fileVector[_selected_file];
+            prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
             switch (fileInfo.fileType) {
                 case 1:  //directory
+                    prevSelect.push_back(0);
+                    DBG_PREV_SELECT(
+                        "prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
                     enter_directory(fileInfo.fileName);
                     break;
                 case 2:  // file
@@ -58,8 +82,12 @@ public:
     // XXX maybe a touch on the top of the screen i.e. the dirname field
     void onRedButtonPress() {
         if (dirLevel) {
+            prevSelect.pop_back();
+            DBG_PREV_SELECT("prevSelect::pop:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
             exit_directory();
         } else {
+            prevSelect.clear();
+            prevSelect.push_back(0);
             init_file_list();
         }
     }
@@ -67,11 +95,17 @@ public:
     void onTouchRelease(int x, int y) { onGreenButtonPress(); }
 
     void onFilesList() override {
-        _selected_file = 0;
+        DBG_PREV_SELECT("prevSelect::back:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
+        _selected_file = prevSelect.back();
         reDisplay();
     }
 
     void onEncoder(int delta) override { scroll(delta); }
+
+    void onMessage(char* command, char* arguments) override {
+        log_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
+        // now just need to know what to do with messages
+    }
 
     void showFiles(int yo) {
         struct {
@@ -120,7 +154,7 @@ public:
 #endif
             if (fdIter < 0) {
                 if (yo == 0) {
-//                    log_printf("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
+                    DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
                 }
                 continue;
             }
@@ -143,7 +177,7 @@ public:
                         case 0:
                             break;
                         case 1:
-                            fInfoB      = "Folder";
+                            fInfoB     = "Folder";
                             middle_txt = BLUE;
                             break;
                         case 2:
@@ -169,17 +203,15 @@ public:
                 auto_text(fName, middle._xt, yo + middle._yt, middle._w, (yo) ? WHITE : middle_txt, middle._f, middle_center);
             }
             if (yo == 0) {
-                //                log_printf("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d - %s\r\n", fx, fdIter, _selected_file, fName.c_str());
+                DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d - %s\r\n", fx, fdIter, _selected_file, fName.c_str());
             }
             if (fx == 1) {
 #ifdef WRAP_FILE_LIST
                 if (fileVector.size() > 2) {
-                    //                    log_printf("fx:1, size(%d) > 2: continue;\r\n", fileVector.size());
                     continue;
                 }
 #endif
                 if (fdIter >= (int)(fileVector.size() - 1)) {
-                    //                    log_printf("fx:1, fdIter >= size(%d): break;\r\n", fileVector.size());
                     break;
                 }
             }
@@ -217,7 +249,7 @@ public:
             refreshDisplay();
         }
         _selected_file = nextSelect;
-        //        log_printf("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
+        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
         reDisplay();
     }
 
