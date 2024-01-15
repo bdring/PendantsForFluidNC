@@ -237,7 +237,7 @@ public:
     }
 
     void scroll(int updown) {
-        int nextSelect = _selected_file - updown;
+        int nextSelect = _selected_file + updown;
 #ifdef WRAP_FILE_LIST
         if (fileVector.size() < 3) {
             if (nextSelect < 0 || nextSelect > (int)(fileVector.size() - 1)) {
@@ -263,7 +263,7 @@ public:
         while (abs(yo) < ylimit) {
             showFiles(yo);
             delay(10);
-            yo += yinc;
+            yo -= yinc;
             refreshDisplay();
         }
         _selected_file = nextSelect;
