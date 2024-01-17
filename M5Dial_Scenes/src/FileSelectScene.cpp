@@ -190,6 +190,24 @@ public:
                             break;
                     }
                 }
+
+                // progressbar
+                // the progress indicator will "hide" behind the center oval when at mid-point
+                // allows for maximum text width
+                if (yo == 0 && (fileVector.size() > 3)) { // three or less are all displayed
+                    for (int i = 0; i < 6; i++) {
+                        canvas.drawArc(120, 120, 118 - i, 115 - i, -50, 50, DARKGREY);
+                    }
+
+                    float mx  = 1.745;
+                    float s   = mx / -2.0;
+                    float inc = mx / (float)(fileVector.size() - 1);
+
+                    int x = cosf(s + inc * (float)_selected_file) * 114.0;
+                    int y = sinf(s + inc * (float)_selected_file) * 114.0;
+                    canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
+                }
+                        
                 if (yo == 0) {
                     auto top    = box[fi - 1];
                     auto bottom = box[fi + 1];
@@ -219,7 +237,7 @@ public:
     }
 
     void scroll(int updown) {
-        int nextSelect = _selected_file - updown;
+        int nextSelect = _selected_file + updown;
 #ifdef WRAP_FILE_LIST
         if (fileVector.size() < 3) {
             if (nextSelect < 0 || nextSelect > (int)(fileVector.size() - 1)) {
@@ -245,7 +263,7 @@ public:
         while (abs(yo) < ylimit) {
             showFiles(yo);
             delay(10);
-            yo += yinc;
+            yo -= yinc;
             refreshDisplay();
         }
         _selected_file = nextSelect;
