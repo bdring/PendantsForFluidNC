@@ -5,14 +5,29 @@
 #include "Scene.h"
 #include "FileParser.h"
 
+#define WRAP_FILE_LIST
+// clang-format off
+#if 0
+#define DBG_WRAP_FILES(...) log_printf(__VA_ARGS__)
+#else
+#define DBG_WRAP_FILES(...)
+#endif
+
+#if 0
+#define DBG_PREV_SELECT(...) log_printf(__VA_ARGS__)
+#else
+#define DBG_PREV_SELECT(...)
+#endif
+// clang-format on
+
 extern Scene filePreviewScene;
 
 String displayTitle = "Files";
-int    selectedFile = -1;
 
 class FileSelectScene : public Scene {
 private:
-    int _displayIndex = -1;
+    int              _selected_file = 0;
+    std::vector<int> prevSelect;
 
     const char* format_size(size_t size) {
         const int   buflen = 30;
@@ -34,17 +49,27 @@ private:
 public:
     FileSelectScene() : Scene("Files", 2) {}
 
-    void init(void* arg) {}
+    void init(void* arg) {
+        // a first time only thing, because files are already loaded
+        if (prevSelect.size() == 0) {
+            prevSelect.push_back(0);
+        }
+        DBG_PREV_SELECT("prevSelect::init:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
+    }
 
     void onDialButtonPress() { pop_scene(); }
 
     // XXX this should probably be a touch release on the file display
     void onGreenButtonPress() {
-        if (selectedFile > -1) {
+        if (fileVector.size()) {
             String dName;
-            fileInfo = fileVector[selectedFile];
+            fileInfo                                 = fileVector[_selected_file];
+            prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
             switch (fileInfo.fileType) {
                 case 1:  //directory
+                    prevSelect.push_back(0);
+                    DBG_PREV_SELECT(
+                        "prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
                     enter_directory(fileInfo.fileName);
                     break;
                 case 2:  // file
@@ -57,18 +82,30 @@ public:
     // XXX maybe a touch on the top of the screen i.e. the dirname field
     void onRedButtonPress() {
         if (dirLevel) {
+            prevSelect.pop_back();
+            DBG_PREV_SELECT("prevSelect::pop:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
             exit_directory();
-            _displayIndex = -1;
         } else {
+            prevSelect.clear();
+            prevSelect.push_back(0);
             init_file_list();
         }
     }
 
     void onTouchRelease(int x, int y) { onGreenButtonPress(); }
 
-    void onFilesList() override { reDisplay(); }
+    void onFilesList() override {
+        DBG_PREV_SELECT("prevSelect::back:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
+        _selected_file = prevSelect.back();
+        reDisplay();
+    }
 
     void onEncoder(int delta) override { scroll(delta); }
+
+    void onMessage(char* command, char* arguments) override {
+        log_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
+        // now just need to know what to do with messages
+    }
 
     void showFiles(int yo) {
         struct {
@@ -98,14 +135,27 @@ public:
         String fName;
         int    finfoT_color = BLUE;
 
-        int fdIter   = _displayIndex;  // first file in display list
-        selectedFile = -1;
+        int fdIter = _selected_file - 1;  // first file in display list
 
         for (int fx = 0; fx < 3; fx++, fdIter++) {
             int  fi     = box_fi[fx];
             auto middle = box[fi];
 
+#ifdef WRAP_FILE_LIST
+            if (fileVector.size() > 2) {
+                if (fdIter < 0) {
+                    // last file first in list
+                    fdIter = fileVector.size() - 1;
+                } else if (fdIter > fileVector.size() - 1) {
+                    // first file last in list
+                    fdIter = 0;
+                }
+            }
+#endif
             if (fdIter < 0) {
+                if (yo == 0) {
+                    DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
+                }
                 continue;
             }
 
@@ -116,32 +166,48 @@ public:
             if (yo == 0 && middle._bg != BLACK) {
                 canvas.fillRoundRect(middle._xb, yo + middle._yb, 240, middle._h, middle._h / 2, middle._bg);
             }
+            int middle_txt = middle._txt;
             if (fx == 1) {
                 String fInfoT = "";  // file info top line
                 String fInfoB = "";  // File info bottom line
                 int    ext    = fName.lastIndexOf('.');
                 float  fs     = 0.0;
                 if (fileVector.size()) {
-                    selectedFile = fdIter;
-                    if (selectedFile > -1) {
-                        switch (fileVector[selectedFile].fileType) {
-                            case 0:
-                                break;
-                            case 1:
-                                fInfoT       = "Folder";
-                                finfoT_color = GREENYELLOW;
-                                break;
-                            case 2:
-                                if (ext > 0) {
-                                    fInfoT = fName.substring(ext, fName.length());
-                                    fInfoT += " file";
-                                    fName.remove(ext);
-                                }
-                                fInfoB = format_size(fileVector[selectedFile].fileSize);
-                                break;
-                        }
+                    switch (fileVector[_selected_file].fileType) {
+                        case 0:
+                            break;
+                        case 1:
+                            fInfoB     = "Folder";
+                            middle_txt = BLUE;
+                            break;
+                        case 2:
+                            if (ext > 0) {
+                                fInfoT = fName.substring(ext, fName.length());
+                                fInfoT += " file";
+                                fName.remove(ext);
+                            }
+                            fInfoB = format_size(fileVector[_selected_file].fileSize);
+                            break;
                     }
                 }
+
+                // progressbar
+                // the progress indicator will "hide" behind the center oval when at mid-point
+                // allows for maximum text width
+                if (yo == 0 && (fileVector.size() > 3)) { // three or less are all displayed
+                    for (int i = 0; i < 6; i++) {
+                        canvas.drawArc(120, 120, 118 - i, 115 - i, -50, 50, DARKGREY);
+                    }
+
+                    float mx  = 1.745;
+                    float s   = mx / -2.0;
+                    float inc = mx / (float)(fileVector.size() - 1);
+
+                    int x = cosf(s + inc * (float)_selected_file) * 114.0;
+                    int y = sinf(s + inc * (float)_selected_file) * 114.0;
+                    canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
+                }
+                        
                 if (yo == 0) {
                     auto top    = box[fi - 1];
                     auto bottom = box[fi + 1];
@@ -149,23 +215,47 @@ public:
                     text(fInfoT, top._xt, yo + top._yt, finfoT_color, top._f, top_center);
                     text(fInfoB, bottom._xt, yo + bottom._yt, bottom._txt, bottom._f, top_center);
                 }
-            }
+            }  // if (fx == 1)
 
             if ((yo == 0) || (yo < 0 && yo + middle._yt > 45) || (yo > 0 && yo + middle._yt + middle._h < 202)) {
-                auto_text(fName, middle._xt, yo + middle._yt, middle._w, (yo) ? WHITE : middle._txt, middle._f, middle_center);
+                auto_text(fName, middle._xt, yo + middle._yt, middle._w, (yo) ? WHITE : middle_txt, middle._f, middle_center);
             }
-
-            if (fdIter >= fileVector.size() - 1) {
-                break;
+            if (yo == 0) {
+                DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d - %s\r\n", fx, fdIter, _selected_file, fName.c_str());
             }
-        }
+            if (fx == 1) {
+#ifdef WRAP_FILE_LIST
+                if (fileVector.size() > 2) {
+                    continue;
+                }
+#endif
+                if (fdIter >= (int)(fileVector.size() - 1)) {
+                    break;
+                }
+            }
+        }  // for(fx)
     }
 
     void scroll(int updown) {
-        int nextIndex = _displayIndex + updown;
-        if (nextIndex < -1 || nextIndex > (int)(fileVector.size() - 2)) {
+        int nextSelect = _selected_file + updown;
+#ifdef WRAP_FILE_LIST
+        if (fileVector.size() < 3) {
+            if (nextSelect < 0 || nextSelect > (int)(fileVector.size() - 1)) {
+                return;
+            }
+        } else {
+            if (nextSelect < 0) {
+                nextSelect = fileVector.size() - 1;
+            } else if (nextSelect > (int)(fileVector.size() - 1)) {
+                nextSelect = 0;
+            }
+        }
+#else
+        if (nextSelect < 0 || nextSelect > (int)(fileVector.size() - 1)) {
             return;
         }
+#endif
+
         const int yinc   = updown * 10;
         const int ylimit = 60;
         int       yo     = yinc;
@@ -173,10 +263,11 @@ public:
         while (abs(yo) < ylimit) {
             showFiles(yo);
             delay(10);
-            yo += yinc;
+            yo -= yinc;
             refreshDisplay();
         }
-        _displayIndex = nextIndex;
+        _selected_file = nextSelect;
+        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
         reDisplay();
     }
 
@@ -241,17 +332,15 @@ public:
         String grnText = "";
         String redText = dirLevel ? "Up..." : "Refresh";
         if (fileVector.size()) {
-            if (selectedFile > -1) {
-                switch (fileVector[selectedFile].fileType) {
-                    case 0:
-                        break;
-                    case 1:
-                        grnText = "Load";
-                        break;
-                    case 2:
-                        grnText = "Select";
-                        break;
-                }
+            switch (fileVector[_selected_file].fileType) {
+                case 0:
+                    break;
+                case 1:
+                    grnText = "Load";
+                    break;
+                case 2:
+                    grnText = "Select";
+                    break;
             }
         }
 
