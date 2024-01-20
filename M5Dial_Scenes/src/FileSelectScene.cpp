@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "FileParser.h"
 
+// #define SMOOTH_SCROLL
 #define WRAP_FILE_LIST
 // clang-format off
 #if 0
@@ -47,7 +48,7 @@ private:
     }
 
 public:
-    FileSelectScene() : Scene("Files", 2) {}
+    FileSelectScene() : Scene("Files", 4) {}
 
     void init(void* arg) {
         // a first time only thing, because files are already loaded
@@ -107,28 +108,48 @@ public:
         // now just need to know what to do with messages
     }
 
-    void showFiles(int yo) {
-        struct {
-            int       _xb;
-            int       _xt;
-            int       _yb;  // y for box
-            int       _yt;  // y for text center
-            int       _w;
-            int       _h;
-            fontnum_t _f;    // text font
-            int       _bg;   // bg color
-            int       _txt;  // text color
-        } box[] {
-            //    _xb, _xt, _yb, _yt,  _w, _h, _f,      _bg,  _txt
-            { 0, 119, 22, 31, 156, 18, TINY, BLACK, WHITE },         // [0] "SD Files", "localFS", "etc...";
-            { 20, 120, 45, 59, 200, 23, SMALL, BLACK, WHITE },       // [1]file[0] fileName
-            { 0, 120, 77, 82, 240, 18, SMALL, LIGHTGREY, BLUE },     // [2]file[1] Info Line Top
-            { 0, 120, 78, 120, 240, 80, MEDIUM, LIGHTGREY, BLACK },  // [3]file[1] fileName
-            { 0, 120, 136, 139, 240, 18, TINY, LIGHTGREY, BLACK },   // [4]file[1] Info Line Bottom
-            { 20, 120, 168, 181, 200, 23, SMALL, BLACK, WHITE },     // [5]file[2] fileName
-        };
-        int box_fi[] = { 1, 3, 5 };
+    void buttonLegends() {
+        String grnText = "";
+        String redText = dirLevel ? "Up..." : "Refresh";
+        if (fileVector.size()) {
+            switch (fileVector[_selected_file].fileType) {
+                case 0:
+                    break;
+                case 1:
+                    grnText = "Load";
+                    break;
+                case 2:
+                    grnText = "Select";
+                    break;
+            }
+        }
 
+        drawButtonLegends(redText, grnText, "Back");
+    }
+
+    struct {
+        int       _xb;
+        int       _xt;
+        int       _yb;  // y for box
+        int       _yt;  // y for text center
+        int       _w;
+        int       _h;
+        fontnum_t _f;    // text font
+        int       _bg;   // bg color
+        int       _txt;  // text color
+    } box[6] = {
+        //    _xb, _xt, _yb, _yt,  _w, _h, _f,      _bg,  _txt
+        { 0, 119, 22, 31, 156, 18, TINY, BLACK, WHITE },         // [0] "SD Files", "localFS", "etc...";
+        { 20, 120, 45, 59, 190, 23, SMALL, BLACK, WHITE },       // [1]file[0] fileName
+        { 5, 120, 77, 82, 210, 18, SMALL, LIGHTGREY, BLUE },     // [2]file[1] Info Line Top
+        { 0, 120, 78, 120, 225, 80, MEDIUM, LIGHTGREY, BLACK },  // [3]file[1] fileName
+        { 5, 120, 136, 139, 210, 18, TINY, LIGHTGREY, BLACK },   // [4]file[1] Info Line Bottom
+        { 20, 120, 168, 181, 200, 23, SMALL, BLACK, WHITE },     // [5]file[2] fileName
+    };
+    int box_fi[3] = { 1, 3, 5 };
+
+    void showFiles(int yo) {
+        canvas.createSprite(240, 240);
         drawBackground(BLACK);
         displayTitle = current_scene->name();
         drawMenuTitle(displayTitle);
@@ -164,7 +185,7 @@ public:
                 fName = fileVector[fdIter].fileName;
             }
             if (yo == 0 && middle._bg != BLACK) {
-                canvas.fillRoundRect(middle._xb, yo + middle._yb, 240, middle._h, middle._h / 2, middle._bg);
+                canvas.fillRoundRect(middle._xb, yo + middle._yb, middle._w, middle._h, middle._h / 2, middle._bg);
             }
             int middle_txt = middle._txt;
             if (fx == 1) {
@@ -192,9 +213,7 @@ public:
                 }
 
                 // progressbar
-                // the progress indicator will "hide" behind the center oval when at mid-point
-                // allows for maximum text width
-                if (yo == 0 && (fileVector.size() > 3)) { // three or less are all displayed
+                if (yo == 0 && (fileVector.size() > 3)) {  // three or less are all displayed
                     for (int i = 0; i < 6; i++) {
                         canvas.drawArc(120, 120, 118 - i, 115 - i, -50, 50, DARKGREY);
                     }
@@ -207,7 +226,7 @@ public:
                     int y = sinf(s + inc * (float)_selected_file) * 114.0;
                     canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
                 }
-                        
+
                 if (yo == 0) {
                     auto top    = box[fi - 1];
                     auto bottom = box[fi + 1];
@@ -234,6 +253,8 @@ public:
                 }
             }
         }  // for(fx)
+        buttonLegends();
+        refreshDisplay();
     }
 
     void scroll(int updown) {
@@ -260,94 +281,19 @@ public:
         const int ylimit = 60;
         int       yo     = yinc;
 
+#ifdef SMOOTH_SCROLL
         while (abs(yo) < ylimit) {
             showFiles(yo);
             delay(10);
             yo -= yinc;
-            refreshDisplay();
         }
-        _selected_file = nextSelect;
-        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
-        reDisplay();
-    }
-
-#if 0
-    void displayFileAction() {
-        canvas.createSprite(240, 240);
-        drawBackground(BLACK);
-        displayTitle = "Action";
-        drawMenuTitle(displayTitle);
-
-        String s_n, s_e;
-        // break filename into pieces
-
-        s_n = fileInfo.fileName;
-
-        int ix = s_n.lastIndexOf(".");
-        if (ix > -1) {
-            s_e = s_n.substring(ix, s_n.length());    // extension
-            s_n.remove(s_n.length() - s_e.length());  // name
-        }
-
-        fontnum_t f       = MEDIUM;
-        bool      oneline = false;
-
-        if (!oneline && text_fits(s_n, f, 240)) {
-            oneline = true;
-        }
-        if (!oneline) {
-            f = SMALL;
-            if (text_fits(s_n, f, 240)) {
-                oneline = true;
-            }
-        }
-        if (oneline) {
-            text(s_n, 120, 110, WHITE, f);
-        } else {
-            text(s_n.substring(0, s_n.length() / 2) + "...", 120, 85, WHITE, f);
-            text(s_n.substring(s_n.length() / 2, s_n.length()), 120, 115, WHITE, f);
-        }
-        auto_text(s_e, 120, 136, 240, WHITE, SMALL);
-
-        String redText = "Cancel";
-        String grnText = "";
-
-        if (actionMode == fileRun) {
-            grnText = "Run";
-        }
-        if (actionMode == fileShow) {
-            grnText = "Show";
-        }
-
-        drawButtonLegends(redText, grnText, "Back");
-        refreshDisplay();
-    }
 #endif
-
-    void displayFileSelect() {
-        canvas.createSprite(240, 240);
-
+        _selected_file = nextSelect;
         showFiles(0);
 
-        String grnText = "";
-        String redText = dirLevel ? "Up..." : "Refresh";
-        if (fileVector.size()) {
-            switch (fileVector[_selected_file].fileType) {
-                case 0:
-                    break;
-                case 1:
-                    grnText = "Load";
-                    break;
-                case 2:
-                    grnText = "Select";
-                    break;
-            }
-        }
-
-        drawButtonLegends(redText, grnText, "Back");
-        refreshDisplay();
+        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
     }
 
-    void reDisplay() { displayFileSelect(); }
+    void reDisplay() { showFiles(0); }
 };
 FileSelectScene filesScene;
