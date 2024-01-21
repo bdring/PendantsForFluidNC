@@ -62,6 +62,9 @@ public:
 
     // XXX this should probably be a touch release on the file display
     void onGreenButtonPress() {
+        if (state != Idle) {
+            return;
+        }
         if (fileVector.size()) {
             String dName;
             fileInfo                                 = fileVector[_selected_file];
@@ -78,10 +81,14 @@ public:
                     break;
             }
         }
+        ackBeep();
     }
 
     // XXX maybe a touch on the top of the screen i.e. the dirname field
     void onRedButtonPress() {
+        if (state != Idle) {
+            return;
+        }
         if (dirLevel) {
             prevSelect.pop_back();
             DBG_PREV_SELECT("prevSelect::pop:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
@@ -91,6 +98,7 @@ public:
             prevSelect.push_back(0);
             init_file_list();
         }
+        ackBeep();
     }
 
     void onTouchRelease(int x, int y) { onGreenButtonPress(); }
@@ -109,18 +117,21 @@ public:
     }
 
     void buttonLegends() {
-        String grnText = "";
-        String redText = dirLevel ? "Up..." : "Refresh";
-        if (fileVector.size()) {
-            switch (fileVector[_selected_file].fileType) {
-                case 0:
-                    break;
-                case 1:
-                    grnText = "Load";
-                    break;
-                case 2:
-                    grnText = "Select";
-                    break;
+        String grnText, redText = "";
+
+        if (state == Idle) {
+            redText = dirLevel ? "Up..." : "Refresh";
+            if (fileVector.size()) {
+                switch (fileVector[_selected_file].fileType) {
+                    case 0:
+                        break;
+                    case 1:
+                        grnText = "Load";
+                        break;
+                    case 2:
+                        grnText = "Select";
+                        break;
+                }
             }
         }
 
@@ -152,6 +163,7 @@ public:
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
         displayTitle = current_scene->name();
+        drawStatusTiny(20);
         drawMenuTitle(displayTitle);
         String fName;
         int    finfoT_color = BLUE;

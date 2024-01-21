@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "FileParser.h"
 
+extern Scene menuScene;
+
 class FilePreviewScene : public Scene {
     String _filename;
     bool   _needlines;
@@ -22,33 +24,55 @@ public:
         reDisplay();
     }
 
-    void onDialButtonPress() { pop_scene(); }
+    void onDialButtonPress() { activate_scene(&menuScene); }
+
+    void onRedButtonPress() {
+        if (state == Idle) {
+            pop_scene();
+            ackBeep();
+        }
+    }
+
+    void onDROChange() { reDisplay(); }
 
     void onGreenButtonPress() {
-        String command = "$SD/Run=" + dirName + "/" + fileInfo.fileName;
-        send_line(command.c_str());
+        if (state == Idle) {
+            String command = "$SD/Run=" + dirName + "/" + fileInfo.fileName;
+            send_line(command.c_str());
+            ackBeep();
+        }
     }
     void reDisplay() {
+        String grnText, redText = "";
+
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
         drawMenuTitle(name());
+        drawStatusTiny(20);
 
-        if (_needlines == false) {
-            int y  = 36;
-            int tl = 0;
-            if (fileLines.size()) {
-                for (auto const& line : fileLines) {
-                    text(line, 25, y + tl * 22, WHITE, TINY, top_left);
-                    ++tl;
+        if (state == Idle) {
+            if (_needlines == false) {
+                int y  = 39;
+                int tl = 0;
+                if (fileLines.size()) {
+                    for (auto const& line : fileLines) {
+                        text(line, 25, y + tl * 22, WHITE, TINY, top_left);
+                        ++tl;
+                    }
+                } else {
+                    text("No Text", 120, 120, WHITE, SMALL, middle_center);
                 }
             } else {
-                text("No Text", 120, 120, WHITE, SMALL, middle_center);
+                text("Reading File", 120, 120, WHITE, TINY, middle_center);
             }
+            grnText = "Run";
+            redText = "Back";
         } else {
-            text("Reading File", 120, 120, WHITE, TINY, middle_center);
+            centered_text("Invalid State", 105, WHITE, SMALL);
+            centered_text("File Preview", 145, WHITE, SMALL);
         }
 
-        drawButtonLegends("", "Run", "Back");
+        drawButtonLegends(redText, grnText, "Menu");
         refreshDisplay();
     }
 };

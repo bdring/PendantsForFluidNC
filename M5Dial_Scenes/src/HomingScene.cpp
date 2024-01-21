@@ -27,13 +27,13 @@ public:
         }
     }
     void onRedButtonPress() {
-        if (state == Homing || state == Cycle) {
-            fnc_realtime(FeedHold);
+        if (state == Homing) {
+            fnc_realtime(Reset);
         }
     }
 
     void onTouchRelease(int x, int y) {
-        if (state == Idle || state == Homing) {
+        if (state == Idle || state == Homing || state == Alarm) {
             rotateNumberLoop(_current_button, 1, 0, 3);
             reDisplay();
             ackBeep();

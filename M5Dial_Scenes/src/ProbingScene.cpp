@@ -46,7 +46,7 @@ public:
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Cycle || state == Alarm) {
             fnc_realtime(Reset);
-            send_line("$X");
+            //send_line("$X");
             return;
         } else if (state == Idle) {
             String gcode = "$J=G91F1000";
@@ -55,6 +55,8 @@ public:
             gcode += floatToString(_retract, 0);
             send_line(gcode);
             return;
+        } else if (state == Hold) {
+            fnc_realtime(Reset);
         }
     }
 
@@ -157,7 +159,7 @@ public:
 
                 switch (state) {
                     case Cycle:
-                        redText = "Reset";
+                        redText = "E-Stop";
                         grnText = "Hold";
                         break;
                     case Hold:
