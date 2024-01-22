@@ -46,11 +46,16 @@ private:
             }
         }
     }
+    void cancelJog() {
+        if (state == Jog && !_continuous) {
+            fnc_realtime(JogCancel);
+        }
+    }
 
 public:
     JoggingScene() : Scene("MPG Jog") {}
 
-    void init(void* arg) {
+    void onEntry(void* arg) {
         if (initPrefs()) {
             for (size_t axis = 0; axis < n_axes; axis++) {
                 getPref("IncLevel", axis, &_inc_level[axis]);
@@ -58,6 +63,7 @@ public:
             }
         }
     }
+    void onExit() { cancelJog(); }
 
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
@@ -80,12 +86,7 @@ public:
 
             return;
         }
-        if (state == Jog) {
-            if (!_continuous) {
-                fnc_realtime(JogCancel);  // reset
-            }
-            return;
-        }
+        cancelJog();
     }
     void onGreenButtonRelease() {
         if (state == Jog && _continuous) {
@@ -119,11 +120,7 @@ public:
             return;
         }
     }
-    void onRedButtonRelease() {
-        if (state == Jog && _continuous) {
-            fnc_realtime(JogCancel);  // reset
-        }
-    }
+    void onRedButtonRelease() { cancelJog(); }
 
     void onTouchRelease(int x, int y) {
         //Use dial to break out of continuous mode

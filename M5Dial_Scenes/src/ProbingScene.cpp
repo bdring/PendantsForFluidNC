@@ -101,7 +101,7 @@ public:
             reDisplay();
         }
     }
-    void init(void* arg) override {
+    void onEntry(void* arg) override {
         if (initPrefs()) {
             getPref("Offset", &_offset);
             getPref("Travel", &_travel);

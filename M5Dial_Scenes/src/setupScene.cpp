@@ -11,7 +11,7 @@ private:
 public:
     SetupScene() : Scene("Setup") {}
 
-    void init() { log_println("init"); }
+    void onEntry() {}
 
     void onDialButtonPress() { activate_scene(&menuScene); }
     void onGreenButtonPress() {}

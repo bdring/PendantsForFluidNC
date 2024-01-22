@@ -45,8 +45,8 @@ IB powerButton("Power", &powerScene, "/powertp.png");
 class MenuScene : public PieMenu {
 public:
     MenuScene() : PieMenu("Main", buttonRadius) {}
-    void init(void* arg) {
-        PieMenu::init(arg);
+    void onEntry(void* arg) {
+        PieMenu::onEntry(arg);
         if (state == Disconnected) {
             log_println("Menu Scene in disconnected state");
             statusButton.disable();

@@ -13,7 +13,7 @@ class FilePreviewScene : public Scene {
 
 public:
     FilePreviewScene() : Scene("Preview") {}
-    void init(void* arg) {
+    void onEntry(void* arg) {
         char* fname = (char*)arg;
         _filename   = fname;
         _needlines  = true;

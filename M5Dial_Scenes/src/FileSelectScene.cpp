@@ -50,7 +50,7 @@ private:
 public:
     FileSelectScene() : Scene("Files", 4) {}
 
-    void init(void* arg) {
+    void onEntry(void* arg) {
         // a first time only thing, because files are already loaded
         if (prevSelect.size() == 0) {
             prevSelect.push_back(0);

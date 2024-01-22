@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "Scene.h"
 
-Scene* current_scene;
+Scene* current_scene = nullptr;
 
 Button greenButton;
 Button redButton;
@@ -13,8 +13,11 @@ Button dialButton;
 std::vector<Scene*> scene_stack;
 
 void activate_scene(Scene* scene, void* arg) {
+    if (current_scene) {
+        current_scene->onExit();
+    }
     current_scene = scene;
-    current_scene->init(arg);
+    current_scene->onEntry(arg);
     current_scene->reDisplay();
 }
 void push_scene(Scene* scene, void* arg) {

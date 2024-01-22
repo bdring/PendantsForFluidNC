@@ -176,7 +176,7 @@ public:
         ++_num_items;
     }
 
-    void init(void* arg) override {
+    void onEntry(void* arg) override {
         if (_selected != -1) {
             _items[_selected]->highlight();
         }
