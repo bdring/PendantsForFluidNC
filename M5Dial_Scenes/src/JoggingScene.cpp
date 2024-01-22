@@ -47,7 +47,7 @@ private:
         }
     }
     void cancelJog() {
-        if (state == Jog && !_continuous) {
+        if (state == Jog) {
             fnc_realtime(JogCancel);
         }
     }
@@ -89,8 +89,8 @@ public:
         cancelJog();
     }
     void onGreenButtonRelease() {
-        if (state == Jog && _continuous) {
-            fnc_realtime(JogCancel);  // reset
+        if (_continuous) {
+            cancelJog();
         }
     }
 
@@ -120,7 +120,11 @@ public:
             return;
         }
     }
-    void onRedButtonRelease() { cancelJog(); }
+    void onRedButtonRelease() {
+        if (_continuous) {
+            cancelJog();
+        }
+    }
 
     void onTouchRelease(int x, int y) {
         //Use dial to break out of continuous mode
