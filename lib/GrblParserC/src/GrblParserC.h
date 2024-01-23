@@ -11,6 +11,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdbool.h>
 
+#define REPORT_BUFFER_LEN 1024
+
 #define MAX_N_AXIS 6
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -154,6 +156,9 @@ extern void show_overrides(override_percent_t feed_ovr, override_percent_t rapid
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);
+
+//Grbl and FluidNC statup messages
+extern void show_versions(const char* grbl_version, const char* fluidnc_version);
 
 // Called before and after parsing a status report; useful for
 // clearing and updating display screens

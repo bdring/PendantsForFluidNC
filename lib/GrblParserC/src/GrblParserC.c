@@ -11,14 +11,10 @@ extern "C" {
 #endif
 
 static size_t _report_len = 0;
-static char   _report[128];
+static char   _report[REPORT_BUFFER_LEN];
 
 static bool _ackwait = false;
 static int  _ack_time_limit;
-
-static int _n_axis;
-
-static pos_t wcos[MAX_N_AXIS] = { 0 };
 
 static struct gcode_modes old_gcode_modes;
 static struct gcode_modes new_gcode_modes;
@@ -116,6 +112,26 @@ static void parse_msg(char* command) {
     handle_msg(command, arguments);
 }
 
+//[VER:3.4 FluidNC v3.4.8:]
+static void parse_version_report(char* body) {
+    char* grbl_ver = body;
+    char* fspace   = strpbrk(grbl_ver, " \t\n\r");
+    if (fspace) {
+        *fspace       = 0;
+        char* reportp = fspace + 1;
+        if (strncmp(reportp, "FluidNC ", 8) == 0) {
+            reportp += 7;
+            *reportp++    = 0;
+            char* fspace2 = strpbrk(reportp, " :\t\n\r");
+            if (fspace2) {
+                *fspace2          = 0;
+                char* fluidnc_ver = reportp;
+                show_versions(grbl_ver, fluidnc_ver);
+            }
+        }
+    }
+}
+
 static void parse_error(const char* body) {
     // The report wrapper, already removed, is error:...
     show_error(atoi(body));
@@ -144,7 +160,7 @@ static size_t parse_axes(char* s, pos_t* axes) {
     size_t n_axis = 0;
     do {
         split(s, &next, ',');
-        if (_n_axis < MAX_N_AXIS) {
+        if (n_axis < MAX_N_AXIS) {
             axes[n_axis++] = atopos(s);
         }
         s = next;
@@ -172,12 +188,13 @@ static void parse_status_report(char* field) {
     //   Idle|MPos:151.000,149.000,-1.000|Pn:XP|FS:0,0|WCO:12.000,28.000,78.000
     // i.e. a sequence of field|field|field
 
-    bool has_linenum = false;
-    int  linenum     = 0;
-    int  spindle     = 0;
-    bool has_a_field = false;
-    bool flood       = false;
-    bool mist        = false;
+    bool has_linenum  = false;
+    int  linenum      = 0;
+    int  spindle      = 0;
+    bool has_a_field  = false;
+    bool flood        = false;
+    bool mist         = false;
+    bool has_override = false;
 
     char* next;
     split(field, &next, '|');
@@ -193,14 +210,16 @@ static void parse_status_report(char* field) {
     pos_t axes[MAX_N_AXIS];
     bool  isMpos = false;
 
-    bool has_override = false;
-
     bool           has_filename = false;
     char*          filename     = '\0';
     file_percent_t file_percent = 0;
+    //unused values
+    pos_t wcos[MAX_N_AXIS] = { 0 };
+    //unused values end
 
+    // feedrate,spindle_speed
     uint32_t           fs[2];
-    override_percent_t frs[3];
+    override_percent_t frs[MAX_N_AXIS] = { 0 };
 
     size_t n_axis = 0;
 
@@ -387,8 +406,7 @@ static struct GCodeMode {
 static void lookup_mode(const char* tag) {
     for (struct GCodeMode* p = modes_map; p->tag; p++) {
         if (strcmp(tag, p->tag) == 0) {
-            //*p->variable = p->value;
-            *p->variable = p->tag;
+            *p->variable = p->value;
             return;
         }
     }
@@ -488,6 +506,10 @@ static void parse_report() {
         parse_msg(body);
         return;
     }
+    if (is_report_type(_report, &body, "[VER:", "]")) {
+        parse_version_report(body);
+        return;
+    }
     if (is_report_type(_report, &body, "error:", "")) {
         _ackwait = false;
         parse_error(body);
@@ -563,6 +585,9 @@ void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle
 void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
+
+// Version information
+void __attribute__((weak)) show_versions(const char* grbl_version, const char* fluidnc_version) {}
 
 // Called before and after parsing a status report; useful for
 // clearing and updating display screens
