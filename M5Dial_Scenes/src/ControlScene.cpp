@@ -38,7 +38,7 @@ public:
             case Cycle:
                 fnc_realtime(FeedHold);
                 break;
-            case FeedHold:
+            case Hold:
                 fnc_realtime(CycleStart);
                 break;
         }
@@ -59,7 +59,7 @@ public:
         ackBeep();
     }
 
-    void onStateChange() { reDisplay(); }
+    void onDROChange() { reDisplay(); }
 
     void reDisplay() {
         drawBackground(BLACK);
@@ -106,7 +106,7 @@ public:
                 redLabel = "E-Stop";
                 grnLabel = "Hold";
             } else if (state == Hold) {
-                redLabel = "E-Stop";
+                redLabel = "Reset";
                 grnLabel = "Resume";
             }
         }
