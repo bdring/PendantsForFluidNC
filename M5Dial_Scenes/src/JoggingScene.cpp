@@ -46,11 +46,16 @@ private:
             }
         }
     }
+    void cancelJog() {
+        if (state == Jog) {
+            fnc_realtime(JogCancel);
+        }
+    }
 
 public:
     JoggingScene() : Scene("MPG Jog") {}
 
-    void init(void* arg) {
+    void onEntry(void* arg) {
         if (initPrefs()) {
             for (size_t axis = 0; axis < n_axes; axis++) {
                 getPref("IncLevel", axis, &_inc_level[axis]);
@@ -58,6 +63,7 @@ public:
             }
         }
     }
+    void onExit() { cancelJog(); }
 
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
@@ -80,16 +86,11 @@ public:
 
             return;
         }
-        if (state == Jog) {
-            if (!_continuous) {
-                fnc_realtime(JogCancel);  // reset
-            }
-            return;
-        }
+        cancelJog();
     }
     void onGreenButtonRelease() {
-        if (state == Jog && _continuous) {
-            fnc_realtime(JogCancel);  // reset
+        if (_continuous) {
+            cancelJog();
         }
     }
 
@@ -120,8 +121,8 @@ public:
         }
     }
     void onRedButtonRelease() {
-        if (state == Jog && _continuous) {
-            fnc_realtime(JogCancel);  // reset
+        if (_continuous) {
+            cancelJog();
         }
     }
 

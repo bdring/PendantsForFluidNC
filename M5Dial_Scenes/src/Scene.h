@@ -45,7 +45,8 @@ public:
     virtual void onMessage(char* command, char* arguments) {}
     virtual void onEncoder(int delta) {}
     virtual void reDisplay() {}
-    virtual void init(void* arg = nullptr) {}
+    virtual void onEntry(void* arg = nullptr) {}
+    virtual void onExit() {}
 
     virtual void onFileLines() {}
     virtual void onFilesList() {}
