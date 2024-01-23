@@ -88,6 +88,13 @@ void PieMenu::onTouchHold(int x, int y) {
     int item = touchedItem(x, y);
     if (item != -1) {
         select(item);
+    }
+}
+
+void PieMenu::onTouchRelease(int x, int y) {
+    int item = touchedItem(x, y);
+    if (item != -1) {
+        select(item);
         invoke();
     }
 }
