@@ -153,7 +153,12 @@ extern "C" void show_gcode_modes(struct gcode_modes* modes) {
     myModeString += "|" + String(modes->units);
     myModeString += "|" + String(modes->distance);
     myModeString += "|" + String(modes->spindle);
-    myModeString += "|" + String(modes->coolant);
+    if (strcmp(modes->mist, "On") == 0) {
+        myModeString += "|Mist";
+    }
+    if (strcmp(modes->flood, "On") == 0) {
+        myModeString += "|Flood";
+    }
     myModeString += "|T" + String(modes->tool);
     current_scene->reDisplay();
 }

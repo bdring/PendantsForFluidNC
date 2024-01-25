@@ -596,7 +596,7 @@ void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_
 // [GC: messages
 // If you want to handle GCode reports directly without having the data parsed
 // into a gcode_modes struct, you can implement your own show_gcode_report()
-void __attribute__((weak)) show_gcode_report(const char* tag) {
+void __attribute__((weak)) show_gcode_report(char* tag) {
     parse_gcode_report(tag);
 }
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
