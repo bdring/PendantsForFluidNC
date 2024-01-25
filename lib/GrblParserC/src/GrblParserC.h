@@ -71,7 +71,8 @@ struct gcode_modes {
     const char* distance;
     const char* program;
     const char* spindle;
-    const char* coolant;
+    const char* mist;
+    const char* flood;
     const char* parking;
     int         tool;
     uint32_t    spindle_speed;
@@ -155,6 +156,7 @@ extern void show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed);
 extern void show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr);
 
 // [GC: messages
+extern void show_gcode_report(const char* tag);
 extern void show_gcode_modes(struct gcode_modes* modes);
 
 //Grbl and FluidNC statup messages
