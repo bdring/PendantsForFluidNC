@@ -26,6 +26,7 @@ enum state_t {
 extern state_t state;
 extern String  stateString;
 
+extern int                n_axes;
 extern pos_t              myAxes[6];
 extern bool               myLimitSwitches[6];
 extern bool               myProbeSwitch;

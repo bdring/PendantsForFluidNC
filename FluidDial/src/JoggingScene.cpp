@@ -7,7 +7,7 @@
 class JoggingScene : public Scene {
 private:
     static const int MAX_INC = 5;
-    static const int n_axes  = 3;
+    //static const int n_axes  = 6;
 
     int  _active_setting = 0;  // Dist or Rate
     int  _selection      = 0;
@@ -15,11 +15,11 @@ private:
 
     int _axis = 0;  // the axis currently being jogged
 
-    int _cont_speed[3] = { 1000, 1000, 1000 };
+    int _cont_speed[6] = { 1000, 1000, 1000, 1000, 1000, 1000 };
 
     // Saved to NVS
-    int _inc_level[3]  = { 2, 2, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
-    int _rate_level[3] = { 1000, 1000, 100 };
+    int _inc_level[6]  = { 2, 2, 1, 1, 1, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
+    int _rate_level[6] = { 1000, 1000, 100, 100, 100, 100 };
 
     float _increment() { return pow(10.0, abs(_inc_level[_axis])) / 100.0; }
 
@@ -132,7 +132,7 @@ public:
             if (y < 70) {
                 _continuous = !_continuous;
             } else if (y < 105) {
-                rotateNumberLoop(_axis, 1, 0, 2);
+                rotateNumberLoop(_axis, 1, 0, ((int)n_axes)-1);
             } else if (y < 140) {
                 String cmd = "G10L20P0" + axisNumToString(_axis) + "0";
                 log_println(cmd);
@@ -192,7 +192,7 @@ public:
 
             if (state == Idle) {
                 Stripe stripe(x, y, width, height, TINY);
-                legend = "Zero " + String("XYZ").substring(_axis, _axis + 1) + " Axis";
+                legend = "Zero " + axisNumToString(_axis) + " Axis";
                 stripe.draw(legend, true);
             }
 
