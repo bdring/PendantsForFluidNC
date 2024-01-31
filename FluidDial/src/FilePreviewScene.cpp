@@ -6,6 +6,7 @@
 #include "FileParser.h"
 
 extern Scene menuScene;
+extern Scene statusScene;
 
 class FilePreviewScene : public Scene {
     String _filename;
@@ -43,6 +44,10 @@ public:
         }
     }
     void reDisplay() {
+        if (state == Cycle) {
+            activate_scene(&statusScene);
+            return;
+        }
         String grnText, redText = "";
 
         canvas.createSprite(240, 240);
