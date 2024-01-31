@@ -139,7 +139,7 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
 }
 
 void DRO::draw(int axis, bool highlight) {
-    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], num_digits()), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
 }
 
 void LED::draw(bool highlighted) {

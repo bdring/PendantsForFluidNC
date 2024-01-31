@@ -35,6 +35,9 @@ extern override_percent_t myFro;
 extern int                lastAlarm;
 extern int                lastError;
 extern uint32_t           errorExpire;
+extern bool               inInches;
+
+int num_digits();
 
 void send_line(const String& s, int timeout = 2000);
 void send_line(const char* s, int timeout = 2000);
@@ -50,3 +53,6 @@ bool fnc_is_connected();
 void set_disconnected_state();
 
 void update_rx_time();
+
+extern pos_t toMm(pos_t position);
+extern pos_t fromMm(pos_t position);

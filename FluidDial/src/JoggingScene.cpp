@@ -15,13 +15,13 @@ private:
 
     int _axis = 0;  // the axis currently being jogged
 
-    int _cont_speed[3] = { 1000, 1000, 1000 };
+    int _cont_speed[2][3] = { { 1000, 1000, 1000 }, { 40, 40, 40 } };
 
     // Saved to NVS
-    int _inc_level[3]  = { 2, 2, 1 };  // exponent 0=0.01, 2=0.1 ... 5 = 100.00
-    int _rate_level[3] = { 1000, 1000, 100 };
+    int _inc_level[2][3]  = { { 3, 3, 2 }, { 2, 2, 1 } };  // exponent 0=0.001, 1=0.01, 2=0.1 3=1 4=10 5 = 100.00
+    int _rate_level[2][3] = { { 1000, 1000, 100 }, { 40, 40, 4 } };
 
-    float _increment() { return pow(10.0, abs(_inc_level[_axis])) / 100.0; }
+    float _increment() { return pow(10.0, abs(_inc_level[inInches][_axis])) / 1000.0; }
 
     void feedRateRotator(int& rate, bool up) {
         if (up) {
@@ -53,33 +53,45 @@ private:
     }
 
 public:
-    JoggingScene() : Scene("MPG Jog") {}
+    JoggingScene() : Scene("MPG Jog", 4) {}
 
     void onEntry(void* arg) {
         if (initPrefs()) {
             for (size_t axis = 0; axis < n_axes; axis++) {
-                getPref("IncLevel", axis, &_inc_level[axis]);
-                getPref("RateLevel", axis, &_rate_level[axis]);
+                getPref(inInches ? "InchIncLevel" : "IncLevel", axis, &_inc_level[inInches][axis]);
+                getPref(inInches ? "InchRateLevel" : "RateLevel", axis, &_rate_level[inInches][axis]);
             }
         }
     }
     void onExit() { cancelJog(); }
 
     void onDialButtonPress() { pop_scene(); }
+
+    static void jogCommand(pos_t speed, int axis, float distance, int digits) {
+        String cmd = "$J=G91";
+        cmd += inInches ? "G20" : "G21";
+        cmd += "F";
+        cmd += floatToString(speed, 0);
+        cmd += axisNumToString(axis);
+        cmd += floatToString(distance, digits);
+        log_println(cmd);
+        send_line(cmd);
+    }
+
     void onGreenButtonPress() {
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X10000
-                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "10000");
+                jogCommand(_cont_speed[inInches][_axis], _axis, 10000.0, 0);
             } else {
                 if (_active_setting == 0) {
-                    if (_inc_level[_axis] != MAX_INC) {
-                        _inc_level[_axis]++;
-                        setPref("IncLevel", _axis, _inc_level[_axis]);
+                    if (_inc_level[inInches][_axis] != MAX_INC) {
+                        _inc_level[inInches][_axis]++;
+                        setPref(inInches ? "InchIncLevel" : "IncLevel", _axis, _inc_level[inInches][_axis]);
                     }
                 } else {
-                    feedRateRotator(_rate_level[_axis], true);
-                    setPref("RateLevel", _axis, _rate_level[_axis]);
+                    feedRateRotator(_rate_level[inInches][_axis], true);
+                    setPref(inInches ? "InchRateLevel" : "RateLevel", _axis, _rate_level[inInches][_axis]);
                 }
             }
             reDisplay();
@@ -98,16 +110,16 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X-10000
-                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "-10000");
+                jogCommand(_cont_speed[inInches][_axis], _axis, -10000.0, 0);
             } else {
                 if (_active_setting == 0) {
-                    if (_inc_level[_axis] > 0) {
-                        _inc_level[_axis]--;
-                        setPref("IncLevel", _axis, _inc_level[_axis]);
+                    if (_inc_level[inInches][_axis] > 0) {
+                        _inc_level[inInches][_axis]--;
+                        setPref("IncLevel", _axis, _inc_level[inInches][_axis]);
                     }
                 } else {
-                    feedRateRotator(_rate_level[_axis], false);
-                    setPref("RateLevel", _axis, _rate_level[_axis]);
+                    feedRateRotator(_rate_level[inInches][_axis], false);
+                    setPref("RateLevel", _axis, _rate_level[inInches][_axis]);
                 }
             }
             reDisplay();
@@ -151,18 +163,11 @@ public:
 
     void onEncoder(int delta) {
         if (state == Idle && _continuous) {
-            feedRateRotator(_cont_speed[_axis], delta > 0);
+            feedRateRotator(_cont_speed[inInches][_axis], delta > 0);
         } else {
             // $J=G91F200Z5.0
-            String jogRate      = floatToString(_rate_level[_axis], 0);
-            String jogIncrement = floatToString(_increment(), 2);
-            String cmd          = "$J=G91F" + jogRate + axisNumToString(_axis);
-            if (delta < 0) {
-                cmd += "-";
-            }
-            cmd += jogIncrement;
-            log_println(cmd);
-            send_line(cmd);
+            float increment = delta > 0 ? _increment() : -_increment();
+            jogCommand(_rate_level[inInches][_axis], _axis, increment, num_digits());
         }
         reDisplay();
     }
@@ -197,12 +202,12 @@ public:
             }
 
             if (_continuous) {
-                legend = "Rate: " + floatToString(_cont_speed[_axis], 0);
+                legend = "Rate: " + floatToString(_cont_speed[inInches][_axis], 0);
                 centered_text(legend, 183);
             } else {
-                legend = "Increment: " + floatToString(_increment(), 2);
+                legend = "Increment: " + floatToString(_increment(), num_digits());
                 centered_text(legend, 174, _active_setting == 0 ? WHITE : DARKGREY);
-                legend = "Rate: " + floatToString(_rate_level[_axis], 2);
+                legend = "Rate: " + floatToString(_rate_level[inInches][_axis], 2);
                 centered_text(legend, 194, _active_setting == 1 ? WHITE : DARKGREY);
             }
 
