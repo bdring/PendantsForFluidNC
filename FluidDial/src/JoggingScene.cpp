@@ -1,8 +1,11 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
-#include "Scene.h"
+#include "Config.h"
+
+#ifndef USE_MULTI_JOG
+#    include <Arduino.h>
+#    include "Scene.h"
 
 class JoggingScene : public Scene {
 private:
@@ -250,3 +253,4 @@ public:
     }
 };
 JoggingScene joggingScene;
+#endif

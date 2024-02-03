@@ -120,12 +120,12 @@ void Stripe::draw(const String& left, const String& right, bool highlighted, int
     if (right.length()) {
         text(right, text_right_x(), text_middle_y(), WHITE, _font, middle_right);
     }
-    _y += gap();
+    advance();
 }
 void Stripe::draw(const String& center, bool highlighted) {
     drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
     text(center, text_center_x(), text_middle_y(), WHITE, _font, middle_center);
-    _y += gap();
+    advance();
 }
 
 #define PUSH_BUTTON_LINE 212
@@ -136,6 +136,49 @@ void drawButtonLegends(const String& red, const String& green, const String& ora
     text(red, 80, PUSH_BUTTON_LINE, RED);
     text(green, 160, PUSH_BUTTON_LINE, GREEN);
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
+}
+
+void putDigit(int& n, int x, int y, int color) {
+    char txt[2] = { '\0', '\0' };
+    txt[0]      = "0123456789"[n % 10];
+    n /= 10;
+    text(txt, x, y, color, MEDIUM, middle_right);
+}
+void fancyNumber(float n, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
+    fontnum_t font     = SMALL;
+    int       n_digits = n_decimals + 1;
+    size_t    i;
+    bool      isneg = n < 0;
+    if (isneg) {
+        n = -n;
+    }
+    for (i = 0; i < n_decimals; i++) {
+        n *= 10;
+    }
+    const int char_width = 20;
+
+    int ni = (int)n;
+    for (i = 0; i < n_decimals; i++) {
+        putDigit(ni, x, y, i == hl_digit ? hl_text_color : text_color);
+        x -= char_width;
+    }
+    if (n_decimals) {
+        text(".", x - 10, y, text_color, MEDIUM, middle_center);
+        x -= char_width;
+    }
+    do {
+        putDigit(ni, x, y, i++ == hl_digit ? hl_text_color : text_color);
+        x -= char_width;
+    } while (ni || i <= hl_digit);
+    if (isneg) {
+        text("-", x, y, text_color, MEDIUM, middle_right);
+    }
+}
+
+void DRO::draw(int axis, int hl_digit, bool highlight) {
+    text(axisNumToString(axis), text_left_x(), text_middle_y(), highlight ? GREEN : WHITE, MEDIUM, middle_left);
+    fancyNumber(myAxes[axis], num_digits(), hl_digit, text_right_x(), text_middle_y(), WHITE, highlight ? RED : YELLOW);
+    advance();
 }
 
 void DRO::draw(int axis, bool highlight) {
