@@ -189,6 +189,7 @@ void request_file_list() {
     String command("$Files/ListGCode=");
     command += dirName;
     send_line(command.c_str());
+    parser_needs_reset = true;
 }
 
 void init_file_list() {

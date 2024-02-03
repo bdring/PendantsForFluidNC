@@ -17,7 +17,12 @@ file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
 int                lastAlarm          = 0;
 int                lastError          = 0;
+bool               inInches           = false;
 uint32_t           errorExpire;
+
+int num_digits() {
+    return inInches ? 3 : 2;
+}
 
 // clang-format off
 // Maps the state strings in status reports to internal state enum values
@@ -92,11 +97,19 @@ extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
     myProbeSwitch = probe;
     memcpy(myLimitSwitches, limits, n_axis * sizeof(*limits));
 }
+
+pos_t fromMm(pos_t position) {
+    return inInches ? position / 25.4 : position;
+}
+pos_t toMm(pos_t position) {
+    return inInches ? position * 25.4 : position;
+}
+
 extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
     for (int axis = 0; axis < n_axis; axis++) {
-        myAxes[axis] = axes[axis];
+        myAxes[axis] = fromMm(axes[axis]);
         if (isMpos) {
-            myAxes[axis] -= wco[axis];
+            myAxes[axis] -= fromMm(wco[axis]);
         }
     }
 }
@@ -126,6 +139,9 @@ String modeString() {
 extern "C" void show_state(const char* state_string) {
     state_t new_state = decode_state_string(state_string);
     if (state != new_state) {
+        if (state == Disconnected) {
+            send_line("$G");  // Refresh GCode modes
+        }
         state = new_state;
         current_scene->onStateChange(state);
     }
@@ -149,6 +165,9 @@ extern "C" void show_alarm(int alarm) {
 }
 
 extern "C" void show_gcode_modes(struct gcode_modes* modes) {
+    inInches = strcmp(modes->units, "In") == 0;
+    log_println(inInches ? "Inches" : "Millimeters");
+
     myModeString = String(modes->wcs);
     myModeString += "|" + String(modes->units);
     myModeString += "|" + String(modes->distance);

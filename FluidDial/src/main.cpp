@@ -45,7 +45,9 @@ void setup() {
     Serial_FNC.begin(115200, SERIAL_8N1, FNC_RX_PIN, FNC_TX_PIN);
 
     drawSplashScreen();
-    delay(3000);  // view the logo and wait for the debug port to connect
+    delay(1000);  // view the logo and wait for the debug port to connect
+
+    fnc_realtime(StatusReport);  // Kick FluidNC into action
 
     log_println("FluidNC Pendant v0.3");
 
