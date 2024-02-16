@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
 extern Scene probingScene;
@@ -100,12 +99,14 @@ public:
             }
 
             // Feed override
-            centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
+            char legend[50];
+            sprintf(legend, "Feed Rate Ovr:%d%%", myFro);
+            centered_text(legend, y + 23);
         }
 
-        String encoder_button_text = "Menu";
-        String redButtonText       = "";
-        String greenButtonText     = "";
+        const char* encoder_button_text = "Menu";
+        const char* redButtonText       = "";
+        const char* greenButtonText     = "";
         switch (state) {
             case Alarm:
                 drawButtonLegends("Reset", "Home All", encoder_button_text);
@@ -125,7 +126,7 @@ public:
                 drawButtonLegends("", "", encoder_button_text);
                 break;
         }
-        showError();  // if there is one
+        drawError();  // if there is one
         refreshDisplay();
     }
 };

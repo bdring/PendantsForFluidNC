@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
 class StatusScene : public Scene {
@@ -68,7 +67,8 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        String grnText, redText = "";
+        const char* grnText = "";
+        const char* redText = "";
 
         DRO dro(10, 68, 220, 32);
         dro.draw(0, false);
@@ -87,10 +87,12 @@ public:
                 }
             }
             // Feed override
-            centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
+            char legend[50];
+            sprintf(legend, "Feed Rate Ovr:%d%%", myFro);
+            centered_text(legend, y + 23);
         }
 
-        String encoder_button_text = "Menu";
+        const char* encoder_button_text = "Menu";
 
         switch (state) {
             case Alarm:

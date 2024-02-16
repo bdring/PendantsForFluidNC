@@ -7,21 +7,29 @@
 #include "Scene.h"
 
 // local copies of status items
-String             stateString        = "N/C";
+const char*        my_state_string    = "N/C";
 state_t            state              = Idle;
 pos_t              myAxes[6]          = { 0 };
 bool               myLimitSwitches[6] = { false };
 bool               myProbeSwitch      = false;
-String             myFile             = "";   // running SD filename
+const char*        myFile             = "";   // running SD filename
 file_percent_t     myPercent          = 0.0;  // percent conplete of SD file
 override_percent_t myFro              = 100;  // Feed rate override
-int                lastAlarm          = 0;
-int                lastError          = 0;
-uint32_t           errorExpire;
+std::string        myModes            = "no data";
+
+int      lastAlarm = 0;
+int      lastError = 0;
+uint32_t errorExpire;
 
 // clang-format off
 // Maps the state strings in status reports to internal state enum values
-std::map<String, state_t> state_map = {
+struct cmp_str {
+   bool operator()(char const *a, char const *b) const    {
+      return strcmp(a, b) < 0;
+   }
+};
+
+std::map<const char *, state_t, cmp_str>  state_map = {
     { "Idle", Idle },
     { "Alarm", Alarm },
     { "Hold:0", Hold },
@@ -36,22 +44,25 @@ std::map<String, state_t> state_map = {
 };
 // clang-format on
 
-state_t decode_state_string(const char* state_string) {
-    if (stateString != state_string) {
-        stateString       = state_string;
-        state_t new_state = state_map[stateString];
-        return new_state;
+bool decode_state_string(const char* state_string, state_t& state) {
+    if (strcmp(my_state_string, state_string) != 0) {
+        auto found = state_map.find(state_string);
+        if (found != state_map.end()) {
+            my_state_string = found->first;
+            state           = found->second;
+            return true;
+        }
     }
-    return state;
+    return false;
 }
 
 void set_disconnected_state() {
-    state       = Disconnected;
-    stateString = "N/C";
+    state           = Disconnected;
+    my_state_string = "N/C";
 }
 
 // clang-format off
-std::map<int, String> error_map = {  // Do here so abreviations are right for the dial
+std::map<int, const char*> error_map = {  // Do here so abreviations are right for the dial
     { 0, "None"},
     { 1, "GCode letter"},
     { 2, "GCode format"},
@@ -69,11 +80,13 @@ std::map<int, String> error_map = {  // Do here so abreviations are right for th
 };
 // clang-format on
 
-String decode_error_number(int error_num) {
+const char* decode_error_number(int error_num) {
     if (error_map.find(error_num) != error_map.end()) {
         return error_map[error_num];
     }
-    return String(error_num);
+    static char retval[33];
+    sprintf(retval, "%d", error_num);
+    return retval;
 }
 
 extern "C" void begin_status_report() {
@@ -101,31 +114,35 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
     }
 }
 
-void send_line(const String& s, int timeout) {
+void send_line(const std::string& s, int timeout) {
     send_line(s.c_str(), timeout);
 }
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
 }
 
-String axisNumToString(int axis) {
-    return String("XYZABC").substring(axis, axis + 1);
+char axisNumToChar(int axis) {
+    return "XYZABC"[axis];
 }
 
-String floatToString(float val, int afterDecimal) {
-    char buffer[20];
+const char* axisNumToCStr(int axis) {
+    static char ret[2] = { '\0', '\0' };
+    ret[0]             = axisNumToChar(axis);
+    return ret;
+}
+const char* floatToCStr(float val, int afterDecimal) {
+    static char buffer[20];
     dtostrf(val, 1, afterDecimal, buffer);
-    String str(buffer);
-    return str;
+    return buffer;
 }
 
-String modeString() {
-    return myModeString;
+const char* mode_string() {
+    return myModes.c_str();
 }
 
 extern "C" void show_state(const char* state_string) {
-    state_t new_state = decode_state_string(state_string);
-    if (state != new_state) {
+    state_t new_state;
+    if (decode_state_string(state_string, new_state) && state != new_state) {
         state = new_state;
         current_scene->onStateChange(state);
     }
@@ -149,12 +166,17 @@ extern "C" void show_alarm(int alarm) {
 }
 
 extern "C" void show_gcode_modes(struct gcode_modes* modes) {
-    myModeString = String(modes->wcs);
-    myModeString += "|" + String(modes->units);
-    myModeString += "|" + String(modes->distance);
-    myModeString += "|" + String(modes->spindle);
-    myModeString += "|" + String(modes->coolant);
-    myModeString += "|T" + String(modes->tool);
+    myModes = modes->wcs;
+    myModes += "|";
+    myModes += modes->units;
+    myModes += "|";
+    myModes += modes->distance;
+    myModes += "|";
+    myModes += modes->spindle;
+    myModes += "|";
+    myModes += modes->coolant;
+    myModes += "|T";
+    myModes += modes->tool;
     current_scene->reDisplay();
 }
 

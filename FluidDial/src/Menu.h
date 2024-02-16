@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <Arduino.h>
 #include "Scene.h"
 #include <math.h>
 #include <vector>
+#include <string>
 
 typedef int color_t;
 typedef void (*callback_t)(void*);
@@ -14,7 +14,8 @@ typedef void (*callback_t)(void*);
 void do_nothing(void* arg);
 class Item {
 protected:
-    String     _name;
+    std::string _name;
+
     bool       _highlighted = false;
     bool       _disabled    = false;
     bool       _hidden      = false;
@@ -22,7 +23,6 @@ protected:
     Scene*     _scene       = nullptr;
 
 public:
-    Item(const String& name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
     Item(const char* name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
     Item(const char* name, Scene* scene) : _name(name), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
@@ -43,17 +43,18 @@ public:
         }
     };
 
-    String name() { return _name; }
-    void   highlight() { _highlighted = true; }
-    void   unhighlight() { _highlighted = false; }
-    bool   highlighted() { return _highlighted; }
-    void   disable() { _disabled = true; }
-    void   enable() { _disabled = false; }
-    bool   enabled() { return !_disabled; }
-    bool   disabled() { return _disabled; }
-    void   hide() { _hidden = true; }
-    void   unhide() { _hidden = false; }
-    bool   hidden() { return _hidden; }
+    const std::string& name() { return _name; }
+
+    void highlight() { _highlighted = true; }
+    void unhighlight() { _highlighted = false; }
+    bool highlighted() { return _highlighted; }
+    void disable() { _disabled = true; }
+    void enable() { _disabled = false; }
+    bool enabled() { return !_disabled; }
+    bool disabled() { return _disabled; }
+    void hide() { _hidden = true; }
+    void unhide() { _hidden = false; }
+    bool hidden() { return _hidden; }
 
     void set_action(callback_t callback) { _callback = callback; }
 };
@@ -92,9 +93,9 @@ public:
 
 class ImageButton : public Item {
 private:
-    String  _filename;
-    int     _radius;
-    color_t _outline_color;
+    const char* _filename;
+    int         _radius;
+    color_t     _outline_color;
 
 public:
     ImageButton(const char* name, callback_t callback, const char* filename, int radius, color_t outline_color = WHITE) :
@@ -108,18 +109,18 @@ public:
 
 class RectangularButton : public Item {
 private:
-    String _text;
-    int    _width;
-    int    _height;
-    int    _radius;
-    int    _bg_color;
-    int    _text_color;
-    int    _outline_color;
+    const char* _text;
+    int         _width;
+    int         _height;
+    int         _radius;
+    int         _bg_color;
+    int         _text_color;
+    int         _outline_color;
 
 public:
     RectangularButton(const char* name,
                       callback_t  callback,
-                      String&     text,
+                      const char* text,
                       int         width,
                       int         height,
                       int         radius,

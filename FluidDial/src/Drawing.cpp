@@ -1,10 +1,10 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+#include "System.h"
 #include "Drawing.h"
 #include "alarm.h"
 #include <map>
-#include <LittleFS.h>
 
 void drawBackground(int color) {
     canvas.fillSprite(color);
@@ -58,15 +58,10 @@ void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinec
     drawOutlinedRect(dispxy.x, dispxy.y, width, height, bgcolor, outlinecolor);
 }
 
-void drawPngFile(const String& filename, int x, int y) {
-    // When datum is middle_center, the origin is the center of the canvas and the
-    // +Y direction is down.
-    canvas.drawPngFile(LittleFS, filename, x, -y, 0, 0, 0, 0, 1.0f, 1.0f, datum_t::middle_center);
-}
-void drawPngFile(const String& filename, Point xy) {
+void drawPngFile(const char* filename, Point xy) {
     drawPngFile(filename, xy.x, xy.y);
 }
-void drawPngBackground(const String& filename) {
+void drawPngBackground(const char* filename) {
     drawPngFile(filename, 0, 0);
 }
 
@@ -95,10 +90,10 @@ void drawStatus() {
 
     canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
     if (state == Alarm) {
-        centered_text(stateString, y + height / 2 - 4, BLACK, SMALL);
+        centered_text(my_state_string, y + height / 2 - 4, BLACK, SMALL);
         centered_text(alarm_name[lastAlarm], y + height / 2 + 12, BLACK);
     } else {
-        centered_text(stateString, y + height / 2 + 3, BLACK, MEDIUM);
+        centered_text(my_state_string, y + height / 2 + 3, BLACK, MEDIUM);
     }
 }
 
@@ -107,22 +102,26 @@ void drawStatusTiny(int y) {
     static constexpr int height = 20;
 
     canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
-    centered_text(stateString, y + height / 2 + 3, BLACK, TINY);
+    centered_text(my_state_string, y + height / 2 + 3, BLACK, TINY);
 }
 
 Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}
 
-void Stripe::draw(const String& left, const String& right, bool highlighted, int left_color) {
+void Stripe::draw(char left, const char* right, bool highlighted, int left_color) {
+    char t[2] = { left, '\0' };
+    draw(t, right, highlighted, left_color);
+}
+void Stripe::draw(const char* left, const char* right, bool highlighted, int left_color) {
     drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
-    if (left.length()) {
+    if (*left) {
         text(left, text_left_x(), text_middle_y(), left_color, _font, middle_left);
     }
-    if (right.length()) {
+    if (*right) {
         text(right, text_right_x(), text_middle_y(), WHITE, _font, middle_right);
     }
     _y += gap();
 }
-void Stripe::draw(const String& center, bool highlighted) {
+void Stripe::draw(const char* center, bool highlighted) {
     drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
     text(center, text_center_x(), text_middle_y(), WHITE, _font, middle_center);
     _y += gap();
@@ -132,14 +131,14 @@ void Stripe::draw(const String& center, bool highlighted) {
 #define DIAL_BUTTON_LINE 228
 
 // This shows on the display what the button currently do.
-void drawButtonLegends(const String& red, const String& green, const String& orange) {
+void drawButtonLegends(const char* red, const char* green, const char* orange) {
     text(red, 80, PUSH_BUTTON_LINE, RED);
     text(green, 160, PUSH_BUTTON_LINE, GREEN);
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
 }
 
 void DRO::draw(int axis, bool highlight) {
-    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+    Stripe::draw(axisNumToChar(axis), floatToCStr(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
 }
 
 void LED::draw(bool highlighted) {
@@ -147,7 +146,7 @@ void LED::draw(bool highlighted) {
     _y += _gap;
 }
 
-void drawMenuTitle(const String& name) {
+void drawMenuTitle(const char* name) {
     centered_text(name, 12);
 }
 
@@ -157,26 +156,15 @@ void refreshDisplay() {
     display.endWrite();
 }
 
-void drawMenuView(std::vector<String> labels, int start, int selected) {}
-
-void showImageFile(const char* name, int x, int y, int width, int height) {
-    auto file = LittleFS.open(name);
-    if (!file) {
-        log_println("Can't open logo_img.bin");
-        return;
-    }
-    auto      len   = file.size();
-    uint16_t* buf   = (uint16_t*)malloc(len);
-    auto      nread = file.read((uint8_t*)buf, len);
-    display.pushImage(0, 70, width, height, buf, true);
-    free(buf);
-}
-
-void showError() {
-    if ((milliseconds() - errorExpire) < 0) {
-        canvas.fillCircle(120, 120, 95, RED);
-        drawCircle(120, 120, 95, 5, WHITE);
-        centered_text("Error", 95, WHITE, MEDIUM);
-        centered_text(decode_error_number(lastError), 140, WHITE, TINY);
+void drawError() {
+    if (lastError) {
+        if ((milliseconds() - errorExpire) < 0) {
+            canvas.fillCircle(120, 120, 95, RED);
+            drawCircle(120, 120, 95, 5, WHITE);
+            centered_text("Error", 95, WHITE, MEDIUM);
+            centered_text(decode_error_number(lastError), 140, WHITE, TINY);
+        } else {
+            lastError = 0;
+        }
     }
 }

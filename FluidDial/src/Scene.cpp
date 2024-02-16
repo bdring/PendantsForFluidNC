@@ -3,12 +3,9 @@
 
 #include <Arduino.h>
 #include "Scene.h"
+#include "Drawing.h"
 
 Scene* current_scene = nullptr;
-
-Button greenButton;
-Button redButton;
-Button dialButton;
 
 std::vector<Scene*> scene_stack;
 
@@ -40,6 +37,11 @@ void dispatch_events() {
     static m5::touch_state_t last_touch_state = {};
 
     M5Dial.update();
+    auto ms = m5gfx::millis();
+
+    // The red and green buttons are active low
+    redButton.setRawState(ms, !m5gfx::gpio_in(RED_BUTTON_PIN));
+    greenButton.setRawState(ms, !m5gfx::gpio_in(GREEN_BUTTON_PIN));
 
     static int16_t oldEncoder   = 0;
     int16_t        newEncoder   = get_encoder();
@@ -53,29 +55,20 @@ void dispatch_events() {
         }
     }
 
-    bool this_button;
-    if (dialButton.changed(this_button)) {
-        if (this_button) {
-            current_scene->onDialButtonPress();
-        } else {
-            current_scene->onDialButtonRelease();
-        }
+    if (dialButton.wasPressed()) {
+        current_scene->onDialButtonPress();
+    } else if (dialButton.wasReleased()) {
+        current_scene->onDialButtonRelease();
     }
-
-    if (redButton.changed(this_button)) {
-        if (this_button) {
-            current_scene->onRedButtonPress();
-        } else {
-            current_scene->onRedButtonRelease();
-        }
+    if (redButton.wasPressed()) {
+        current_scene->onRedButtonPress();
+    } else if (redButton.wasReleased()) {
+        current_scene->onRedButtonRelease();
     }
-
-    if (greenButton.changed(this_button)) {
-        if (this_button) {
-            current_scene->onGreenButtonPress();
-        } else {
-            current_scene->onGreenButtonRelease();
-        }
+    if (greenButton.wasPressed()) {
+        current_scene->onGreenButtonPress();
+    } else if (greenButton.wasReleased()) {
+        current_scene->onGreenButtonRelease();
     }
 
     auto this_touch = touch.getDetail();
@@ -140,25 +133,27 @@ void Scene::getPref(const char* name, float* value) {
         *value = val.f;
     }
 }
+static const char* setting_name(const char* base_name, int axis) {
+    static char name[32];
+    sprintf(name, "%s%c", base_name, axisNumToChar(axis));
+    return name;
+}
 void Scene::setPref(const char* base_name, int axis, int value) {
     if (!_prefs) {
         return;
     }
-    String setting_name = base_name + axisNumToString(axis);
-    nvs_set_i32(_prefs, setting_name.c_str(), value);
+    nvs_set_i32(_prefs, setting_name(base_name, axis), value);
 }
 void Scene::getPref(const char* base_name, int axis, int* value) {
     if (!_prefs) {
         return;
     }
-    String setting_name = base_name + axisNumToString(axis);
-    nvs_get_i32(_prefs, setting_name.c_str(), value);
 }
 bool Scene::initPrefs() {
     if (_prefs) {
         return false;  // Already open
     }
-    esp_err_t err = nvs_open(name().c_str(), NVS_READWRITE, &_prefs);
+    esp_err_t err = nvs_open(name(), NVS_READWRITE, &_prefs);
     return err == ESP_OK;
 }
 

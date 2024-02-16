@@ -1,7 +1,6 @@
 // Copyright (c) 2024 - Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 #include <driver/rtc_io.h>
 

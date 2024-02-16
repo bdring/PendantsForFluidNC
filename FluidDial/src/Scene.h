@@ -4,7 +4,6 @@
 #pragma once
 
 #include "GrblParserC.h"
-#include "Button.h"
 #include "Drawing.h"
 #include "nvs_flash.h"
 
@@ -12,7 +11,7 @@ void pop_scene(void* arg = nullptr);
 
 class Scene {
 private:
-    String _name;
+    const char* _name;
 
     nvs_handle_t _prefs {};
 
@@ -22,7 +21,7 @@ private:
 public:
     Scene(const char* name, int encoder_scale = 1) : _name(name), _encoder_scale(encoder_scale) {}
 
-    const String& name() { return _name; }
+    const char* name() { return _name; }
 
     virtual void onRedButtonPress() {}
     virtual void onRedButtonRelease() {}
@@ -87,9 +86,5 @@ void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
 }
 
 extern Scene* current_scene;
-
-extern Button greenButton;
-extern Button redButton;
-extern Button dialButton;
 
 void dispatch_events();

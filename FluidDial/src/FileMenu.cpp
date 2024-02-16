@@ -3,23 +3,24 @@
 
 #include "FileMenu.h"
 #include <math.h>
+#include <string>
 
 void FileItem::invoke(void* arg) {
     // doFileScreen(_name);
 }
-String FileItem::baseName() {
+std::string FileItem::baseName() {
     if (isDirectory()) {
-        return name().substring(0, name().length() - 1);
+        return name().substr(0, name().length() - 1);
     }
-    int dotpos = name().lastIndexOf('.');
-    if (dotpos != -1) {
-        return name().substring(0, dotpos);
+    auto dotpos = name().rfind('.');
+    if (dotpos != std::string::npos) {
+        return name().substr(0, dotpos);
     }
     return name();
 }
 void FileItem::show(const Point& where) {
-    int    color = WHITE;
-    String s     = baseName();
+    int         color = WHITE;
+    std::string s     = baseName();
     if (isDirectory()) {
         color = YELLOW;
         s += " >";
@@ -28,9 +29,9 @@ void FileItem::show(const Point& where) {
     if (_highlighted) {
         Point wh { 200, 45 };
         drawRect(where, wh, 20, color);
-        text(s, where, BLACK, MEDIUM, middle_center);
+        text(s.c_str(), where, BLACK, MEDIUM, middle_center);
     } else {
-        text(s, where, WHITE, SMALL, middle_center);
+        text(s.c_str(), where, WHITE, SMALL, middle_center);
     }
 }
 void FileMenu::reDisplay() {

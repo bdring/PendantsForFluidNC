@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
 extern Scene menuScene;
@@ -31,7 +30,7 @@ public:
         drawStatus();
 
         centered_text("GCode modes:", 73, LIGHTGREY, TINY);
-        centered_text(modeString(), 91, GREEN, TINY);
+        centered_text(mode_string(), 91, GREEN, TINY);
 
         centered_text("Credits:", 118, LIGHTGREY, TINY);
         centered_text("@bdring", 140, GREEN, TINY);
@@ -41,7 +40,7 @@ public:
 
         drawMenuTitle(current_scene->name());
         drawButtonLegends("", "", "Menu");
-        showError();  // if there is one
+        drawError();  // if there is one
         refreshDisplay();
     }
 };

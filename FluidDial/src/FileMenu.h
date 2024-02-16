@@ -3,23 +3,25 @@
 
 #pragma once
 #include "Menu.h"
+#include <string>
 
 void selectFile(void* arg);
 
 class FileItem : public Item {
 private:
 public:
-    FileItem(const String& name) : Item(name) {}
-    void   show(const Point& where) override;
-    void   invoke(void* arg = nullptr) override;
-    bool   isDirectory() { return name().endsWith("/"); }
-    String baseName();
+    FileItem(const char* name) : Item(name) {}
+    void show(const Point& where) override;
+    void invoke(void* arg = nullptr) override;
+    bool isDirectory() { return name().length() && name()[name().length() - 1] == '/'; }
+
+    std::string baseName();
 };
 
 class FileMenu : public Menu {
 private:
-    int    _first;
-    String _dirname = "/";
+    int         _first;
+    std::string _dirname = "/";
 
 public:
     FileMenu(const char* name) : Menu(name) {}
@@ -28,5 +30,5 @@ public:
     int  touchedItem(int x, int y) override;
     void menuBackground() override;
     void onTouchFlick(int x, int y, int dx, int dy) override;
-    void setFolder(const String& name) { _dirname = name; }
+    void setFolder(const std::string& name) { _dirname = name; }
 };

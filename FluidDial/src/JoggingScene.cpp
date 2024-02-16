@@ -1,7 +1,7 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
+#include <string>
 #include "Scene.h"
 
 class JoggingScene : public Scene {
@@ -70,7 +70,11 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X10000
-                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "10000");
+                std::string cmd = "$J=G91F";
+                cmd += floatToCStr(_cont_speed[_axis], 0);
+                cmd += axisNumToChar(_axis);
+                cmd += "10000";
+                send_line(cmd);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[_axis] != MAX_INC) {
@@ -98,7 +102,11 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X-10000
-                send_line("$J=G91F" + floatToString(_cont_speed[_axis], 0) + axisNumToString(_axis) + "-10000");
+                std::string cmd = "$J=G91F";
+                cmd += floatToCStr(_cont_speed[_axis], 0);
+                cmd += axisNumToChar(_axis);
+                cmd += "-10000";
+                send_line(cmd);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[_axis] > 0) {
@@ -134,7 +142,9 @@ public:
             } else if (y < 105) {
                 rotateNumberLoop(_axis, 1, 0, 2);
             } else if (y < 140) {
-                String cmd = "G10L20P0" + axisNumToString(_axis) + "0";
+                std::string cmd("G10L20P0");
+                cmd += axisNumToChar(_axis);
+                cmd += "0";
                 log_println(cmd);
                 send_line(cmd);
             } else {
@@ -154,13 +164,13 @@ public:
             feedRateRotator(_cont_speed[_axis], delta > 0);
         } else {
             // $J=G91F200Z5.0
-            String jogRate      = floatToString(_rate_level[_axis], 0);
-            String jogIncrement = floatToString(_increment(), 2);
-            String cmd          = "$J=G91F" + jogRate + axisNumToString(_axis);
+            std::string cmd = "$J=G91F";
+            cmd += floatToCStr(_rate_level[_axis], 0);
+            cmd += axisNumToChar(_axis);
             if (delta < 0) {
                 cmd += "-";
             }
-            cmd += jogIncrement;
+            cmd += floatToCStr(_increment(), 2);
             log_println(cmd);
             send_line(cmd);
         }
@@ -169,13 +179,11 @@ public:
 
     void reDisplay() {
         drawBackground(BLACK);
-        String legend;
-
-        legend = _continuous ? "Bttn Jog" : "MPG Jog";
-        centered_text(legend, 12);
+        centered_text(_continuous ? "Btn Jog" : "MPG Jog", 12);
 
         drawStatus();
 
+        std::string legend;
         if (state == Idle || state == Jog) {
             int x      = 14;
             int y      = 67;
@@ -192,18 +200,23 @@ public:
 
             if (state == Idle) {
                 Stripe stripe(x, y, width, height, TINY);
-                legend = "Zero " + String("XYZ").substring(_axis, _axis + 1) + " Axis";
-                stripe.draw(legend, true);
+                legend = "Zero ";
+                legend += axisNumToChar(_axis);
+                legend += " Axis";
+                stripe.draw(legend.c_str(), true);
             }
 
             if (_continuous) {
-                legend = "Rate: " + floatToString(_cont_speed[_axis], 0);
-                centered_text(legend, 183);
+                legend = "Rate: ";
+                legend += floatToCStr(_cont_speed[_axis], 0);
+                centered_text(legend.c_str(), 183);
             } else {
-                legend = "Increment: " + floatToString(_increment(), 2);
-                centered_text(legend, 174, _active_setting == 0 ? WHITE : DARKGREY);
-                legend = "Rate: " + floatToString(_rate_level[_axis], 2);
-                centered_text(legend, 194, _active_setting == 1 ? WHITE : DARKGREY);
+                legend = "Increment: ";
+                legend += floatToCStr(_increment(), 2);
+                centered_text(legend.c_str(), 174, _active_setting == 0 ? WHITE : DARKGREY);
+                legend = "Rate: ";
+                legend += floatToCStr(_rate_level[_axis], 2);
+                centered_text(legend.c_str(), 194, _active_setting == 1 ? WHITE : DARKGREY);
             }
 
             const char* back = "Back";
@@ -211,13 +224,17 @@ public:
                 case Idle:
                     if (_continuous) {
                         if (_selection % 2) {
-                            drawButtonLegends("", "Zero " + axisNumToString(_axis), back);
+                            legend = "Zero ";
+                            legend += axisNumToChar(_axis);
+                            drawButtonLegends("", legend.c_str(), back);
                         } else {
                             drawButtonLegends("Jog-", "Jog+", back);
                         }
                     } else {
                         if (_selection % 2) {  // if zro selected
-                            drawButtonLegends("", "Zero " + axisNumToString(_axis), back);
+                            legend = "Zero ";
+                            legend += axisNumToChar(_axis);
+                            drawButtonLegends("", legend.c_str(), back);
                         } else {
                             drawButtonLegends("Dec", "Inc", back);
                         }

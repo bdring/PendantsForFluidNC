@@ -23,8 +23,9 @@ private:
 
 public:
     Stripe(int x, int y, int width, int height, fontnum_t font);
-    void draw(const String& left, const String& right, bool highlighted, int left_color = WHITE);
-    void draw(const String& center, bool highlighted);
+    void draw(const char* left, const char* right, bool highlighted, int left_color = WHITE);
+    void draw(char left, const char* right, bool highlighted, int left_color = WHITE);
+    void draw(const char* center, bool highlighted);
     int  y() { return _y; }
     int  gap() { return _height + 1; }
 };
@@ -70,14 +71,12 @@ void drawRect(Point xy, Point wh, int radius, int bgcolor);
 void drawOutlinedRect(int x, int y, int width, int height, int bgcolor, int outlinecolor);
 void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinecolor);
 
-void drawButtonLegends(const String& red, const String& green, const String& orange);
-void drawMenuTitle(const String& name);
+void drawButtonLegends(const char* red, const char* green, const char* orange);
+void drawMenuTitle(const char* name);
 
-void drawPngFile(const String& filename, int x, int y);
-void drawPngFile(const String& filename, Point xy);
-void drawPngBackground(const String& filename);
+void drawPngFile(const char* filename, Point xy);
+void drawPngBackground(const char* filename);
 
 void refreshDisplay();
 
-void showImageFile(const char* name, int x, int y, int width, int height);
-void showError();
+void drawError();

@@ -9,6 +9,7 @@
 
 #include <Arduino.h>
 #include <LittleFS.h>
+
 #include "M5Dial.h"
 #include "Encoder.h"
 
@@ -44,18 +45,21 @@ extern M5GFX&             display;
 extern m5::Speaker_Class& speaker;
 extern m5::Touch_Class&   touch;
 extern ENCODER&           encoder;
-extern String             myModeString;
+
+extern m5::Button_Class  greenButton;
+extern m5::Button_Class  redButton;
+extern m5::Button_Class& dialButton;
 
 extern Stream& debugPort;
 
-String M5TouchStateName(m5::touch_state_t state_num);
+void drawPngFile(const char* filename, int x, int y);
+
+const char* M5TouchStateName(m5::touch_state_t state_num);
 
 void init_system();
 
 void ackBeep();
 
 void log_write(uint8_t c);
-void log_print(const String& s);
-void log_println(const String& s);
-
-void listDir(fs::FS& fs, const char* dirname, uint8_t levels);
+void log_print(const std::string& s);
+void log_println(const std::string& s);

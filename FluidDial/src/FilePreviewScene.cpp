@@ -1,15 +1,15 @@
 // Copyright (c) 2023 - Barton Dringstarting
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
+#include <string>
 #include "Scene.h"
 #include "FileParser.h"
 
 extern Scene menuScene;
 
 class FilePreviewScene : public Scene {
-    String _filename;
-    bool   _needlines;
+    std::string _filename;
+    bool        _needlines;
 
 public:
     FilePreviewScene() : Scene("Preview") {}
@@ -37,13 +37,16 @@ public:
 
     void onGreenButtonPress() {
         if (state == Idle) {
-            String command = "$SD/Run=" + dirName + "/" + fileInfo.fileName;
+            std::string command("$SD/Run=");
+            command += dirName;
+            command += "/";
+            command += fileInfo.fileName;
             send_line(command.c_str());
             ackBeep();
         }
     }
     void reDisplay() {
-        String grnText, redText = "";
+        const char *grnText, *redText = "";
 
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
@@ -56,7 +59,7 @@ public:
                 int tl = 0;
                 if (fileLines.size()) {
                     for (auto const& line : fileLines) {
-                        text(line, 25, y + tl * 22, WHITE, TINY, top_left);
+                        text(line.c_str(), 25, y + tl * 22, WHITE, TINY, top_left);
                         ++tl;
                     }
                 } else {

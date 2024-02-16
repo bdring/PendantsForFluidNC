@@ -2,8 +2,8 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #pragma once
-#include <Arduino.h>
 #include "GrblParserC.h"
+#include <string>
 
 // Same states as FluidNC except for the last one
 enum state_t {
@@ -23,28 +23,29 @@ enum state_t {
 
 // Variables and functions to model the state of the FluidNC controller
 
-extern state_t state;
-extern String  stateString;
+extern state_t     state;
+extern const char* my_state_string;
 
 extern pos_t              myAxes[6];
 extern bool               myLimitSwitches[6];
 extern bool               myProbeSwitch;
-extern String             myFile;
+extern const char*        myFile;
 extern file_percent_t     myPercent;
 extern override_percent_t myFro;
 extern int                lastAlarm;
 extern int                lastError;
 extern uint32_t           errorExpire;
 
-void send_line(const String& s, int timeout = 2000);
+void send_line(const std::string& s, int timeout = 2000);
 void send_line(const char* s, int timeout = 2000);
 
-String floatToString(float val, int afterDecimal);
-String axisNumToString(int axis);
+const char* floatToCStr(float val, int afterDecimal);
+const char* axisNumToCStr(int axis);
+char        axisNumToChar(int axis);
 
-state_t decode_state_string(const char* stateString);
-String  decode_error_number(int error_num);
-String  modeString();
+state_t     decode_state_string(const char* state_string);
+const char* decode_error_number(int error_num);
+const char* mode_string();
 
 bool fnc_is_connected();
 void set_disconnected_state();

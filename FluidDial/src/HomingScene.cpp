@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
 class HomingScene : public Scene {
@@ -14,9 +13,9 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle || state == Alarm) {
-            String line = "$H";
+            std::string line = "$H";
             if (_current_button != 0) {
-                line += axisNumToString(_current_button - 1);
+                line += axisNumToChar(_current_button - 1);
             }
             log_println(line);
             send_line(line);
@@ -47,7 +46,10 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        String redLabel, grnLabel, orangeLabel = "";
+        const char* redLabel    = "";
+        const char* grnLabel    = "";
+        const char* orangeLabel = "";
+        std::string green       = "Home ";
 
         if (state == Idle || state == Homing || state == Alarm) {
             int x      = 50;
@@ -70,8 +72,8 @@ public:
             if (state == Homing) {
                 redLabel = "E-Stop";
             } else {
-                grnLabel = "Home ";
-                grnLabel += _current_button ? axisNumToString(_current_button - 1) : "All";
+                grnLabel = _current_button ? axisNumToCStr(_current_button - 1) : "All";
+                grnLabel = green.c_str();
             }
         } else {
             centered_text("Invalid State", 105, WHITE, MEDIUM);

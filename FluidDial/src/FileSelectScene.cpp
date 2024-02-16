@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 #include "FileParser.h"
 
@@ -22,8 +21,6 @@
 // clang-format on
 
 extern Scene filePreviewScene;
-
-String displayTitle = "Files";
 
 class FileSelectScene : public Scene {
 private:
@@ -66,17 +63,17 @@ public:
             return;
         }
         if (fileVector.size()) {
-            String dName;
+            std::string dName;
             fileInfo                                 = fileVector[_selected_file];
             prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
             switch (fileInfo.fileType) {
-                case 1:  //directory
+                case DIRECTORY:  //directory
                     prevSelect.push_back(0);
                     DBG_PREV_SELECT(
                         "prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
                     enter_directory(fileInfo.fileName);
                     break;
-                case 2:  // file
+                case ORDINARY:  // file
                     push_scene(&filePreviewScene, (void*)fileInfo.fileName.c_str());
                     break;
             }
@@ -117,19 +114,17 @@ public:
     }
 
     void buttonLegends() {
-        String grnText, redText = "";
+        const char *grnText, *redText = "";
 
         if (state == Idle) {
-            redText = dirLevel ? "Up..." : "Refresh";
+            redText = dirLevel ? "Up.." : "Refresh";
             if (fileVector.size()) {
                 switch (fileVector[_selected_file].fileType) {
-                    case 0:
+                    case DIRECTORY:
+                        grnText = "Down..";
                         break;
-                    case 1:
+                    case ORDINARY:
                         grnText = "Load";
-                        break;
-                    case 2:
-                        grnText = "Select";
                         break;
                 }
             }
@@ -162,11 +157,10 @@ public:
     void showFiles(int yo) {
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
-        displayTitle = current_scene->name();
         drawStatusTiny(20);
-        drawMenuTitle(displayTitle);
-        String fName;
-        int    finfoT_color = BLUE;
+        drawMenuTitle(current_scene->name());
+        std::string fName;
+        int         finfoT_color = BLUE;
 
         int fdIter = _selected_file - 1;  // first file in display list
 
@@ -201,10 +195,10 @@ public:
             }
             int middle_txt = middle._txt;
             if (fx == 1) {
-                String fInfoT = "";  // file info top line
-                String fInfoB = "";  // File info bottom line
-                int    ext    = fName.lastIndexOf('.');
-                float  fs     = 0.0;
+                std::string fInfoT = "";  // file info top line
+                std::string fInfoB = "";  // File info bottom line
+                int         ext    = fName.rfind('.');
+                float       fs     = 0.0;
                 if (fileVector.size()) {
                     switch (fileVector[_selected_file].fileType) {
                         case 0:
@@ -215,9 +209,9 @@ public:
                             break;
                         case 2:
                             if (ext > 0) {
-                                fInfoT = fName.substring(ext, fName.length());
+                                fInfoT = fName.substr(ext, fName.length());
                                 fInfoT += " file";
-                                fName.remove(ext);
+                                fName.erase(ext);
                             }
                             fInfoB = format_size(fileVector[_selected_file].fileSize);
                             break;
@@ -243,8 +237,8 @@ public:
                     auto top    = box[fi - 1];
                     auto bottom = box[fi + 1];
                     canvas.fillRoundRect(middle._xb, yo + middle._yb, middle._w, middle._h, middle._h / 2, middle._bg);
-                    text(fInfoT, top._xt, yo + top._yt, finfoT_color, top._f, top_center);
-                    text(fInfoB, bottom._xt, yo + bottom._yt, bottom._txt, bottom._f, top_center);
+                    text(fInfoT.c_str(), top._xt, yo + top._yt, finfoT_color, top._f, top_center);
+                    text(fInfoB.c_str(), bottom._xt, yo + bottom._yt, bottom._txt, bottom._f, top_center);
                 }
             }  // if (fx == 1)
 

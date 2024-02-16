@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
 class ControlScene : public Scene {
@@ -13,7 +12,7 @@ public:
 
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
-        String line = "";
+        const char* line = "";
         switch (state) {
             case Idle:
                 switch (current_button) {
@@ -32,7 +31,7 @@ public:
                     default:
                         break;
                 }
-                debug_println(line.c_str());
+                debug_println(line);
                 send_line(line);
                 break;
             case Cycle:
@@ -66,7 +65,8 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        String redLabel, grnLabel = "";
+        const char* redLabel = "";
+        const char* grnLabel = "";
 
         if (state == Idle) {
             int x      = 50;
@@ -112,7 +112,7 @@ public:
         }
 
         drawButtonLegends(redLabel, grnLabel, "Back");
-        showError();
+        drawError();
         refreshDisplay();
     }
 };

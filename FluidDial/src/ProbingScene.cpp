@@ -1,7 +1,7 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
+#include <string>
 #include "Scene.h"
 
 class ProbingScene : public Scene {
@@ -24,10 +24,12 @@ public:
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
-            String gcode = "G38.2G91";
-            gcode += "F" + floatToString(_rate, 0);
-            gcode += axisNumToString(_axis) + floatToString(_travel, 0);
-            gcode += "P" + floatToString(_offset, 2);
+            std::string gcode = "G38.2G91F";
+            gcode += floatToCStr(_rate, 0);
+            gcode += axisNumToChar(_axis);
+            gcode += floatToCStr(_travel, 0);
+            gcode += "P";
+            gcode += floatToCStr(_offset, 2);
             log_println(gcode);
             send_line(gcode);
             return;
@@ -49,10 +51,10 @@ public:
             //send_line("$X");
             return;
         } else if (state == Idle) {
-            String gcode = "$J=G91F1000";
-            gcode += axisNumToString(_axis);
+            std::string gcode = "$J=G91F1000";
+            gcode += axisNumToChar(_axis);
             gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToString(_retract, 0);
+            gcode += floatToCStr(_retract, 0);
             send_line(gcode);
             return;
         } else if (state == Hold) {
@@ -116,7 +118,7 @@ public:
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        String grnText, redText;
+        const char *grnText, *redText;
 
         if (state == Idle) {
             int    x      = 40;
@@ -125,13 +127,13 @@ public:
             int    height = 25;
             int    pitch  = 27;  // for spacing of buttons
             Stripe button(x, y, width, height, TINY);
-            button.draw("Offset", floatToString(_offset, 2), selection == 0);
-            button.draw("Max Travel", floatToString(_travel, 0), selection == 1);
+            button.draw("Offset", floatToCStr(_offset, 2), selection == 0);
+            button.draw("Max Travel", floatToCStr(_travel, 0), selection == 1);
             y = button.y();  // For LED
-            button.draw("Feed Rate", floatToString(_rate, 0), selection == 2);
+            button.draw("Feed Rate", floatToCStr(_rate, 0), selection == 2);
 
-            button.draw("Retract", floatToString(_retract, 0), selection == 3);
-            button.draw("Axis", axisNumToString(_axis), selection == 4);
+            button.draw("Retract", floatToCStr(_retract, 0), selection == 3);
+            button.draw("Axis", axisNumToCStr(_axis), selection == 4);
 
             //LED led(x - 20, y + height / 2, 10, button.gap());
             //led.draw(myProbeSwitch);
@@ -174,7 +176,7 @@ public:
         }
 
         drawButtonLegends(redText, grnText, "Back");
-        showError();  // only if one just happened
+        drawError();  // only if one just happened
         refreshDisplay();
     }
 };

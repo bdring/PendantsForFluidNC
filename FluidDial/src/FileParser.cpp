@@ -21,21 +21,22 @@ JsonStreamingParser parser;
 // that an endDocument has happened and do the reset later, when new data comes in.
 bool parser_needs_reset = true;
 
-int    dirLevel = 0;
-String dirName("/sd");
+int         dirLevel = 0;
+std::string dirName("/sd");
 
-String current_filename;
+std::string current_filename;
 
-void enter_directory(const String& name) {
-    dirName += "/" + name;
+void enter_directory(const char* name) {
+    dirName += "/";
+    dirName += name;
 
     ++dirLevel;
     request_file_list();
 }
 void exit_directory() {
     if (dirLevel) {
-        auto pos = dirName.lastIndexOf('/');
-        dirName  = dirName.substring(0, pos);
+        auto pos = dirName.rfind('/');
+        dirName  = dirName.substr(0, pos);
         --dirLevel;
         request_file_list();
     }
@@ -43,24 +44,24 @@ void exit_directory() {
 
 static bool fileinfoCompare(const fileinfo& f1, const fileinfo& f2) {
     // sort into filename order, with files first and folders second (same as on webUI)
-    if (f1.fileType > f2.fileType) {
+    if (f1.fileType == ORDINARY && f2.fileType == DIRECTORY) {
         return true;
     }
-    if (f1.fileType < f2.fileType) {
+    if (f1.fileType == DIRECTORY && f2.fileType == ORDINARY) {
         return false;
     }
-    if (f1.fileName.compareTo(f2.fileName) < 0) {
+    if (f1.fileName.compare(f2.fileName) < 0) {
         return true;
     }
     return false;
 }
 
-std::vector<String> fileLines;
+std::vector<std::string> fileLines;
 
 class FilesListListener : public JsonListener {
 private:
-    bool   haveNewFile;
-    String current_key;
+    bool        haveNewFile;
+    std::string current_key;
 
 public:
     void whitespace(char c) override {}
@@ -72,31 +73,24 @@ public:
     }
     void startObject() override {}
 
-    void key(String key) override {
+    void key(const char* key) override {
         current_key = key;
-        if (current_key == "name") {
+        if (strcmp(key, "name") == 0) {
             haveNewFile = true;  // gets reset in endObject()
         }
     }
 
-    void value(String value) override {
+    void value(const char* value) override {
         if (current_key == "name") {
             fileInfo.fileName = value;
             return;
         }
         if (current_key == "size") {
-            fileInfo.fileSize = value.toInt();
-            if (fileInfo.fileSize < 0) {
-                fileInfo.fileType = 1;
-                // fileInfo.fileName = String("/" + fileInfo.fileName);
-            }
-
-            if (fileInfo.fileSize > 0) {
-                fileInfo.fileType = 2;
-            }
-            return;
+            fileInfo.fileSize = atoi(value);
+            fileInfo.fileType = fileInfo.fileSize < 0 ? DIRECTORY : ORDINARY;
         }
     }
+
     void endArray() override { std::sort(fileVector.begin(), fileVector.end(), fileinfoCompare); }
 
     void endObject() override {
@@ -106,7 +100,7 @@ public:
         }
     }
 
-//#define DEBUG_FILE_LIST
+    //#define DEBUG_FILE_LIST
     void endDocument() override {
 #ifdef DEBUG_FILE_LIST
         int ix = 0;
@@ -138,11 +132,11 @@ public:
     }
     void startObject() override {}
 
-    void key(String key) override {
-        //      if (key == "path") {}
+    void key(const char* key) override {
+        //      if (strcmp(key, "path") == 0) {}
     }
 
-    void value(String value) override {
+    void value(const char* value) override {
         if (_in_array) {
             fileLines.push_back(value);
         }
@@ -161,19 +155,19 @@ private:
 public:
     void whitespace(char c) override {}
     void startDocument() override {}
-    void value(String value) override {}
+    void value(const char* value) override {}
     void endArray() override {}
     void endObject() override {}
     void endDocument() override {}
     void startArray() override {}
     void startObject() override {}
 
-    void key(String key) override {
-        if (key == "files") {
+    void key(const char* key) override {
+        if (strcmp(key, "files") == 0) {
             parser.setListener(&filesListListener);
             return;
         }
-        if (key == "file_lines") {
+        if (strcmp(key, "file_lines") == 0) {
             parser.setListener(&fileLinesListener);
             return;
         }
@@ -186,12 +180,13 @@ void init_listener() {
 }
 
 void request_file_list() {
-    String command("$Files/ListGCode=");
+    std::string command("$Files/ListGCode=");
     command += dirName;
     send_line(command.c_str());
 }
 
 void init_file_list() {
+    init_listener();
     dirLevel = 0;
     dirName  = "/sd";
     request_file_list();
@@ -199,7 +194,7 @@ void init_file_list() {
 
 void request_file_preview(const char* name) {
     current_filename = dirName + "/" + name;
-    String command("$File/ShowSome=7,");
+    std::string command("$File/ShowSome=7,");
     command += current_filename;
     send_line(command.c_str());
 }
