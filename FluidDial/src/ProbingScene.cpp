@@ -24,14 +24,7 @@ public:
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
-            std::string gcode = "G38.2G91F";
-            gcode += floatToCStr(_rate, 0);
-            gcode += axisNumToChar(_axis);
-            gcode += floatToCStr(_travel, 0);
-            gcode += "P";
-            gcode += floatToCStr(_offset, 2);
-            log_println(gcode);
-            send_line(gcode);
+            send_linef("G38.2G91F%s%c%sP%s", floatToCStr(_rate, 0), axisNumToChar(_axis), floatToCStr(_travel, 0), floatToCStr(_offset, 2));
             return;
         }
         if (state == Cycle) {
@@ -51,11 +44,8 @@ public:
             //send_line("$X");
             return;
         } else if (state == Idle) {
-            std::string gcode = "$J=G91F1000";
-            gcode += axisNumToChar(_axis);
-            gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToCStr(_retract, 0);
-            send_line(gcode);
+            float retract = _travel >= 0 ? _retract : -_retract;
+            send_linef("$J=G91F1000%c%s", axisNumToChar(_axis), floatToCStr(retract, 0));
             return;
         } else if (state == Hold) {
             fnc_realtime(Reset);

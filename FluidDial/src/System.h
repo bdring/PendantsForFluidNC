@@ -3,7 +3,6 @@
 
 #pragma once
 
-// #define DEBUG_TO_FNC
 #define DEBUG_TO_USB
 #define ECHO_FNC_TO_DEBUG
 
@@ -60,6 +59,9 @@ void init_system();
 
 void ackBeep();
 
-void log_write(uint8_t c);
-void log_print(const std::string& s);
-void log_println(const std::string& s);
+void dbg_write(uint8_t c);
+void dbg_print(const char* s);
+void dbg_println(const char* s);
+void dbg_print(const std::string& s);
+void dbg_println(const std::string& s);
+void dbg_printf(const char* format, ...);

@@ -29,7 +29,9 @@ extern "C" int fnc_getchar() {
     if (Serial_FNC.available()) {
         update_rx_time();
         int c = Serial_FNC.read();
-        log_write(c);  // echo
+#ifdef ECHO_FNC_TO_DEBUG
+        dbg_write(c);
+#endif
         return c;
     }
     return -1;
@@ -63,7 +65,8 @@ void drawPngFile(const char* filename, int x, int y) {
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 void init_system() {
-    auto cfg = M5.config();
+    auto cfg            = M5.config();
+    cfg.serial_baudrate = 921600;
     // Don't enable the encoder because M5's encoder driver is flaky
     M5Dial.begin(cfg, false, false);
 
@@ -88,7 +91,7 @@ void init_system() {
     init_encoder();  // Use our own encoder driver
 
     if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
-        log_println("LittleFS Mount Failed");
+        dbg_println("LittleFS Mount Failed");
         return;
     }
 
@@ -106,7 +109,14 @@ void ackBeep() {
     speaker.tone(1800, 50);
 }
 
-void log_write(uint8_t c) {
+void dbg_printf(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
+void dbg_write(uint8_t c) {
 #ifdef DEBUG_TO_USB
     if (debugPort.availableForWrite() > 1) {
         debugPort.write(c);
@@ -114,18 +124,22 @@ void log_write(uint8_t c) {
 #endif
 }
 
-void log_print(const std::string& s) {
-#ifdef DEBUG_TO_FNC
-    extern void send_line(const std::string& s, int timeout = 2000);
-    send_line("$Msg/Uart0=" + s);
-#endif
+void dbg_print(const std::string& s) {
+    dbg_print(s.c_str());
+}
+void dbg_print(const char* s) {
 #ifdef DEBUG_TO_USB
-    if (debugPort.availableForWrite() > s.length()) {
-        debugPort.print(s.c_str());
+    if (debugPort.availableForWrite() > strlen(s)) {
+        debugPort.print(s);
     }
 #endif
 }
 
-void log_println(const std::string& s) {
-    log_print(s + "\r\n");
+void dbg_println(const std::string& s) {
+    dbg_println(s.c_str());
+}
+
+void dbg_println(const char* s) {
+    dbg_print(s);
+    dbg_print("\r\n");
 }

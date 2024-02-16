@@ -69,12 +69,8 @@ public:
     void onGreenButtonPress() {
         if (state == Idle) {
             if (_continuous) {
-                // $J=G91F1000X10000
-                std::string cmd = "$J=G91F";
-                cmd += floatToCStr(_cont_speed[_axis], 0);
-                cmd += axisNumToChar(_axis);
-                cmd += "10000";
-                send_line(cmd);
+                // e.g. $J=G91F1000X10000
+                send_linef("$J=G91F%s%c10000", floatToCStr(_cont_speed[_axis], 0), axisNumToChar(_axis));
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[_axis] != MAX_INC) {
@@ -102,11 +98,7 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X-10000
-                std::string cmd = "$J=G91F";
-                cmd += floatToCStr(_cont_speed[_axis], 0);
-                cmd += axisNumToChar(_axis);
-                cmd += "-10000";
-                send_line(cmd);
+                send_linef("$J=G91F%s%c-10000", floatToCStr(_cont_speed[_axis], 0), axisNumToChar(_axis));
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[_axis] > 0) {
@@ -142,11 +134,7 @@ public:
             } else if (y < 105) {
                 rotateNumberLoop(_axis, 1, 0, 2);
             } else if (y < 140) {
-                std::string cmd("G10L20P0");
-                cmd += axisNumToChar(_axis);
-                cmd += "0";
-                log_println(cmd);
-                send_line(cmd);
+                send_linef("G10L20P0%c0", axisNumToChar(_axis));
             } else {
                 rotateNumberLoop(_active_setting, 1, 0, 1);
             }
@@ -164,15 +152,8 @@ public:
             feedRateRotator(_cont_speed[_axis], delta > 0);
         } else {
             // $J=G91F200Z5.0
-            std::string cmd = "$J=G91F";
-            cmd += floatToCStr(_rate_level[_axis], 0);
-            cmd += axisNumToChar(_axis);
-            if (delta < 0) {
-                cmd += "-";
-            }
-            cmd += floatToCStr(_increment(), 2);
-            log_println(cmd);
-            send_line(cmd);
+            float incr = delta >= 0 ? _increment() : -_increment();
+            send_linef("$J=G91F%s%c%s", floatToCStr(_rate_level[_axis], 0), axisNumToChar(_axis), floatToCStr(incr, 2));
         }
         reDisplay();
     }

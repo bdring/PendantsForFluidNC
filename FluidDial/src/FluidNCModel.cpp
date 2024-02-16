@@ -114,11 +114,20 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
     }
 }
 
-void send_line(const std::string& s, int timeout) {
-    send_line(s.c_str(), timeout);
-}
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
+    dbg_println(s);
+}
+static void vsend_linef(const char* fmt, va_list va) {
+    static char buf[128];
+    vsnprintf(buf, 128, fmt, va);
+    send_line(buf);
+}
+void send_linef(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vsend_linef(fmt, args);
+    va_end(args);
 }
 
 char axisNumToChar(int axis) {

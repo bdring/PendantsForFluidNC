@@ -37,11 +37,7 @@ public:
 
     void onGreenButtonPress() {
         if (state == Idle) {
-            std::string command("$SD/Run=");
-            command += dirName;
-            command += "/";
-            command += fileInfo.fileName;
-            send_line(command.c_str());
+            send_linef("$SD/Run=%s/%s", dirName.c_str(), fileInfo.fileName.c_str());
             ackBeep();
         }
     }

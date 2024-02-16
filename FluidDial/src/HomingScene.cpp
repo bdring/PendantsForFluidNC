@@ -13,12 +13,11 @@ public:
     void onDialButtonPress() { pop_scene(); }
     void onGreenButtonPress() {
         if (state == Idle || state == Alarm) {
-            std::string line = "$H";
             if (_current_button != 0) {
-                line += axisNumToChar(_current_button - 1);
+                send_linef("$H%c", axisNumToChar(_current_button - 1));
+            } else {
+                send_line("$H");
             }
-            log_println(line);
-            send_line(line);
         } else if (state == Cycle) {
             fnc_realtime(FeedHold);
         } else if (state == Hold) {

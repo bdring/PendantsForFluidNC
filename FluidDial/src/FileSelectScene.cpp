@@ -8,13 +8,13 @@
 #define WRAP_FILE_LIST
 // clang-format off
 #if 0
-#define DBG_WRAP_FILES(...) log_printf(__VA_ARGS__)
+#define DBG_WRAP_FILES(...) dbg_printf(__VA_ARGS__)
 #else
 #define DBG_WRAP_FILES(...)
 #endif
 
 #if 0
-#define DBG_PREV_SELECT(...) log_printf(__VA_ARGS__)
+#define DBG_PREV_SELECT(...) dbg_printf(__VA_ARGS__)
 #else
 #define DBG_PREV_SELECT(...)
 #endif
@@ -109,7 +109,7 @@ public:
     void onEncoder(int delta) override { scroll(delta); }
 
     void onMessage(char* command, char* arguments) override {
-        log_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
+        dbg_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
         // now just need to know what to do with messages
     }
 

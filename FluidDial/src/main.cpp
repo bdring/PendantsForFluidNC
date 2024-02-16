@@ -9,7 +9,7 @@ void setup() {
     init_system();
 
     delay(3000);  // view the logo and wait for the debug port to connect
-    log_println("FluidNC Pendant v0.4");
+    dbg_println("FluidNC Pendant v0.4");
 
     init_file_list();
 

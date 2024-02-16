@@ -48,7 +48,7 @@ public:
     void onEntry(void* arg) {
         PieMenu::onEntry(arg);
         if (state == Disconnected) {
-            log_println("Menu Scene in disconnected state");
+            dbg_println("Menu Scene in disconnected state");
             statusButton.disable();
             homingButton.disable();
             jogButton.disable();
@@ -58,12 +58,12 @@ public:
             setupButton.enable();
             powerButton.enable();
         } else {
-            log_println("Menu Scene in Connected state");
+            dbg_println("Menu Scene in Connected state");
         }
     }
     void onStateChange(state_t state) override {
         if (state != Disconnected) {
-            log_println("Menu state change not disconnected");
+            dbg_println("Menu state change not disconnected");
             statusButton.enable();
             homingButton.enable();
             jogButton.enable();
@@ -73,7 +73,7 @@ public:
             setupButton.enable();
             powerButton.enable();
         } else {
-            log_println("Menu state change IS disconnected");
+            dbg_println("Menu state change IS disconnected");
         }
         reDisplay();
     }

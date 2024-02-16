@@ -34,7 +34,7 @@ class PowerScene : public Scene {
 private:
 public:
     PowerScene() : Scene("Power") {}
-    void onEntry() { log_println("Power init"); }
+    void onEntry() { dbg_println("Power init"); }
     void onRedButtonPress() {
         set_disconnected_state();
         deep_sleep(0);

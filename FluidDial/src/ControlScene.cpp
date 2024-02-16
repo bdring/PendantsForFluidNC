@@ -31,7 +31,6 @@ public:
                     default:
                         break;
                 }
-                debug_println(line);
                 send_line(line);
                 break;
             case Cycle:

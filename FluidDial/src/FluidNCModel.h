@@ -3,7 +3,6 @@
 
 #pragma once
 #include "GrblParserC.h"
-#include <string>
 
 // Same states as FluidNC except for the last one
 enum state_t {
@@ -36,8 +35,8 @@ extern int                lastAlarm;
 extern int                lastError;
 extern uint32_t           errorExpire;
 
-void send_line(const std::string& s, int timeout = 2000);
 void send_line(const char* s, int timeout = 2000);
+void send_linef(const char* fmt, ...);
 
 const char* floatToCStr(float val, int afterDecimal);
 const char* axisNumToCStr(int axis);

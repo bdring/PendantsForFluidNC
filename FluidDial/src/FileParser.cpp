@@ -180,9 +180,7 @@ void init_listener() {
 }
 
 void request_file_list() {
-    std::string command("$Files/ListGCode=");
-    command += dirName;
-    send_line(command.c_str());
+    send_linef("$Files/ListGCode=%s", dirName.c_str());
 }
 
 void init_file_list() {
@@ -193,17 +191,14 @@ void init_file_list() {
 }
 
 void request_file_preview(const char* name) {
-    current_filename = dirName + "/" + name;
-    std::string command("$File/ShowSome=7,");
-    command += current_filename;
-    send_line(command.c_str());
+    send_linef("$File/ShowSome=7,%s/%s", dirName.c_str(), name);
 }
 extern "C" void handle_msg(char* command, char* arguments) {
     if (strcmp(command, "RST") == 0) {
-        log_println("FluidNC Reset");
+        dbg_println("FluidNC Reset");
     }
     if (strcmp(command, "Files changed") == 0) {
-        log_println("Files changed");
+        dbg_println("Files changed");
         init_file_list();
     }
     if (strcmp(command, "JSON") == 0) {
