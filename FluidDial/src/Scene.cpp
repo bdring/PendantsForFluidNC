@@ -25,7 +25,7 @@ void pop_scene(void* arg) {
     if (scene_stack.size()) {
         Scene* last_scene = scene_stack.back();
         scene_stack.pop_back();
-        activate_scene(last_scene);
+        activate_scene(last_scene, arg);
     }
 }
 void activate_at_top_level(Scene* scene, void* arg) {

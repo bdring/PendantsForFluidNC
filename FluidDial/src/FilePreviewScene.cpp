@@ -6,6 +6,7 @@
 #include "FileParser.h"
 
 extern Scene menuScene;
+extern Scene statusScene;
 
 class FilePreviewScene : public Scene {
     std::string _filename;
@@ -42,12 +43,17 @@ public:
         }
     }
     void reDisplay() {
-        const char *grnText, *redText = "";
+        if (state == Cycle) {
+            activate_scene(&statusScene);
+            return;
+        }
 
         canvas.createSprite(240, 240);
         drawBackground(BLACK);
         drawMenuTitle(name());
         drawStatusTiny(20);
+
+        const char *grnText, *redText = "";
 
         if (state == Idle) {
             if (_needlines == false) {

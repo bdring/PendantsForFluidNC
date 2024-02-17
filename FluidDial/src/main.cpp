@@ -8,7 +8,10 @@
 void setup() {
     init_system();
 
-    delay(3000);  // view the logo and wait for the debug port to connect
+    delay(1000);  // view the logo and wait for the debug port to connect
+
+    fnc_realtime(StatusReport);  // Kick FluidNC into action
+
     dbg_println("FluidNC Pendant v0.4");
 
     init_file_list();

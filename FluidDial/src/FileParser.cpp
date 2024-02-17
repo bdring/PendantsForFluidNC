@@ -181,6 +181,7 @@ void init_listener() {
 
 void request_file_list() {
     send_linef("$Files/ListGCode=%s", dirName.c_str());
+    parser_needs_reset = true;
 }
 
 void init_file_list() {

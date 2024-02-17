@@ -3,16 +3,12 @@
 
 #pragma once
 
-#define DEBUG_TO_USB
-#define ECHO_FNC_TO_DEBUG
-
+#include "Config.h"
 #include <Arduino.h>
 #include <LittleFS.h>
 
 #include "M5Dial.h"
 #include "Encoder.h"
-
-// #define UART_ON_PORT_B // Not recommended, see below
 
 #ifdef UART_ON_PORT_B
 constexpr static const int RED_BUTTON_PIN   = GPIO_NUM_13;
