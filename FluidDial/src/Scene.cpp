@@ -1,9 +1,8 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
-#include "Drawing.h"
+#include "System.h"
 
 Scene* current_scene = nullptr;
 
@@ -24,6 +23,7 @@ void push_scene(Scene* scene, void* arg) {
 void pop_scene(void* arg) {
     if (scene_stack.size()) {
         Scene* last_scene = scene_stack.back();
+        last_scene->onExit();
         scene_stack.pop_back();
         activate_scene(last_scene, arg);
     }
@@ -33,15 +33,61 @@ void activate_at_top_level(Scene* scene, void* arg) {
     activate_scene(scene, arg);
 }
 
+// This handles touches that are outside the round area of the M5Dial screen.
+// It is used for the PC emulation version, where the display is rectangular.
+// Touches (mouse clicks) outside of the round dial screen part are used
+// for emulating dial encoder motions and red/green/dial button presses.
+bool outside_touch_handled(int x, int y, const m5::touch_detail_t& t) {
+    x -= display.width() / 2;
+    y -= display.height() / 2;
+    int magsq = x * x + y * y;
+    if (magsq > (120 * 120)) {
+        if (y < 0) {
+            if (t.state == m5::touch_state_t::touch) {
+                int tangent = y * 100 / x;
+                if (tangent < 0) {
+                    tangent = -tangent;
+                }
+                int delta = 4;
+                if (tangent > 172) {  // tan(60)*100
+                    delta = 1;
+                } else if (tangent > 100) {  // tan(45)*100
+                    delta = 2;
+                } else if (tangent > 58) {  // tan(30)*100
+                    delta = 3;
+                }
+                if (t.state == m5::touch_state_t::touch) {
+                    current_scene->onEncoder((x > 0) ? delta : -delta);
+                }
+            }
+        } else {
+            if (x <= -90) {
+                if (t.state == m5::touch_state_t::touch) {
+                    current_scene->onRedButtonPress();
+                } else if (t.state == m5::touch_state_t::none) {
+                    current_scene->onRedButtonRelease();
+                }
+            } else if (x >= 90) {
+                if (t.state == m5::touch_state_t::touch) {
+                    current_scene->onGreenButtonPress();
+                } else if (t.state == m5::touch_state_t::none) {
+                    current_scene->onGreenButtonRelease();
+                }
+            } else {
+                if (t.state == m5::touch_state_t::touch) {
+                    current_scene->onDialButtonPress();
+                } else if (t.state == m5::touch_state_t::none) {
+                    current_scene->onDialButtonRelease();
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 void dispatch_events() {
-    static m5::touch_state_t last_touch_state = {};
-
-    M5Dial.update();
-    auto ms = m5gfx::millis();
-
-    // The red and green buttons are active low
-    redButton.setRawState(ms, !m5gfx::gpio_in(RED_BUTTON_PIN));
-    greenButton.setRawState(ms, !m5gfx::gpio_in(GREEN_BUTTON_PIN));
+    update_events();
 
     static int16_t oldEncoder   = 0;
     int16_t        newEncoder   = get_encoder();
@@ -71,19 +117,22 @@ void dispatch_events() {
         current_scene->onGreenButtonRelease();
     }
 
+    static m5::touch_state_t last_touch_state = {};
+
     auto this_touch = touch.getDetail();
     if (this_touch.state != last_touch_state) {
         last_touch_state = this_touch.state;
-        // debugPort.printf("Touch %d\r\n", this_touch.state);
-        if (this_touch.state == m5::touch_state_t::touch) {
-            //speaker.tone(1800, 50);
-            current_scene->onTouchPress(this_touch.x, this_touch.y);
-        } else if (this_touch.wasClicked()) {
-            current_scene->onTouchRelease(this_touch.x, this_touch.y);
-        } else if (this_touch.wasHold()) {
-            current_scene->onTouchHold(this_touch.x, this_touch.y);
-        } else if (this_touch.state == m5::touch_state_t::flick_end) {
-            current_scene->onTouchFlick(this_touch.x, this_touch.y, this_touch.distanceX(), this_touch.distanceY());
+        if (!outside_touch_handled(this_touch.x, this_touch.y, this_touch)) {
+            if (this_touch.state == m5::touch_state_t::touch) {
+                // speaker.tone(1800, 50);
+                current_scene->onTouchPress(this_touch.x, this_touch.y);
+            } else if (this_touch.wasClicked()) {
+                current_scene->onTouchRelease(this_touch.x, this_touch.y);
+            } else if (this_touch.wasHold()) {
+                current_scene->onTouchHold(this_touch.x, this_touch.y);
+            } else if (this_touch.state == m5::touch_state_t::flick_end) {
+                current_scene->onTouchFlick(this_touch.x, this_touch.y, this_touch.distanceX(), this_touch.distanceY());
+            }
         }
     }
 
@@ -96,6 +145,7 @@ void dispatch_events() {
     }
 }
 
+#ifdef ARDUINO
 void Scene::setPref(const char* name, int value) {
     if (!_prefs) {
         return;
@@ -156,10 +206,29 @@ bool Scene::initPrefs() {
     esp_err_t err = nvs_open(name(), NVS_READWRITE, &_prefs);
     return err == ESP_OK;
 }
+#else
+void Scene::setPref(const char* name, int value) {}
+void Scene::getPref(const char* name, int* value) {}
+void Scene::setPref(const char* name, float value) {}
+void Scene::getPref(const char* name, float* value) {}
+void Scene::setPref(const char* base_name, int axis, int value) {}
+void Scene::getPref(const char* base_name, int axis, int* value) {}
+bool Scene::initPrefs() {
+    return false;
+}
+#endif
 
 int Scene::scale_encoder(int delta) {
     _encoder_accum += delta;
     int res = _encoder_accum / _encoder_scale;
     _encoder_accum %= _encoder_scale;
     return res;
+}
+
+void Scene::background() {
+#ifdef ARDUINO
+    drawBackground(BLACK);
+#else
+    drawPngBackground("PCBackground.png");
+#endif
 }

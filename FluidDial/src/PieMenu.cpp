@@ -67,7 +67,7 @@ int PieMenu::touchedItem(int x, int y) {
     return x > 0 ? i : num_items() - i;
 }
 void PieMenu::menuBackground() {
-    drawBackground(BLACK);
+    background();
     drawStatusTiny(91);
     text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);
 }

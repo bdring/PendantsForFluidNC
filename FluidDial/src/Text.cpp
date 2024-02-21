@@ -64,7 +64,6 @@ void auto_text(const std::string& txt, int x, int y, int w, int color, fontnum_t
             if (canvas.textWidth(s.c_str()) + dotswidth <= w) {
                 if (trimleft) {
                     s.insert(0, "... ");
-                    USBSerial.printf("trimleft: %s\r\n", s.c_str());
                 } else {
                     s += " ...";
                 }

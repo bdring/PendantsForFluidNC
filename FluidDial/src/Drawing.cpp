@@ -75,7 +75,7 @@ std::map<state_t, int> stateColors = {
     { Hold,        YELLOW },
     { Jog,         CYAN },
     { SafetyDoor,  WHITE },
-    { Sleep,       WHITE },
+    { GrblSleep,   WHITE },
     { ConfigAlarm, WHITE },
     { Critical,    WHITE },
     { Disconnected, RED },
@@ -143,7 +143,7 @@ void putDigit(int& n, int x, int y, int color) {
     n /= 10;
     text(txt, x, y, color, MEDIUM, middle_right);
 }
-void fancyNumber(float n, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
+void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
     fontnum_t font     = SMALL;
     int       n_digits = n_decimals + 1;
     size_t    i;

@@ -45,7 +45,7 @@ std::map<const char *, state_t, cmp_str>  state_map = {
     { "Door:0", SafetyDoor },
     { "Door:1", SafetyDoor },
     { "Check", CheckMode },
-    { "Sleep", Sleep },
+    { "Sleep", GrblSleep },
 };
 // clang-format on
 
@@ -151,9 +151,14 @@ const char* axisNumToCStr(int axis) {
     ret[0]             = axisNumToChar(axis);
     return ret;
 }
-const char* floatToCStr(float val, int afterDecimal) {
+const char* floatToCStr(pos_t val, int afterDecimal) {
     static char buffer[20];
-    dtostrf(val, 1, afterDecimal, buffer);
+    sprintf(buffer, "%.*f", afterDecimal, val);
+    return buffer;
+}
+const char* intToCStr(int val) {
+    static char buffer[20];
+    sprintf(buffer, "%d", val);
     return buffer;
 }
 
@@ -166,6 +171,7 @@ extern "C" void show_state(const char* state_string) {
     if (decode_state_string(state_string, new_state) && state != new_state) {
         if (state == Disconnected) {
             send_line("$G");  // Refresh GCode modes
+            send_line("$RI=200");
         }
         state = new_state;
         current_scene->onStateChange(state);
@@ -173,7 +179,7 @@ extern "C" void show_state(const char* state_string) {
 }
 
 extern "C" void show_error(int error) {
-    errorExpire = millis() + 1000;
+    errorExpire = milliseconds() + 1000;
     lastError   = error;
     current_scene->reDisplay();
 }

@@ -8,7 +8,7 @@
 void setup() {
     init_system();
 
-    delay(1000);  // view the logo and wait for the debug port to connect
+    delay_ms(1000);  // view the logo and wait for the debug port to connect
 
     fnc_realtime(StatusReport);  // Kick FluidNC into action
 

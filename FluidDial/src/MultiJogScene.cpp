@@ -38,7 +38,7 @@ public:
     }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
 
         DRO dro(30, 68, 200, 32);
@@ -225,7 +225,7 @@ public:
             return;
         }
     }
-    void onDialButtonPress() { cancel_jog(); }
+    void onDialButtonPress() { pop_scene(); }
 
     void start_mpg_jog(int delta) {
         // e.g. $J=G91F1000X-10000
@@ -297,6 +297,7 @@ public:
     void onDROChange() { reDisplay(); }
     void onLimitsChange() { reDisplay(); }
     void onAlarm() { reDisplay(); }
+    void onExit() { cancel_jog(); }
 } joggingScene;
 
 #endif

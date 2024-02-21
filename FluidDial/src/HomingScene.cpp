@@ -41,7 +41,7 @@ public:
     void onDROChange() { reDisplay(); }  // also covers any status change
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 

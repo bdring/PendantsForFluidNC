@@ -5,7 +5,9 @@
 
 #include "GrblParserC.h"
 #include "Drawing.h"
-#include "nvs_flash.h"
+#ifdef ARDUINO
+#    include "nvs_flash.h"
+#endif
 
 void pop_scene(void* arg = nullptr);
 
@@ -13,7 +15,9 @@ class Scene {
 private:
     const char* _name;
 
+#ifdef ARDUINO
     nvs_handle_t _prefs {};
+#endif
 
     int _encoder_accum = 0;
     int _encoder_scale = 1;
@@ -60,6 +64,8 @@ public:
     void getPref(const char* name, float* value);
     void setPref(const char* name, int axis, int value);
     void getPref(const char* name, int axis, int* value);
+
+    void background();
 };
 
 void activate_at_top_level(Scene* scene, void* arg = nullptr);

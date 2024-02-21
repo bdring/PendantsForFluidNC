@@ -13,7 +13,7 @@ public:
     ConfirmScene() : Scene("Confirm") {}
     void onEntry(void* arg) { _msg = (const char*)arg; }
     void reDisplay() {
-        drawBackground(BLACK);  // XXX need PNG of red and green buttons
+        background();
         canvas.fillRoundRect(10, 90, 220, 60, 15, YELLOW);
         centered_text(_msg.c_str(), 120, BLACK, MEDIUM);
 

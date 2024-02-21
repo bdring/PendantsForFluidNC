@@ -78,7 +78,7 @@ public:
 
     void display() {
         canvas.createSprite(240, 240);
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 
@@ -92,7 +92,7 @@ public:
             int width = 192;
             if (myPercent > 0) {
                 canvas.fillRoundRect(20, y, width, 10, 5, LIGHTGREY);
-                width = (float)width * myPercent / 100.0;
+                width = (width * myPercent) / 100;
                 if (width > 0) {
                     canvas.fillRoundRect(20, y, width, 10, 5, GREEN);
                 }
@@ -104,26 +104,26 @@ public:
             centered_text(legend, y + 23);
         }
 
-        const char* encoder_button_text = "Menu";
-        const char* redButtonText       = "";
-        const char* greenButtonText     = "";
+        const char* dialLabel  = "Menu";
+        const char* redLabel   = "";
+        const char* greenLabel = "";
         switch (state) {
             case Alarm:
-                drawButtonLegends("Reset", "Home All", encoder_button_text);
+                drawButtonLegends("Reset", "Home All", dialLabel);
             case Homing:
-                drawButtonLegends("Reset", "", encoder_button_text);
+                drawButtonLegends("Reset", "", dialLabel);
                 break;
             case Cycle:
                 drawButtonLegends("E-Stop", "Hold", "FRO End");
                 break;
             case Hold:
-                drawButtonLegends("Quit", "Start", encoder_button_text);
+                drawButtonLegends("Quit", "Start", dialLabel);
                 break;
             case Jog:
-                drawButtonLegends("Jog Cancel", "", encoder_button_text);
+                drawButtonLegends("Jog Cancel", "", dialLabel);
                 break;
             case Idle:
-                drawButtonLegends("", "", encoder_button_text);
+                drawButtonLegends("", "", dialLabel);
                 break;
         }
         drawError();  // if there is one

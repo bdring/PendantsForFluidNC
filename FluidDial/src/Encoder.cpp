@@ -1,8 +1,10 @@
-
-#include "sdkconfig.h"
-#include "driver/pcnt.h"
-#include "driver/gpio.h"
 #include "Encoder.h"
+
+#ifdef ARDUINO
+
+#    include "sdkconfig.h"
+#    include "driver/pcnt.h"
+#    include "driver/gpio.h"
 
 /* clang-format: off */
 void init_encoder() {
@@ -47,3 +49,9 @@ int16_t get_encoder() {
     pcnt_get_counter_value(PCNT_UNIT_0, &count);
     return count;
 }
+#else
+void    init_encoder() {}
+int16_t get_encoder() {
+    return 0;
+}
+#endif

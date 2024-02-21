@@ -26,7 +26,7 @@ public:
     void onEncoder(int delta) {}
     void onStateChange(state_t state) { reDisplay(); }
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawStatus();
 
         centered_text("GCode modes:", 73, LIGHTGREY, TINY);

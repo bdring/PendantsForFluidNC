@@ -10,19 +10,33 @@ private:
 public:
     StatusScene() : Scene("Status") {}
 
-    void onDialButtonPress() { pop_scene(); }
+    void onDialButtonPress() {
+        if (state != Cycle) {
+            pop_scene();
+        }
+    }
 
     void onTouchRelease(int x, int y) {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
     void onRedButtonPress() {
+        dbg_printf("state %d %d %s\n", (int)state, lastAlarm, my_state_string);
         switch (state) {
             case Alarm:
-                if (lastAlarm == 14) {
-                    send_line("$X");
-                } else {
-                    fnc_realtime(Reset);
+                switch (lastAlarm) {
+                    case 1:   // Hard Limit
+                    case 2:   // Soft Limit
+                    case 10:  // Spindle Control
+                    case 13:  // Hard Stop
+                        // Critical alarm that must be hard-cleared with a CTRL-X reset
+                        // since streaming execution of GCode is blocked
+                        fnc_realtime(Reset);
+                        break;
+                    default:
+                        // Non-critical alarm that can be soft-cleared
+                        send_line("$X");
+                        break;
                 }
                 break;
             case Cycle:
@@ -63,12 +77,12 @@ public:
     void onLimitsChange() { reDisplay(); }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        const char* grnText = "";
-        const char* redText = "";
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         DRO dro(10, 68, 220, 32);
         dro.draw(0, false);
@@ -81,7 +95,7 @@ public:
             int height = 10;
             if (myPercent > 0) {
                 drawRect(20, y, width, height, 5, LIGHTGREY);
-                width = (float)width * myPercent / 100.0;
+                width = (width * myPercent) / 100;
                 if (width > 0) {
                     drawRect(20, y, width, height, 5, GREEN);
                 }
@@ -97,31 +111,31 @@ public:
         switch (state) {
             case Alarm:
                 if (lastAlarm == 14) {
-                    redText = "Unlock";
+                    redLabel = "Unlock";
                 } else {
-                    redText = "Reset";
+                    redLabel = "Reset";
                 }
-                grnText = "Home All";
+                grnLabel = "Home All";
                 break;
             case Homing:
-                redText = "Reset";
+                redLabel = "Reset";
                 break;
             case Cycle:
-                redText = "E-Stop";
-                grnText = "Hold";
+                redLabel = "E-Stop";
+                grnLabel = "Hold";
                 break;
             case Hold:
-                redText = "Quit";
-                grnText = "Resume";
+                redLabel = "Quit";
+                grnLabel = "Resume";
                 break;
             case Jog:
-                redText = "Jog Cancel";
+                redLabel = "Jog Cancel";
                 break;
             case Idle:
                 break;
         }
 
-        drawButtonLegends(redText, grnText, "Back");
+        drawButtonLegends(redLabel, grnLabel, "Back");
         refreshDisplay();
     }
 };

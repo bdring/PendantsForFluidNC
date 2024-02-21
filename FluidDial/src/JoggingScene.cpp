@@ -61,8 +61,8 @@ public:
     void onEntry(void* arg) {
         if (initPrefs()) {
             for (size_t axis = 0; axis < n_axes; axis++) {
-                +getPref(inInches ? "InchIncLevel" : "IncLevel", axis, &_inc_level[inInches][axis]);
-                +getPref(inInches ? "InchRateLevel" : "RateLevel", axis, &_rate_level[inInches][axis]);
+                getPref(inInches ? "InchIncLevel" : "IncLevel", axis, &_inc_level[inInches][axis]);
+                getPref(inInches ? "InchRateLevel" : "RateLevel", axis, &_rate_level[inInches][axis]);
             }
         }
     }
@@ -70,15 +70,16 @@ public:
 
     void onDialButtonPress() { pop_scene(); }
 
-    static void jogCommand(pos_t speed, int axis, float distance, int digits) {
-        send_linef("$J=G91%sF%s%c%s", inInches ? "G20" : "G21", floatToCStr(speed, 0), axisNumToChar(axis), floatToCStr(distance, digits));
+    static void continuousJogCommand(int speed, int axis, int distance) {
+        send_linef("$J=G91%sF%d%c%d", inInches ? "G20" : "G21", speed, axisNumToChar(axis), distance);
     }
+    static void incrementalJogCommand(int speed, int axis, int delta) {}
 
     void onGreenButtonPress() {
         if (state == Idle) {
             if (_continuous) {
-                // e.g. $J=G91F1000X10000
-                jogCommand(_cont_speed[inInches][_axis], _axis, 10000.0, 0);
+                // e.g. $J=G91F1000X1000
+                continuousJogCommand(_cont_speed[inInches][_axis], _axis, 2000);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[inInches][_axis] != MAX_INC) {
@@ -105,8 +106,8 @@ public:
     void onRedButtonPress() {
         if (state == Idle) {
             if (_continuous) {
-                // $J=G91F1000X-10000
-                jogCommand(_cont_speed[inInches][_axis], _axis, -10000.0, 0);
+                // $J=G91F1000X-1000
+                continuousJogCommand(_cont_speed[inInches][_axis], _axis, 2000);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[inInches][_axis] > 0) {
@@ -160,14 +161,16 @@ public:
             feedRateRotator(_cont_speed[inInches][_axis], delta > 0);
         } else {
             // $J=G91F200Z5.0
-            float increment = delta > 0 ? _increment() : -_increment();
-            jogCommand(_rate_level[inInches][_axis], _axis, increment, num_digits());
+            float distance = delta >= 0 ? _increment() : -_increment();
+            int   speed    = _rate_level[inInches][_axis];
+            send_linef("$J=G91%sF%d%c%s", inInches ? "G20" : "G21", speed, axisNumToChar(_axis), floatToCStr(distance, num_digits()));
         }
         reDisplay();
     }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        // drawBackground(BLACK);
+        background();
         centered_text(_continuous ? "Btn Jog" : "MPG Jog", 12);
 
         drawStatus();
@@ -197,7 +200,7 @@ public:
 
             if (_continuous) {
                 legend = "Rate: ";
-                legend += floatToCStr(_cont_speed[inInches][_axis], 0);
+                legend += intToCStr(_cont_speed[inInches][_axis]);
                 centered_text(legend.c_str(), 183);
             } else {
                 legend = "Increment: ";

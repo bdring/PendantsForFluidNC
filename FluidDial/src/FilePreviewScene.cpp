@@ -48,12 +48,12 @@ public:
             return;
         }
 
-        canvas.createSprite(240, 240);
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(name());
         drawStatusTiny(20);
 
-        const char *grnText, *redText = "";
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
             if (_needlines == false) {
@@ -65,19 +65,19 @@ public:
                         ++tl;
                     }
                 } else {
-                    text("No Text", 120, 120, WHITE, SMALL, middle_center);
+                    text("Empty File", 120, 120, WHITE, SMALL, middle_center);
                 }
             } else {
                 text("Reading File", 120, 120, WHITE, TINY, middle_center);
             }
-            grnText = "Run";
-            redText = "Back";
+            grnLabel = "Run";
+            redLabel = "Back";
         } else {
             centered_text("Invalid State", 105, WHITE, SMALL);
             centered_text("File Preview", 145, WHITE, SMALL);
         }
 
-        drawButtonLegends(redText, grnText, "Menu");
+        drawButtonLegends(redLabel, grnLabel, "Menu");
         refreshDisplay();
     }
 };

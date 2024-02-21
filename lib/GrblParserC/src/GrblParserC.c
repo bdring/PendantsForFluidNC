@@ -211,7 +211,7 @@ static void parse_status_report(char* field) {
     bool  isMpos = false;
 
     bool           has_filename = false;
-    char*          filename     = '\0';
+    const char*    filename     = "";
     file_percent_t file_percent = 0;
 
     // WCOs are not issued on every status report so we must
@@ -584,6 +584,7 @@ void __attribute__((weak)) show_file(const char* filename, file_percent_t percen
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
 void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed) {}
 void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
+void __attribute__((weak)) show_linenum(int linenum) {}
 // [GC: messages
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 

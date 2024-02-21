@@ -33,14 +33,14 @@ extern Scene controlScene;
 extern Scene setupScene;
 extern Scene powerScene;
 
-IB statusButton("Status", &statusScene, "/statustp.png");
-IB homingButton("Homing", &homingScene, "/hometp.png");
-IB jogButton("Jog", &joggingScene, "/jogtp.png");
-IB probeButton("Probe", &probingScene, "/probetp.png");
-IB filesButton("Files", &filesScene, "/filestp.png");
-IB controlButton("Control", &controlScene, "/controltp.png");
-IB setupButton("Setup", &setupScene, "/setuptp.png");
-IB powerButton("Power", &powerScene, "/powertp.png");
+IB statusButton("Status", &statusScene, "statustp.png");
+IB homingButton("Homing", &homingScene, "hometp.png");
+IB jogButton("Jog", &joggingScene, "jogtp.png");
+IB probeButton("Probe", &probingScene, "probetp.png");
+IB filesButton("Files", &filesScene, "filestp.png");
+IB controlButton("Control", &controlScene, "controltp.png");
+IB setupButton("Setup", &setupScene, "setuptp.png");
+IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {
 public:
@@ -48,7 +48,6 @@ public:
     void onEntry(void* arg) {
         PieMenu::onEntry(arg);
         if (state == Disconnected) {
-            dbg_println("Menu Scene in disconnected state");
             statusButton.disable();
             homingButton.disable();
             jogButton.disable();
@@ -57,8 +56,6 @@ public:
             controlButton.disable();
             setupButton.enable();
             powerButton.enable();
-        } else {
-            dbg_println("Menu Scene in Connected state");
         }
     }
     void onStateChange(state_t state) override {

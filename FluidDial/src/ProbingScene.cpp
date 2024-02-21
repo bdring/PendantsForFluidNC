@@ -104,11 +104,12 @@ public:
     }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        const char *grnText, *redText;
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
             int    x      = 40;
@@ -128,13 +129,13 @@ public:
             //LED led(x - 20, y + height / 2, 10, button.gap());
             //led.draw(myProbeSwitch);
 
-            grnText = "Probe";
-            redText = "Retract";
+            grnLabel = "Probe";
+            redLabel = "Retract";
         } else {
             if (state == Jog || state == Alarm) {  // there is no Probing state, so Cycle is a valid state on this
                 //centered_text("Invalid State", 105, WHITE, MEDIUM);
                 //centered_text("For Probing", 145, WHITE, MEDIUM);
-                redText = "Reset";
+                redLabel = "Reset";
             } else {
                 int x      = 14;
                 int height = 35;
@@ -151,21 +152,21 @@ public:
 
                 switch (state) {
                     case Cycle:
-                        redText = "E-Stop";
-                        grnText = "Hold";
+                        redLabel = "E-Stop";
+                        grnLabel = "Hold";
                         break;
                     case Hold:
-                        redText = "Reset";
-                        grnText = "Resume";
+                        redLabel = "Reset";
+                        grnLabel = "Resume";
                         break;
                     case Alarm:
-                        redText = "Reset";
+                        redLabel = "Reset";
                         break;
                 }
             }
         }
 
-        drawButtonLegends(redText, grnText, "Back");
+        drawButtonLegends(redLabel, grnLabel, "Back");
         drawError();  // only if one just happened
         refreshDisplay();
     }

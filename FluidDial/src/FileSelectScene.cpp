@@ -114,23 +114,24 @@ public:
     }
 
     void buttonLegends() {
-        const char *grnText, *redText = "";
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
-            redText = dirLevel ? "Up.." : "Refresh";
+            redLabel = dirLevel ? "Up.." : "Refresh";
             if (fileVector.size()) {
                 switch (fileVector[_selected_file].fileType) {
                     case DIRECTORY:
-                        grnText = "Down..";
+                        grnLabel = "Down..";
                         break;
                     case ORDINARY:
-                        grnText = "Load";
+                        grnLabel = "Load";
                         break;
                 }
             }
         }
 
-        drawButtonLegends(redText, grnText, "Back");
+        drawButtonLegends(redLabel, grnLabel, "Back");
     }
 
     struct {
@@ -155,15 +156,19 @@ public:
     int box_fi[3] = { 1, 3, 5 };
 
     void showFiles(int yo) {
-        canvas.createSprite(240, 240);
-        drawBackground(BLACK);
+        // canvas.createSprite(240, 240);
+        // drawBackground(BLACK);
+        dbg_println("FSS 0");
+        background();
         drawStatusTiny(20);
         drawMenuTitle(current_scene->name());
+        dbg_println("FSS 1");
         std::string fName;
         int         finfoT_color = BLUE;
 
         int fdIter = _selected_file - 1;  // first file in display list
 
+        dbg_println("FSS 2");
         for (int fx = 0; fx < 3; fx++, fdIter++) {
             int  fi     = box_fi[fx];
             auto middle = box[fi];
@@ -179,6 +184,7 @@ public:
                 }
             }
 #endif
+            dbg_println("FSS 3");
             if (fdIter < 0) {
                 if (yo == 0) {
                     DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
@@ -186,6 +192,7 @@ public:
                 continue;
             }
 
+            dbg_println("FSS 4");
             fName = "< no files >";
             if (fileVector.size()) {
                 fName = fileVector[fdIter].fileName;
@@ -193,12 +200,12 @@ public:
             if (yo == 0 && middle._bg != BLACK) {
                 canvas.fillRoundRect(middle._xb, yo + middle._yb, middle._w, middle._h, middle._h / 2, middle._bg);
             }
+            dbg_println("FSS 5");
             int middle_txt = middle._txt;
             if (fx == 1) {
                 std::string fInfoT = "";  // file info top line
                 std::string fInfoB = "";  // File info bottom line
                 int         ext    = fName.rfind('.');
-                float       fs     = 0.0;
                 if (fileVector.size()) {
                     switch (fileVector[_selected_file].fileType) {
                         case 0:
@@ -259,7 +266,9 @@ public:
                 }
             }
         }  // for(fx)
+        dbg_println("FSS 6");
         buttonLegends();
+        dbg_println("FSS 7");
         refreshDisplay();
     }
 
@@ -290,7 +299,7 @@ public:
 #ifdef SMOOTH_SCROLL
         while (abs(yo) < ylimit) {
             showFiles(yo);
-            delay(10);
+            delay_ms(10);
             yo -= yinc;
         }
 #endif

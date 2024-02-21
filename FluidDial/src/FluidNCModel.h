@@ -14,7 +14,7 @@ enum state_t {
     Hold,          // Active feed hold
     Jog,           // Jogging mode.
     SafetyDoor,    // Safety door is ajar. Feed holds and de-energizes system.
-    Sleep,         // Sleep state.
+    GrblSleep,     // Sleep state.
     ConfigAlarm,   // You can't do anything but fix your config file.
     Critical,      // You can't do anything but reset with CTRL-x or the reset button
     Disconnected,  // We can't talk to FluidNC
@@ -41,7 +41,8 @@ int num_digits();
 void send_line(const char* s, int timeout = 2000);
 void send_linef(const char* fmt, ...);
 
-const char* floatToCStr(float val, int afterDecimal);
+const char* floatToCStr(pos_t val, int afterDecimal);
+const char* intToCStr(int val);
 const char* axisNumToCStr(int axis);
 char        axisNumToChar(int axis);
 
