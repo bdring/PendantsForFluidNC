@@ -92,6 +92,9 @@ void fnc_send_line(const char* line, int timeout_ms);
 bool split(char* input, char** right, char delim);
 bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator);
 
+// Convert a pos_t value to a decimal string
+const char* pos_to_cstr(pos_t val, int afterDecimal);
+
 // Inject a byte into the parser.  Normally this happens automatically
 // via fnc_poll(), but it can also be called explicitly for debugging
 void collect(uint8_t data);

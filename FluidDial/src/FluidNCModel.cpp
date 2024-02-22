@@ -163,15 +163,6 @@ const char* axisNumToCStr(int axis) {
     ret[0]             = axisNumToChar(axis);
     return ret;
 }
-const char* floatToCStr(pos_t val, int afterDecimal) {
-    static char buffer[20];
-    sprintf(buffer, "%.*f", afterDecimal, val);
-    return buffer;
-}
-const char* pos_to_cstr(pos_t val, int afterDecimal) {
-    return floatToCStr(val, afterDecimal);
-    // return e4_to_cstr(val, afterDecimal);
-}
 
 const char* intToCStr(int val) {
     static char buffer[20];

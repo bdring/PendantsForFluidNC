@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,6 +76,12 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     *pdenominator = denominator;
 
     return c == '\0';
+}
+
+const char* pos_to_cstr(pos_t val, int afterDecimal) {
+    static char buffer[20];
+    sprintf(buffer, "%.*f", afterDecimal, val);
+    return buffer;
 }
 
 static bool is_report_type(char* report, char** body, const char* prefix, const char* suffix) {
