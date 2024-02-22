@@ -1,9 +1,10 @@
+#if 0
 // Copyright (c) 2023 - Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include "FileMenu.h"
-#include <math.h>
-#include <string>
+#    include "FileMenu.h"
+#    include <math.h>
+#    include <string>
 
 void FileItem::invoke(void* arg) {
     // doFileScreen(_name);
@@ -81,13 +82,13 @@ void FileMenu::menuBackground() {
 
     text(_dirname, { 0, 100 }, YELLOW, MEDIUM);
 
+    // Draw dot showing the selected file
     if (num_items() > 1) {
-        int   radius = 110;
-        float span   = M_PI / 1.8;
-        float dtheta = span * _selected / (num_items() - 1);
-        float theta  = M_PI / 3.6 - dtheta;
-        int   dx     = (int)(radius * cosf(theta));
-        int   dy     = (int)(radius * sinf(theta));
+        int   span = 100; // degrees
+        int   dtheta = span * _selected / (num_items() - 1);
+        int   theta  = (span/2) - dtheta;
+        int dx, dy;
+        r_degrees_to_xy(110, theta, &dx, &dy);
 
         drawFilledCircle({ dx, dy }, 8, WHITE);
     }
@@ -100,3 +101,4 @@ void FileMenu::onTouchFlick(int x, int y, int dx, int dy) {
         // up_directory();
     }
 }
+#endif

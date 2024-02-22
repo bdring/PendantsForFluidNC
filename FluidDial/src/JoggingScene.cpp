@@ -6,10 +6,12 @@
 #ifndef USE_MULTI_JOG
 #    include "Scene.h"
 #    include <string>
+#    include "e4math.h"
 
 class JoggingScene : public Scene {
 private:
-    static const int MAX_INC = 5;
+    static const int MIN_INC = -3;
+    static const int MAX_INC = 2;
     static const int n_axes  = 3;
 
     int  _active_setting = 0;  // Dist or Rate
@@ -21,10 +23,10 @@ private:
     int _cont_speed[2][3] = { { 1000, 1000, 1000 }, { 40, 40, 40 } };
 
     // Saved to NVS
-    int _inc_level[2][3]  = { { 3, 3, 2 }, { 2, 2, 1 } };  // exponent 0=0.001, 1=0.01, 2=0.1 3=1 4=10 5 = 100.00
+    int _inc_level[2][3]  = { { 0, 0, -1 }, { -1, -1, -2 } };  // exponent -4=0.0001, -3=0.001, -2=0.01 -1=0.1 0=1 1=10  2=100
     int _rate_level[2][3] = { { 1000, 1000, 100 }, { 40, 40, 4 } };
 
-    float _increment() { return pow(10.0, abs(_inc_level[inInches][_axis])) / 1000.0; }
+    e4_t _increment() { return e4_power10(_inc_level[inInches][_axis]); }
 
     void feedRateRotator(int& rate, bool up) {
         if (up) {
@@ -110,7 +112,7 @@ public:
                 continuousJogCommand(_cont_speed[inInches][_axis], _axis, 2000);
             } else {
                 if (_active_setting == 0) {
-                    if (_inc_level[inInches][_axis] > 0) {
+                    if (_inc_level[inInches][_axis] > MIN_INC) {
                         _inc_level[inInches][_axis]--;
                         setPref("IncLevel", _axis, _inc_level[inInches][_axis]);
                     }
@@ -161,9 +163,9 @@ public:
             feedRateRotator(_cont_speed[inInches][_axis], delta > 0);
         } else {
             // $J=G91F200Z5.0
-            float distance = delta >= 0 ? _increment() : -_increment();
-            int   speed    = _rate_level[inInches][_axis];
-            send_linef("$J=G91%sF%d%c%s", inInches ? "G20" : "G21", speed, axisNumToChar(_axis), floatToCStr(distance, num_digits()));
+            e4_t distance = delta >= 0 ? _increment() : -_increment();
+            int  speed    = _rate_level[inInches][_axis];
+            send_linef("$J=G91%sF%d%c%s", inInches ? "G20" : "G21", speed, axisNumToChar(_axis), e4_to_cstr(distance, num_digits()));
         }
         reDisplay();
     }
@@ -204,10 +206,10 @@ public:
                 centered_text(legend.c_str(), 183);
             } else {
                 legend = "Increment: ";
-                legend += floatToCStr(_increment(), num_digits());
+                legend += e4_to_cstr(_increment(), num_digits());
                 centered_text(legend.c_str(), 174, _active_setting == 0 ? WHITE : DARKGREY);
                 legend = "Rate: ";
-                legend += floatToCStr(_rate_level[inInches][_axis], 2);
+                legend += intToCStr(_rate_level[inInches][_axis]);
                 centered_text(legend.c_str(), 194, _active_setting == 1 ? WHITE : DARKGREY);
             }
 

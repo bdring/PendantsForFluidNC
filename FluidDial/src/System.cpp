@@ -392,11 +392,6 @@ void   init_system() {
 
 extern "C" void fnc_putchar(uint8_t c) {
     serial_write(hFNC, &c, 1);
-    if (c < ' ' || c >= 0x80) {
-        dbg_printf("0x%x", c);
-    } else {
-        dbg_write(c);
-    }
 }
 
 extern "C" int fnc_getchar() {

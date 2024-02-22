@@ -60,8 +60,6 @@ public:
 
     void setPref(const char* name, int value);
     void getPref(const char* name, int* value);
-    void setPref(const char* name, float value);
-    void getPref(const char* name, float* value);
     void setPref(const char* name, int axis, int value);
     void getPref(const char* name, int axis, int* value);
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Scene.h"
+#include "e4math.h"
 
 class ProbingScene : public Scene {
 private:
@@ -10,11 +11,11 @@ private:
     long oldPosition = 0;
 
     // Saved to NVS
-    float _offset  = 0.0;
-    float _travel  = -20.0;
-    float _rate    = 80.0;
-    float _retract = 20.0;
-    int   _axis    = 2;  // Z is default
+    e4_t _offset  = e4_from_int(0);
+    int  _travel  = -20;
+    int  _rate    = 80;
+    int  _retract = 20;
+    int  _axis    = 2;  // Z is default
 
 public:
     ProbingScene() : Scene("Probe") {}
@@ -24,7 +25,7 @@ public:
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
-            send_linef("G38.2G91F%s%c%sP%s", floatToCStr(_rate, 0), axisNumToChar(_axis), floatToCStr(_travel, 0), floatToCStr(_offset, 2));
+            send_linef("G38.2G91F%s%c%sP%s", intToCStr(_rate), axisNumToChar(_axis), intToCStr(_travel), e4_to_cstr(_offset, 2));
             return;
         }
         if (state == Cycle) {
@@ -44,8 +45,8 @@ public:
             //send_line("$X");
             return;
         } else if (state == Idle) {
-            float retract = _travel >= 0 ? _retract : -_retract;
-            send_linef("$J=G91F1000%c%s", axisNumToChar(_axis), floatToCStr(retract, 0));
+            int retract = _travel >= 0 ? _retract : -_retract;
+            send_linef("$J=G91F1000%c%d", axisNumToChar(_axis), retract);
             return;
         } else if (state == Hold) {
             fnc_realtime(Reset);
@@ -65,7 +66,7 @@ public:
         if (abs(delta) > 0) {
             switch (selection) {
                 case 0:
-                    _offset += (float)delta / 100;
+                    _offset += delta * 100;  // Increment by 0.0100
                     setPref("Offset", _offset);
                     break;
                 case 1:
@@ -118,12 +119,12 @@ public:
             int    height = 25;
             int    pitch  = 27;  // for spacing of buttons
             Stripe button(x, y, width, height, TINY);
-            button.draw("Offset", floatToCStr(_offset, 2), selection == 0);
-            button.draw("Max Travel", floatToCStr(_travel, 0), selection == 1);
+            button.draw("Offset", e4_to_cstr(_offset, 2), selection == 0);
+            button.draw("Max Travel", intToCStr(_travel), selection == 1);
             y = button.y();  // For LED
-            button.draw("Feed Rate", floatToCStr(_rate, 0), selection == 2);
+            button.draw("Feed Rate", intToCStr(_rate), selection == 2);
 
-            button.draw("Retract", floatToCStr(_retract, 0), selection == 3);
+            button.draw("Retract", intToCStr(_retract), selection == 3);
             button.draw("Axis", axisNumToCStr(_axis), selection == 4);
 
             //LED led(x - 20, y + height / 2, 10, button.gap());

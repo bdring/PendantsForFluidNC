@@ -4,27 +4,29 @@
 #include "PieMenu.h"
 #include "System.h"
 #include "Drawing.h"
+#include "polar.h"
 
 void PieMenu::calculatePositions() {
     _num_slopes = num_items() / 2;  // Rounded down
 
     _slopes.clear();
-    float theta      = 2 * M_PI / num_items();
-    float half_theta = theta / 2.0;
+    int dtheta = 360 / num_items();
 
-    float angle = M_PI / 2 - half_theta;
+    int angle = 90 - (dtheta / 2);
     for (size_t i = 0; i < _num_slopes; i++) {
-        int slope = tanf(angle) * 1024;
+        int slope = r_degrees_to_slope(1024, angle);
         _slopes.push_back(slope);
-        angle -= theta;
+        angle -= dtheta;
     }
 
     int layout_radius = display.width() / 2 - _item_radius - 3;
-    angle             = M_PI / 2;
+    angle             = 90;
     for (size_t i = 0; i < num_items(); i++) {
-        Point center = { (int)(cosf(angle) * layout_radius), (int)(sinf(angle) * layout_radius) };
+        int x, y;
+        r_degrees_to_xy(layout_radius, angle, &x, &y);
+        Point center { x, y };
         setPosition(i, center);
-        angle -= theta;
+        angle -= dtheta;
     }
 }
 

@@ -3,6 +3,7 @@
 
 #include "Scene.h"
 #include "FileParser.h"
+#include "polar.h"
 
 // #define SMOOTH_SCROLL
 #define WRAP_FILE_LIST
@@ -158,17 +159,14 @@ public:
     void showFiles(int yo) {
         // canvas.createSprite(240, 240);
         // drawBackground(BLACK);
-        dbg_println("FSS 0");
         background();
         drawStatusTiny(20);
         drawMenuTitle(current_scene->name());
-        dbg_println("FSS 1");
         std::string fName;
         int         finfoT_color = BLUE;
 
         int fdIter = _selected_file - 1;  // first file in display list
 
-        dbg_println("FSS 2");
         for (int fx = 0; fx < 3; fx++, fdIter++) {
             int  fi     = box_fi[fx];
             auto middle = box[fi];
@@ -184,7 +182,6 @@ public:
                 }
             }
 #endif
-            dbg_println("FSS 3");
             if (fdIter < 0) {
                 if (yo == 0) {
                     DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
@@ -192,7 +189,6 @@ public:
                 continue;
             }
 
-            dbg_println("FSS 4");
             fName = "< no files >";
             if (fileVector.size()) {
                 fName = fileVector[fdIter].fileName;
@@ -200,7 +196,6 @@ public:
             if (yo == 0 && middle._bg != BLACK) {
                 canvas.fillRoundRect(middle._xb, yo + middle._yb, middle._w, middle._h, middle._h / 2, middle._bg);
             }
-            dbg_println("FSS 5");
             int middle_txt = middle._txt;
             if (fx == 1) {
                 std::string fInfoT = "";  // file info top line
@@ -231,13 +226,14 @@ public:
                         canvas.drawArc(120, 120, 118 - i, 115 - i, -50, 50, DARKGREY);
                     }
 
-                    float mx  = 1.745;
-                    float s   = mx / -2.0;
-                    float inc = mx / (float)(fileVector.size() - 1);
-
-                    int x = cosf(s + inc * (float)_selected_file) * 114.0;
-                    int y = sinf(s + inc * (float)_selected_file) * 114.0;
-                    canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
+                    int x, y;
+                    int arc_degrees = 100;
+                    int divisor     = fileVector.size() - 1;
+                    int increment   = arc_degrees / divisor;
+                    int start_angle = (arc_degrees / 2);
+                    int angle       = start_angle - (_selected_file * arc_degrees) / divisor;
+                    r_degrees_to_xy(114, angle, &x, &y);
+                    canvas.fillCircle(120 + x, 120 - y, 5, LIGHTGREY);
                 }
 
                 if (yo == 0) {
@@ -266,9 +262,7 @@ public:
                 }
             }
         }  // for(fx)
-        dbg_println("FSS 6");
         buttonLegends();
-        dbg_println("FSS 7");
         refreshDisplay();
     }
 

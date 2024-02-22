@@ -60,7 +60,7 @@ public:
     void onDROChange() { reDisplay(); }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 

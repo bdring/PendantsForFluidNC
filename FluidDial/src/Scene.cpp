@@ -158,31 +158,6 @@ void Scene::getPref(const char* name, int* value) {
     }
     nvs_get_i32(_prefs, name, value);
 }
-void Scene::setPref(const char* name, float value) {
-    if (!_prefs) {
-        return;
-    }
-    union {
-        int32_t i;
-        float   f;
-    } val;
-    val.f = value;
-    nvs_set_i32(_prefs, name, val.i);
-}
-void Scene::getPref(const char* name, float* value) {
-    if (!_prefs) {
-        return;
-    }
-    union {
-        int32_t i;
-        float   f;
-    } val;
-
-    esp_err_t err = nvs_get_i32(_prefs, name, &val.i);
-    if (err == ESP_OK) {
-        *value = val.f;
-    }
-}
 static const char* setting_name(const char* base_name, int axis) {
     static char name[32];
     sprintf(name, "%s%c", base_name, axisNumToChar(axis));
@@ -209,8 +184,6 @@ bool Scene::initPrefs() {
 #else
 void Scene::setPref(const char* name, int value) {}
 void Scene::getPref(const char* name, int* value) {}
-void Scene::setPref(const char* name, float value) {}
-void Scene::getPref(const char* name, float* value) {}
 void Scene::setPref(const char* base_name, int axis, int value) {}
 void Scene::getPref(const char* base_name, int axis, int* value) {}
 bool Scene::initPrefs() {

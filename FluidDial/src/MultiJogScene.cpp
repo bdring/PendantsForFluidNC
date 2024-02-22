@@ -6,20 +6,22 @@
 #ifdef USE_MULTI_JOG
 #    include "Scene.h"
 #    include "ConfirmScene.h"
+#    include "e4math.h"
 
 class MultiJogScene : public Scene {
 private:
-    int       _dist_index[3] = { 2, 2, 2 };
-    int       max_index() { return num_digits() + 3; }  // 10^3 = 1000;
+    int       _dist_index[3] = { -1, -1, -1 };
+    int       max_index() { return 6 - num_digits(); }  // 10^3 = 1000;
+    int       min_index() { return -num_digits(); }     // 10^3 = 1000;
     int       _selected_mask = 1 << 0;
     const int num_axes       = 3;
 
 public:
     MultiJogScene() : Scene("Jog", 4) {}
-    float distance(int axis) { return pow(10.0, _dist_index[axis] - num_digits()); }
-    void  unselect_all() { _selected_mask = 0; }
-    bool  selected(int axis) { return _selected_mask & (1 << axis); }
-    bool  only(int axis) { return _selected_mask == (1 << axis); }
+    e4_t distance(int axis) { return e4_power10(_dist_index[axis]); }
+    void unselect_all() { _selected_mask = 0; }
+    bool selected(int axis) { return _selected_mask & (1 << axis); }
+    bool only(int axis) { return _selected_mask == (1 << axis); }
 
     int  next(int axis) { return (axis < 2) ? axis + 1 : 0; }
     void select(int axis) { _selected_mask |= 1 << axis; }
@@ -43,7 +45,7 @@ public:
 
         DRO dro(30, 68, 200, 32);
         for (size_t axis = 0; axis < num_axes; axis++) {
-            dro.draw(axis, _dist_index[axis], selected(axis));
+            dro.draw(axis, 3 + _dist_index[axis], selected(axis));
         }
         drawPngFile("/zero.png", { 20, -85 });
         refreshDisplay();
@@ -100,7 +102,7 @@ public:
         }
     }
     void decrement_distance(int axis) {
-        if (_dist_index[axis] > 0) {
+        if (_dist_index[axis] > min_index()) {
             --_dist_index[axis];
         }
     }
@@ -233,35 +235,33 @@ public:
         for (int axis = 0; axis < num_axes; ++axis) {
             if (selected(axis)) {
                 cmd += axisNumToChar(axis);
-                cmd += floatToCStr(delta * distance(axis), inInches ? 3 : 2);
+                cmd += e4_to_cstr(delta * distance(axis), inInches ? 3 : 2);
             }
         }
         send_line(cmd.c_str());
     }
     void start_button_jog(bool negative) {
         // e.g. $J=G91F1000X-10000
-        float total_distance = 0;
-        int   n_axes         = 0;
+        e4_t total_distance = 0;
+        int  n_axes         = 0;
         for (int axis = 0; axis < num_axes; ++axis) {
             if (selected(axis)) {
-                float axis_distance = distance(axis);
-                total_distance += axis_distance * axis_distance;
+                total_distance = e4_magnitude(total_distance, distance(axis));
                 ++n_axes;
             }
         }
-        total_distance = sqrtf(total_distance);
 
-        float feedrate = total_distance * 300;  // go 5x the highlighted distance in 1 second
+        e4_t feedrate = total_distance * 300;  // go 5x the highlighted distance in 1 second
 
         std::string cmd("$J=G91");
         cmd += inInches ? "G20" : "G21";
         cmd += "F";
-        cmd += floatToCStr(feedrate, 3);
+        cmd += e4_to_cstr(feedrate, 3);
         for (int axis = 0; axis < num_axes; ++axis) {
             if (selected(axis)) {
-                float axis_distance;
+                e4_t axis_distance;
                 if (n_axes == 1) {
-                    axis_distance = inInches ? 400 : 10000;
+                    axis_distance = e4_from_int(inInches ? 200 : 5000);
                 } else {
                     axis_distance = distance(axis) * 20;
                 }
@@ -269,7 +269,7 @@ public:
                     axis_distance = -axis_distance;
                 }
                 cmd += axisNumToChar(axis);
-                cmd += floatToCStr(axis_distance, 0);
+                cmd += e4_to_cstr(axis_distance, 0);
             }
         }
         send_line(cmd.c_str());

@@ -1,14 +1,14 @@
 #include "Menu.h"
 #include "PieMenu.h"
-#include "FileMenu.h"
+// #include "FileMenu.h"
 #include "System.h"
 
 void noop(void* arg) {}
 
 const int buttonRadius = 30;
 
-FileMenu fileMenu("Files");
-PieMenu  axisMenu("Axes", buttonRadius);
+// FileMenu fileMenu("Files");
+PieMenu axisMenu("Axes", buttonRadius);
 
 class LB : public RoundButton {
 public:
