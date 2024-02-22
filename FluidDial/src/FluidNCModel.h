@@ -41,7 +41,7 @@ int num_digits();
 void send_line(const char* s, int timeout = 2000);
 void send_linef(const char* fmt, ...);
 
-const char* floatToCStr(pos_t val, int afterDecimal);
+const char* pos_to_cstr(pos_t val, int afterDecimal);
 const char* intToCStr(int val);
 const char* axisNumToCStr(int axis);
 char        axisNumToChar(int axis);

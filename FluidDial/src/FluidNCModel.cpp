@@ -5,6 +5,7 @@
 #include <map>
 #include "System.h"
 #include "Scene.h"
+#include "e4math.h"
 
 // local copies of status items
 const char*        my_state_string    = "N/C";
@@ -110,6 +111,17 @@ extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
     myProbeSwitch = probe;
     memcpy(myLimitSwitches, limits, n_axis * sizeof(*limits));
 }
+
+extern "C" void e4_show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
+    for (int axis = 0; axis < n_axis; axis++) {
+        e4_t axis_val = axes[axis];
+        if (isMpos) {
+            axis_val -= wco[axis];
+        }
+        myAxes[axis] = inInches ? e4_mm_to_inch(axis_val) : axis_val;
+    }
+}
+
 pos_t fromMm(pos_t position) {
     return inInches ? position / 25.4 : position;
 }
@@ -156,6 +168,11 @@ const char* floatToCStr(pos_t val, int afterDecimal) {
     sprintf(buffer, "%.*f", afterDecimal, val);
     return buffer;
 }
+const char* pos_to_cstr(pos_t val, int afterDecimal) {
+    return floatToCStr(val, afterDecimal);
+    // return e4_to_cstr(val, afterDecimal);
+}
+
 const char* intToCStr(int val) {
     static char buffer[20];
     sprintf(buffer, "%d", val);

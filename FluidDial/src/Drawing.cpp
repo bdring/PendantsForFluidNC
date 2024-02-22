@@ -181,7 +181,7 @@ void DRO::draw(int axis, int hl_digit, bool highlight) {
 }
 
 void DRO::draw(int axis, bool highlight) {
-    Stripe::draw(axisNumToChar(axis), floatToCStr(myAxes[axis], num_digits()), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+    Stripe::draw(axisNumToChar(axis), pos_to_cstr(myAxes[axis], num_digits()), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
 }
 
 void LED::draw(bool highlighted) {
