@@ -9,6 +9,7 @@
 // local copies of status items
 String             stateString        = "N/C";
 state_t            state              = Idle;
+int                n_axes             = 3;
 pos_t              myAxes[6]          = { 0 };
 bool               myLimitSwitches[6] = { false };
 bool               myProbeSwitch      = false;
@@ -93,6 +94,7 @@ extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
     memcpy(myLimitSwitches, limits, n_axis * sizeof(*limits));
 }
 extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
+    n_axes = (int)n_axis;
     for (int axis = 0; axis < n_axis; axis++) {
         myAxes[axis] = axes[axis];
         if (isMpos) {
