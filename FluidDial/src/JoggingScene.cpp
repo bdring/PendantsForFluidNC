@@ -7,7 +7,6 @@
 class JoggingScene : public Scene {
 private:
     static const int MAX_INC = 5;
-    //static const int n_axes  = 6;
 
     int  _active_setting = 0;  // Dist or Rate
     int  _selection      = 0;
