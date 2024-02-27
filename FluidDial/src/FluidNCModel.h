@@ -25,6 +25,7 @@ enum state_t {
 extern state_t     state;
 extern const char* my_state_string;
 
+extern int                n_axes;
 extern pos_t              myAxes[6];
 extern bool               myLimitSwitches[6];
 extern bool               myProbeSwitch;

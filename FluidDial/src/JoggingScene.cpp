@@ -12,7 +12,6 @@ class JoggingScene : public Scene {
 private:
     static const int MIN_INC = -3;
     static const int MAX_INC = 2;
-    static const int n_axes  = 3;
 
     int  _active_setting = 0;  // Dist or Rate
     int  _selection      = 0;
@@ -20,11 +19,12 @@ private:
 
     int _axis = 0;  // the axis currently being jogged
 
-    int _cont_speed[2][3] = { { 1000, 1000, 1000 }, { 40, 40, 40 } };
+    int _cont_speed[2][3] = { { 1000, 1000, 1000, 1000, 1000, 1000 }, { 40, 40, 40 } };
 
     // Saved to NVS
-    int _inc_level[2][3]  = { { 0, 0, -1 }, { -1, -1, -2 } };  // exponent -4=0.0001, -3=0.001, -2=0.01 -1=0.1 0=1 1=10  2=100
-    int _rate_level[2][3] = { { 1000, 1000, 100 }, { 40, 40, 4 } };
+    int _inc_level[2][6]  = { { 0, 0, -1, -1, -1, -1 },
+                             { -1, -1, -2, -2, -2, -2 } };  // exponent -4=0.0001, -3=0.001, -2=0.01 -1=0.1 0=1 1=10  2=100
+    int _rate_level[2][6] = { { 1000, 1000, 100, 100, 100, 100 }, { 40, 40, 4, 4, 4, 4 } };
 
     e4_t _increment() { return e4_power10(_inc_level[inInches][_axis]); }
 
@@ -143,7 +143,7 @@ public:
             if (y < 70) {
                 _continuous = !_continuous;
             } else if (y < 105) {
-                rotateNumberLoop(_axis, 1, 0, 2);
+                rotateNumberLoop(_axis, 1, 0, n_axes - 1);
             } else if (y < 140) {
                 send_linef("G10L20P0%c0", axisNumToChar(_axis));
             } else {
