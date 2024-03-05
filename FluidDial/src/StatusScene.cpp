@@ -3,6 +3,8 @@
 
 #include "Scene.h"
 
+extern Scene menuScene;
+
 class StatusScene : public Scene {
 private:
     int menu_item = 0;
@@ -16,12 +18,17 @@ public:
         }
     }
 
+    void onStateChange(state_t old_state) {
+        if (old_state == Cycle && state == Idle && parent_scene() != &menuScene) {
+            pop_scene();
+        }
+    }
+
     void onTouchRelease(int x, int y) {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
     void onRedButtonPress() {
-        dbg_printf("state %d %d %s\n", (int)state, lastAlarm, my_state_string);
         switch (state) {
             case Alarm:
                 switch (lastAlarm) {

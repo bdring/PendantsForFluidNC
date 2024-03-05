@@ -4,15 +4,19 @@
 // System interface routines for Windows
 
 #ifdef WINDOWS
+// stdio.h must precede the include of M5Unified.h in System.h
+// in order for image files to work correctly
+#    include "stdio.h"
+
 #    include "System.h"
 #    include "FluidNCModel.h"
 
-#    include "stdio.h"
 #    include <windows.h>
 #    include <commctrl.h>
 
-M5GFX&             display = M5.Display;
-M5Canvas           canvas(&M5.Display);
+M5GFX&   display = M5.Display;
+M5Canvas canvas(&M5.Display);
+
 m5::Speaker_Class& speaker     = M5.Speaker;
 m5::Touch_Class&   touch       = M5.Touch;
 m5::Button_Class&  dialButton  = M5.BtnB;
@@ -177,7 +181,7 @@ int serial_write(HANDLE handle, LPCVOID buffer, DWORD len) {
     return actual;
 }
 
-HANDLE serial_open_com(int portnum) {  // Open COM port
+HANDLE serial_open_com(char* portname) {  // Open COM port
     wchar_t      wcomname[10];
     DCB          dcb;
     HANDLE       hComm;
@@ -186,7 +190,7 @@ HANDLE serial_open_com(int portnum) {  // Open COM port
     // swprintf() is a pain because it comes in two versions,
     // with and without the length parameter.  snwprintf() works
     // in all environments and is safer anyway.
-    snwprintf(wcomname, 10, L"\\\\.\\COM%d", portnum);
+    snwprintf(wcomname, 10, L"\\\\.\\%S", portname);
     hComm = CreateFileW(wcomname, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (hComm == INVALID_HANDLE_VALUE) {
         return hComm;
@@ -232,7 +236,7 @@ HANDLE serial_open_com(int portnum) {  // Open COM port
     return hComm;
 }
 
-#    define FNC_COM_NUM 13
+extern char* comname;
 
 HANDLE hFNC;
 void   init_system() {
@@ -241,9 +245,9 @@ void   init_system() {
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    hFNC = serial_open_com(FNC_COM_NUM);
+    hFNC = serial_open_com(comname);
     if (hFNC == INVALID_HANDLE_VALUE) {
-        dbg_printf("Can't open COM%d\n", FNC_COM_NUM);
+        dbg_printf("Can't open %s\n", comname);
         exit(1);
 
     } else {
@@ -264,20 +268,17 @@ void   init_system() {
     speaker.setVolume(255);
 }
 
+void resetFlowControl() {}
+
 extern "C" void fnc_putchar(uint8_t c) {
     serial_write(hFNC, &c, 1);
 }
 
-static char    buf[128];
-static int     bufcnt = 0;
 extern "C" int fnc_getchar() {
-    if (!bufcnt) {
-        bufcnt = serial_timed_read_com(hFNC, buf, 128, 1);
-    }
-    if (bufcnt > 0) {
-        --bufcnt;
+    char c;
+    int  cnt = serial_timed_read_com(hFNC, &c, 1, 1);
+    if (cnt > 0) {
         update_rx_time();
-        char c = buf[bufcnt];
 #    ifdef ECHO_FNC_TO_DEBUG
         dbg_write(c);
 #    endif

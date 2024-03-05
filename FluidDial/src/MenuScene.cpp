@@ -1,13 +1,14 @@
 #include "Menu.h"
 #include "PieMenu.h"
-// #include "FileMenu.h"
+#ifdef USE_WMB_FSS
+#    include "FileMenu.h"
+#endif
 #include "System.h"
 
 void noop(void* arg) {}
 
 const int buttonRadius = 30;
 
-// FileMenu fileMenu("Files");
 PieMenu axisMenu("Axes", buttonRadius);
 
 class LB : public RoundButton {
@@ -28,7 +29,12 @@ extern Scene homingScene;
 extern Scene joggingScene;
 extern Scene probingScene;
 extern Scene statusScene;
+#ifdef USE_WMB_FSS
+extern Scene wmbFileSelectScene;
+#else
 extern Scene filesScene;
+#endif
+
 extern Scene controlScene;
 extern Scene setupScene;
 extern Scene powerScene;
@@ -37,7 +43,12 @@ IB statusButton("Status", &statusScene, "statustp.png");
 IB homingButton("Homing", &homingScene, "hometp.png");
 IB jogButton("Jog", &joggingScene, "jogtp.png");
 IB probeButton("Probe", &probingScene, "probetp.png");
-IB filesButton("Files", &filesScene, "filestp.png");
+#ifdef USE_WMB_FSS
+IB filesButton("Files", &wmbFileSelectScene, "filestp.png");
+#else
+IB           filesButton("Files", &filesScene, "filestp.png");
+#endif
+
 IB controlButton("Control", &controlScene, "controltp.png");
 IB setupButton("Setup", &setupScene, "setuptp.png");
 IB powerButton("Power", &powerScene, "powertp.png");
@@ -58,9 +69,8 @@ public:
             powerButton.enable();
         }
     }
-    void onStateChange(state_t state) override {
+    void onStateChange(state_t old_state) override {
         if (state != Disconnected) {
-            dbg_println("Menu state change not disconnected");
             statusButton.enable();
             homingButton.enable();
             jogButton.enable();
@@ -69,8 +79,6 @@ public:
             controlButton.enable();
             setupButton.enable();
             powerButton.enable();
-        } else {
-            dbg_println("Menu state change IS disconnected");
         }
         reDisplay();
     }

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #include "FluidNCModel.h"
+#include "FileParser.h"  // init_file_list()
 #include <map>
 #include "System.h"
 #include "Scene.h"
@@ -113,7 +114,8 @@ extern "C" void show_limits(bool probe, const bool* limits, size_t n_axis) {
     memcpy(myLimitSwitches, limits, n_axis * sizeof(*limits));
 }
 
-extern "C" void e4_show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
+#ifdef E4_POS_T
+extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool* limits, size_t n_axis) {
     n_axes = (int)n_axis;
     for (int axis = 0; axis < n_axis; axis++) {
         e4_t axis_val = axes[axis];
@@ -123,7 +125,7 @@ extern "C" void e4_show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bo
         myAxes[axis] = inInches ? e4_mm_to_inch(axis_val) : axis_val;
     }
 }
-
+#else
 pos_t fromMm(pos_t position) {
     return inInches ? position / 25.4 : position;
 }
@@ -139,6 +141,7 @@ extern "C" void show_dro(const pos_t* axes, const pos_t* wco, bool isMpos, bool*
         }
     }
 }
+#endif
 
 void send_line(const char* s, int timeout) {
     fnc_send_line(s, timeout);
@@ -177,14 +180,15 @@ const char* mode_string() {
 }
 
 extern "C" void show_state(const char* state_string) {
-    state_t new_state;
+    state_t old_state = state, new_state;
     if (decode_state_string(state_string, new_state) && state != new_state) {
         if (state == Disconnected) {
             send_line("$G");  // Refresh GCode modes
             send_line("$RI=200");
+            init_file_list();
         }
         state = new_state;
-        current_scene->onStateChange(state);
+        current_scene->onStateChange(old_state);
     }
 }
 
@@ -194,7 +198,10 @@ extern "C" void show_error(int error) {
     current_scene->reDisplay();
 }
 
-extern "C" void show_timeout() {}
+extern "C" void show_timeout() {
+    dbg_println("Timeout");
+}
+extern "C" void show_ok() {}
 
 extern "C" void end_status_report() {
     current_scene->onDROChange();
@@ -236,6 +243,7 @@ const int disconnect_interval_ms = 6000;
 bool starting = true;
 
 void request_status_report() {
+    fnc_putchar(0x11);           // XON; request software flow control
     fnc_realtime(StatusReport);  // Request fresh status
     next_ping_ms = milliseconds() + ping_interval_ms;
 }
@@ -253,6 +261,7 @@ bool fnc_is_connected() {
         disconnect_ms = now + disconnect_interval_ms;
         return false;
     }
+
     if ((now - next_ping_ms) >= 0) {
         request_status_report();
     }

@@ -23,7 +23,6 @@ void push_scene(Scene* scene, void* arg) {
 void pop_scene(void* arg) {
     if (scene_stack.size()) {
         Scene* last_scene = scene_stack.back();
-        last_scene->onExit();
         scene_stack.pop_back();
         activate_scene(last_scene, arg);
     }
@@ -31,6 +30,9 @@ void pop_scene(void* arg) {
 void activate_at_top_level(Scene* scene, void* arg) {
     scene_stack.clear();
     activate_scene(scene, arg);
+}
+Scene* parent_scene() {
+    return scene_stack.size() ? scene_stack.back() : nullptr;
 }
 
 // This handles touches that are outside the round area of the M5Dial screen.

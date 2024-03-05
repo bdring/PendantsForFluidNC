@@ -6,6 +6,10 @@
 #include "Config.h"
 
 #ifdef ARDUINO
+#    define SCK -1
+#    define SS -1
+#    define MISO -1
+#    define MOSI -1
 #    include <Arduino.h>
 #    include <LittleFS.h>
 
@@ -50,8 +54,14 @@ extern m5::Button_Class& greenButton;
 extern m5::Button_Class& redButton;
 #endif
 
-extern M5GFX&             display;
-extern M5Canvas           canvas;
+#ifdef WINDOWSxx
+#    include "LGFX_SDL.hpp"
+extern LGFX        display;
+extern LGFX_Sprite canvas;
+#else
+extern M5GFX&            display;
+extern M5Canvas          canvas;
+#endif
 extern m5::Speaker_Class& speaker;
 extern m5::Touch_Class&   touch;
 
@@ -74,3 +84,5 @@ void dbg_printf(const char* format, ...);
 
 void update_events();
 void delay_ms(uint32_t ms);
+
+void resetFlowControl();

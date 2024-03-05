@@ -6,14 +6,10 @@
 
 typedef void (*callback_t)(void*);
 
-enum FileType {
-    ORDINARY,
-    DIRECTORY,
-};
 struct fileinfo {
     std::string fileName;
-    FileType    fileType;
     int         fileSize;
+    bool        isDir() const { return fileSize < 0; }
 };
 
 extern std::string dirName;

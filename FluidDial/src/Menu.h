@@ -27,6 +27,9 @@ public:
     Item(const char* name, Scene* scene) : _name(name), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
 
+    // Virtual so we can delete derived classes via pointer
+    virtual ~Item() {}
+
     virtual void show(const Point& where) {};
 
     virtual void invoke(void* arg = nullptr) {
@@ -176,6 +179,7 @@ public:
         _positions.push_back(position);
         ++_num_items;
     }
+    void removeAllItems();
 
     void onEntry(void* arg) override {
         if (_selected != -1) {

@@ -66,17 +66,18 @@ public:
     void background();
 };
 
-void activate_at_top_level(Scene* scene, void* arg = nullptr);
-void activate_scene(Scene* scene, void* arg = nullptr);
-void push_scene(Scene* scene, void* arg = nullptr);
+void   activate_at_top_level(Scene* scene, void* arg = nullptr);
+void   activate_scene(Scene* scene, void* arg = nullptr);
+void   push_scene(Scene* scene, void* arg = nullptr);
+Scene* parent_scene();
 
 // helper functions
 
 // Function to rotate through an aaray of numbers
 // Example:  rotateNumberLoop(variable, 1, 0, 2)
 // The variable can be integer or float.  If it is float, you need
-// to cast increment, min, and max to float otherwise the compiler
-// will try to use double and complain
+// to cast increment, min, and max to float in the calls, otherwise
+// the compiler will try to use double and complain
 
 template <typename T>
 void rotateNumberLoop(T& currentVal, T increment, T min, T max) {

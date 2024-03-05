@@ -151,9 +151,24 @@ void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_c
     if (isneg) {
         n = -n;
     }
+#ifdef E4_POS_T
+    // in e4 format, the number always has 4 postdecimal digits,
+    // so if n_decimals is less than 4, we discard digits from
+    // the right.  We could do this by computing a divisor
+    // based on e4_power10(4 - n_decimals), but the expected
+    // number of iterations of this loop is max 4, typically 2,
+    // so that is hardly worthwhile.
+    for (i = 4; i > n_decimals; --i) {
+        if (i == (n_decimals + 1)) {  // Round
+            n += 5;
+        }
+        n /= 10;
+    }
+#else
     for (i = 0; i < n_decimals; i++) {
         n *= 10;
     }
+#endif
     const int char_width = 20;
 
     int ni = (int)n;

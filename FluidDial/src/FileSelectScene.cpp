@@ -67,16 +67,12 @@ public:
             std::string dName;
             fileInfo                                 = fileVector[_selected_file];
             prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
-            switch (fileInfo.fileType) {
-                case DIRECTORY:  //directory
-                    prevSelect.push_back(0);
-                    DBG_PREV_SELECT(
-                        "prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
-                    enter_directory(fileInfo.fileName);
-                    break;
-                case ORDINARY:  // file
-                    push_scene(&filePreviewScene, (void*)fileInfo.fileName.c_str());
-                    break;
+            if (fileInfo.isDir()) {
+                prevSelect.push_back(0);
+                DBG_PREV_SELECT("prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
+                enter_directory(fileInfo.fileName);
+            } else {
+                push_scene(&filePreviewScene, (void*)fileInfo.fileName.c_str());
             }
         }
         ackBeep();
@@ -121,14 +117,7 @@ public:
         if (state == Idle) {
             redLabel = dirLevel ? "Up.." : "Refresh";
             if (fileVector.size()) {
-                switch (fileVector[_selected_file].fileType) {
-                    case DIRECTORY:
-                        grnLabel = "Down..";
-                        break;
-                    case ORDINARY:
-                        grnLabel = "Load";
-                        break;
-                }
+                grnLabel = fileVector[_selected_file].isDir() ? "Down.." : "Load";
             }
         }
 
@@ -202,21 +191,16 @@ public:
                 std::string fInfoB = "";  // File info bottom line
                 int         ext    = fName.rfind('.');
                 if (fileVector.size()) {
-                    switch (fileVector[_selected_file].fileType) {
-                        case 0:
-                            break;
-                        case 1:
-                            fInfoB     = "Folder";
-                            middle_txt = BLUE;
-                            break;
-                        case 2:
-                            if (ext > 0) {
-                                fInfoT = fName.substr(ext, fName.length());
-                                fInfoT += " file";
-                                fName.erase(ext);
-                            }
-                            fInfoB = format_size(fileVector[_selected_file].fileSize);
-                            break;
+                    if (fileVector[_selected_file].isDir()) {
+                        fInfoB     = "Folder";
+                        middle_txt = BLUE;
+                    } else {
+                        if (ext > 0) {
+                            fInfoT = fName.substr(ext, fName.length());
+                            fInfoT += " file";
+                            fName.erase(ext);
+                        }
+                        fInfoB = format_size(fileVector[_selected_file].fileSize);
                     }
                 }
 

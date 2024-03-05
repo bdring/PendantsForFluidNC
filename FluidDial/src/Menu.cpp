@@ -24,6 +24,15 @@ void RectangularButton::show(const Point& where) {
     text(_text, where, _text_color, SMALL);
 }
 
+void Menu::removeAllItems() {
+    for (auto const& item : _items) {
+        delete item;
+    }
+    _items.clear();
+    _positions.clear();
+    _num_items = 0;
+}
+
 void Menu::reDisplay() {
     menuBackground();
     show_items();

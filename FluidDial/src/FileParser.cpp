@@ -44,10 +44,10 @@ void exit_directory() {
 
 static bool fileinfoCompare(const fileinfo& f1, const fileinfo& f2) {
     // sort into filename order, with files first and folders second (same as on webUI)
-    if (f1.fileType == ORDINARY && f2.fileType == DIRECTORY) {
+    if (!f1.isDir() && f2.isDir()) {
         return true;
     }
-    if (f1.fileType == DIRECTORY && f2.fileType == ORDINARY) {
+    if (f1.isDir() && !f2.isDir()) {
         return false;
     }
     if (f1.fileName.compare(f2.fileName) < 0) {
@@ -87,7 +87,7 @@ public:
         }
         if (current_key == "size") {
             fileInfo.fileSize = atoi(value);
-            fileInfo.fileType = fileInfo.fileSize < 0 ? DIRECTORY : ORDINARY;
+            //            fileInfo.isDir    = fileInfo.fileSize < 0;
         }
     }
 
@@ -105,12 +105,7 @@ public:
 #ifdef DEBUG_FILE_LIST
         int ix = 0;
         for (auto const& vi : fileVector) {
-            USBSerial.printf("[%d] type: %d:%s:\"%s\", size: %d\r\n",
-                             ix++,
-                             vi.fileType,
-                             (vi.fileType == 2) ? "file" : "dir ",
-                             vi.fileName.c_str(),
-                             vi.fileSize);
+            USBSerial.printf("[%d] type: %s:\"%s\", size: %d\r\n", ix++, (vi.isDir()) ? "file" : "dir ", vi.fileName.c_str(), vi.fileSize);
         }
 #endif
         init_listener();
@@ -181,6 +176,7 @@ void init_listener() {
 
 void request_file_list() {
     send_linef("$Files/ListGCode=%s", dirName.c_str());
+    // parser.reset();
     parser_needs_reset = true;
 }
 
@@ -189,17 +185,18 @@ void init_file_list() {
     dirLevel = 0;
     dirName  = "/sd";
     request_file_list();
+    parser.reset();
 }
 
 void request_file_preview(const char* name) {
     send_linef("$File/ShowSome=7,%s/%s", dirName.c_str(), name);
+    // parser.reset();
 }
 extern "C" void handle_msg(char* command, char* arguments) {
     if (strcmp(command, "RST") == 0) {
         dbg_println("FluidNC Reset");
     }
     if (strcmp(command, "Files changed") == 0) {
-        dbg_println("Files changed");
         init_file_list();
     }
     if (strcmp(command, "JSON") == 0) {

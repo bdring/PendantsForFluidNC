@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef E4_POS_T
+#    include "e4math.h"
+// #    include <limits.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,9 +84,15 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
 }
 
 const char* pos_to_cstr(pos_t val, int afterDecimal) {
-    static char buffer[20];
+#ifdef E4_POS_T
+    return e4_to_cstr(val, afterDecimal);
+#else
+    blah blah blah a;
+    dlfjasdl;
+    fj static char buffer[20];
     sprintf(buffer, "%.*f", afterDecimal, val);
     return buffer;
+#endif
 }
 
 static bool is_report_type(char* report, char** body, const char* prefix, const char* suffix) {
@@ -156,10 +167,21 @@ static void parse_signon(char* body) {
 }
 
 static pos_t atopos(const char* s) {
+#ifdef E4_POS_T
+    int32_t  num;
+    uint32_t denom;
+    atofraction(s, &num, &denom);
+    if (denom == 10000) {
+        return num;
+    }
+    int64_t res = num;
+    return res * 10000 / denom;
+#else
     int32_t  numerator;
     uint32_t denominator;
     atofraction(s, &numerator, &denominator);
     return (pos_t)numerator / denominator;
+#endif
 }
 
 static size_t parse_axes(char* s, pos_t* axes) {

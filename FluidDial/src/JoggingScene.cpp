@@ -19,7 +19,7 @@ private:
 
     int _axis = 0;  // the axis currently being jogged
 
-    int _cont_speed[2][3] = { { 1000, 1000, 1000, 1000, 1000, 1000 }, { 40, 40, 40 } };
+    int _cont_speed[2][6] = { { 1000, 1000, 1000, 1000, 1000, 1000 }, { 40, 40, 40 } };
 
     // Saved to NVS
     int _inc_level[2][6]  = { { 0, 0, -1, -1, -1, -1 },

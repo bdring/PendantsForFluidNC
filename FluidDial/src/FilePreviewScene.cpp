@@ -15,10 +15,14 @@ class FilePreviewScene : public Scene {
 public:
     FilePreviewScene() : Scene("Preview") {}
     void onEntry(void* arg) {
-        char* fname = (char*)arg;
-        _filename   = fname;
-        _needlines  = true;
-        request_file_preview(fname);
+        if (arg) {
+            char* fname = (char*)arg;
+            _filename   = fname;
+            _needlines  = true;
+            request_file_preview(fname);
+        } else {
+            _needlines = false;
+        }
     }
     void onFileLines() {
         _needlines = false;
@@ -38,13 +42,13 @@ public:
 
     void onGreenButtonPress() {
         if (state == Idle) {
-            send_linef("$SD/Run=%s/%s", dirName.c_str(), fileInfo.fileName.c_str());
+            send_linef("$SD/Run=%s/%s", dirName.c_str(), _filename.c_str());
             ackBeep();
         }
     }
     void reDisplay() {
         if (state == Cycle) {
-            activate_scene(&statusScene);
+            push_scene(&statusScene);
             return;
         }
 

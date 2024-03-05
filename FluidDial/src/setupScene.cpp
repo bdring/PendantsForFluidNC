@@ -24,7 +24,7 @@ public:
     }
 
     void onEncoder(int delta) {}
-    void onStateChange(state_t state) { reDisplay(); }
+    void onStateChange(state_t old_state) { reDisplay(); }
     void reDisplay() {
         background();
         drawStatus();

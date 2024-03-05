@@ -14,7 +14,7 @@ void setup() {
 
     dbg_println("FluidNC Pendant v0.4");
 
-    init_file_list();
+    // init_file_list();
 
     extern Scene* initMenus();
     activate_scene(initMenus());

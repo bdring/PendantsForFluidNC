@@ -21,7 +21,12 @@ extern "C" {
 #define B_AXIS 4
 #define C_AXIS 5
 
-typedef float    pos_t;
+#ifdef E4_POS_T
+#    include "e4math.h"
+typedef e4_t pos_t;
+#else
+typedef float pos_t;
+#endif
 typedef int32_t  feedrate_t;
 typedef uint32_t override_percent_t;
 typedef int32_t  file_percent_t;

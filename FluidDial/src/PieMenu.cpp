@@ -101,6 +101,6 @@ void PieMenu::onTouchRelease(int x, int y) {
     }
 }
 
-void PieMenu::onStateChange(state_t state) {
+void PieMenu::onStateChange(state_t old_state) {
     reDisplay();
 }
