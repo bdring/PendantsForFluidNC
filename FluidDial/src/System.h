@@ -6,10 +6,6 @@
 #include "Config.h"
 
 #ifdef ARDUINO
-#    define SCK -1
-#    define SS -1
-#    define MISO -1
-#    define MOSI -1
 #    include <Arduino.h>
 #    include <LittleFS.h>
 
