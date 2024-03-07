@@ -190,8 +190,9 @@ void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_c
 }
 
 void DRO::draw(int axis, int hl_digit, bool highlight) {
-    text(axisNumToCStr(axis), text_left_x(), text_middle_y(), highlight ? GREEN : WHITE, MEDIUM, middle_left);
-    fancyNumber(myAxes[axis], num_digits(), hl_digit, text_right_x(), text_middle_y(), WHITE, highlight ? RED : YELLOW);
+    text(axisNumToCStr(axis), text_left_x(), text_middle_y(), highlight ? GREEN : DARKGREY, MEDIUM, middle_left);
+    fancyNumber(
+        myAxes[axis], num_digits(), hl_digit, text_right_x(), text_middle_y(), highlight ? WHITE : DARKGREY, highlight ? RED : DARKGREY);
     advance();
 }
 
