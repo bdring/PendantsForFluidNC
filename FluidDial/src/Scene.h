@@ -11,6 +11,11 @@
 
 void pop_scene(void* arg = nullptr);
 
+#ifdef ARDUINO
+#else
+typedef const char* nvs_handle_t;
+#endif
+
 extern int touchX;
 extern int touchY;
 extern int touchDeltaX;
@@ -20,8 +25,10 @@ class Scene {
 private:
     const char* _name;
 
-#ifdef ARDUINO
     nvs_handle_t _prefs {};
+#ifdef ARDUINO
+#else
+    const char* prefFileName(const char* pname, int axis);
 #endif
 
     int _encoder_accum = 0;
@@ -67,6 +74,8 @@ public:
     void getPref(const char* name, int* value);
     void setPref(const char* name, int axis, int value);
     void getPref(const char* name, int axis, int* value);
+    void setPref(const char* name, int axis, const char* value);
+    void getPref(const char* name, int axis, char* value, int maxlen);
 
     void background();
 };
