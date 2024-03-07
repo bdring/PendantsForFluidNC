@@ -37,5 +37,4 @@ public:
     int  touchedItem(int x, int y) override;
 
     void menuBackground() override;
-    void onTouchFlick(int x, int y, int dx, int dy) override;
 };

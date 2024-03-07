@@ -6,6 +6,11 @@
 
 Scene* current_scene = nullptr;
 
+int touchX;
+int touchY;
+int touchDeltaX;
+int touchDeltaY;
+
 std::vector<Scene*> scene_stack;
 
 void activate_scene(Scene* scene, void* arg) {
@@ -133,7 +138,28 @@ void dispatch_events() {
             } else if (this_touch.wasHold()) {
                 current_scene->onTouchHold(this_touch.x, this_touch.y);
             } else if (this_touch.state == m5::touch_state_t::flick_end) {
-                current_scene->onTouchFlick(this_touch.x, this_touch.y, this_touch.distanceX(), this_touch.distanceY());
+                touchX      = this_touch.x;
+                touchY      = this_touch.y;
+                touchDeltaX = this_touch.distanceX();
+                touchDeltaY = this_touch.distanceY();
+
+                int absX = abs(touchDeltaX);
+                int absY = abs(touchDeltaY);
+                if (absY > 60 && absX < (absY * 2)) {
+                    if (touchDeltaY > 0) {
+                        current_scene->onDownFlick();
+                    } else {
+                        current_scene->onUpFlick();
+                    }
+                } else if (absX > 60 && absY < (absX * 2)) {
+                    if (touchDeltaX > 0) {
+                        current_scene->onRightFlick();
+                    } else {
+                        current_scene->onLeftFlick();
+                    }
+                } else {
+                    current_scene->onTouchFlick();
+                }
             }
         }
     }

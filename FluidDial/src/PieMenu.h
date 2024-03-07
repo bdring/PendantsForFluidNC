@@ -21,7 +21,8 @@ public:
     void onEncoder(int delta) override { Menu::onEncoder(delta); }
     void onTouchHold(int x, int y) override;
     void onTouchRelease(int x, int y) override;
-    void onTouchFlick(int x, int y, int dx, int dy) override;
+    void onLeftFlick() override;
+    void onTouchFlick() override;
     void onDialButtonPress() override;
     void addItem(Item* item) {
         Menu::addItem(item);

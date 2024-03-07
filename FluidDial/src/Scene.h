@@ -11,6 +11,11 @@
 
 void pop_scene(void* arg = nullptr);
 
+extern int touchX;
+extern int touchY;
+extern int touchDeltaX;
+extern int touchDeltaY;
+
 class Scene {
 private:
     const char* _name;
@@ -36,11 +41,11 @@ public:
     virtual void onTouchPress(int x, int y) {}
     virtual void onTouchRelease(int x, int y) {}
     virtual void onTouchHold(int x, int y) {}
-    virtual void onTouchFlick(int x, int y, int dx, int dy) {
-        if (dx < -60) {
-            pop_scene();
-        }
-    }
+    virtual void onLeftFlick() { pop_scene(); }
+    virtual void onRightFlick() { onTouchFlick(); }
+    virtual void onUpFlick() { onTouchFlick(); }
+    virtual void onDownFlick() { onTouchFlick(); }
+    virtual void onTouchFlick() {}
 
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}

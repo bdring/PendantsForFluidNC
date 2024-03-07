@@ -176,14 +176,6 @@ void FileMenu::menuBackground() {
         drawFilledCircle({ dx, dy }, 8, WHITE);
     }
 }
-void FileMenu::onTouchFlick(int x, int y, int dx, int dy) {
-    if (dx < -60) {
-        pop_scene();
-    }
-    if (dy < -60) {
-        // up_directory();
-    }
-}
 
 FileMenu wmbFileSelectScene;
 #endif
