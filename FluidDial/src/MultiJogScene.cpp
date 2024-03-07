@@ -6,9 +6,18 @@
 #include "Scene.h"
 #include "ConfirmScene.h"
 #include "e4math.h"
-#include "polar.h"
 
+extern Scene helpScene;
 extern Scene fileSelectScene;
+
+static const char* help_text[] = { "Jog",
+                                   "Touch:",
+                                   "Top/Bottom: choose axis",
+                                   "Left/Right: set digit"
+                                   "",
+                                   "Turn: jog by digit",
+                                   "Red/Grn: hold to jog",
+                                   NULL };
 
 class MultiJogScene : public Scene {
 private:
@@ -190,10 +199,12 @@ public:
         x = ctr.x;
         y = ctr.y;
 
-        int dead_radius = display.width() / 6;
+        int center_radius = display.width() / 6;
 
-        if ((x * x + y * y) < (dead_radius * dead_radius)) {
-            return;  // In middle dead zone
+        if ((x * x + y * y) < (center_radius * center_radius)) {
+            // Center of screen
+            push_scene(&helpScene, (void*)help_text);
+            return;
         }
 
         // Sense touches at top, bottom, left, and right
