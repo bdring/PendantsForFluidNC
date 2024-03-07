@@ -89,10 +89,12 @@ public:
             controlButton.enable();
             setupButton.enable();
             powerButton.enable();
+#ifdef AUTO_JOG_SCENE
             if (state == Idle) {
                 push_scene(&jogScene);
                 return;
             }
+#endif
         }
         reDisplay();
     }
