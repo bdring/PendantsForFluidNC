@@ -32,7 +32,7 @@ extern Scene statusScene;
 #ifdef USE_WMB_FSS
 extern Scene wmbFileSelectScene;
 #else
-extern Scene filesScene;
+extern Scene fileSelectScene;
 #endif
 
 extern Scene controlScene;
@@ -46,7 +46,7 @@ IB probeButton("Probe", &probingScene, "probetp.png");
 #ifdef USE_WMB_FSS
 IB filesButton("Files", &wmbFileSelectScene, "filestp.png");
 #else
-IB           filesButton("Files", &filesScene, "filestp.png");
+IB           filesButton("Files", &fileSelectScene, "filestp.png");
 #endif
 
 IB controlButton("Control", &controlScene, "controltp.png");

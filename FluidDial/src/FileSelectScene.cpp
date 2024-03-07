@@ -289,4 +289,4 @@ public:
 
     void reDisplay() { showFiles(0); }
 };
-FileSelectScene filesScene;
+FileSelectScene fileSelectScene;
