@@ -72,8 +72,12 @@ public:
 
     void onDialButtonPress() { pop_scene(); }
 
-    static void continuousJogCommand(int speed, int axis) {
-        int distance = inInches ? 100 : 2000;
+    static void continuousJogCommand(int speed, int axis, int distance) {
+        if (inInches) {
+            // Close enough; the distance is just the max and we don't
+            // want to go so far that the numbers overflow inside FluidNC
+            distance /= 25;
+        }
         send_linef("$J=G91%sF%d%c%d", inInches ? "G20" : "G21", speed, axisNumToChar(axis), distance);
     }
     static void incrementalJogCommand(int speed, int axis, int delta) {}
@@ -82,7 +86,7 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // e.g. $J=G91F1000X1000
-                continuousJogCommand(_cont_speed[inInches][_axis], _axis);
+                continuousJogCommand(_cont_speed[inInches][_axis], _axis, 2000);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[inInches][_axis] != MAX_INC) {
@@ -110,7 +114,7 @@ public:
         if (state == Idle) {
             if (_continuous) {
                 // $J=G91F1000X-1000
-                continuousJogCommand(_cont_speed[inInches][_axis], _axis);
+                continuousJogCommand(_cont_speed[inInches][_axis], _axis, -2000);
             } else {
                 if (_active_setting == 0) {
                     if (_inc_level[inInches][_axis] > MIN_INC) {
