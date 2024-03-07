@@ -23,6 +23,8 @@
 
 extern Scene filePreviewScene;
 
+extern Scene& jogScene;
+
 class FileSelectScene : public Scene {
 private:
     int              _selected_file = 0;
@@ -144,6 +146,8 @@ public:
         { 20, 120, 168, 181, 200, 23, SMALL, BLACK, WHITE },     // [5]file[2] fileName
     };
     int box_fi[3] = { 1, 3, 5 };
+
+    void onRightFlick() { activate_scene(&jogScene); }
 
     void showFiles(int yo) {
         // canvas.createSprite(240, 240);

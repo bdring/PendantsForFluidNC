@@ -7,6 +7,7 @@
 #    include "Scene.h"
 #    include <string>
 #    include "e4math.h"
+extern Scene fileSelectScene;
 
 class JoggingScene : public Scene {
 private:
@@ -141,6 +142,8 @@ public:
             cancelJog();
         }
     }
+
+    void onRightFlick() { activate_scene(&fileSelectScene); }
 
     void onTouchRelease(int x, int y) {
         //Use dial to break out of continuous mode

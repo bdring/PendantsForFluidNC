@@ -27,12 +27,21 @@ public:
 
 extern Scene homingScene;
 extern Scene joggingScene;
+extern Scene joggingScene2;
+extern Scene multiJogScene;
 extern Scene probingScene;
 extern Scene statusScene;
+
 #ifdef USE_WMB_FSS
 extern Scene wmbFileSelectScene;
 #else
 extern Scene fileSelectScene;
+#endif
+
+#ifdef USE_MULTI_JOG
+Scene& jogScene = multiJogScene;
+#else
+Scene&       jogScene = joggingScene;
 #endif
 
 extern Scene controlScene;
@@ -41,8 +50,9 @@ extern Scene powerScene;
 
 IB statusButton("Status", &statusScene, "statustp.png");
 IB homingButton("Homing", &homingScene, "hometp.png");
-IB jogButton("Jog", &joggingScene, "jogtp.png");
+IB jogButton("Jog", &jogScene, "jogtp.png");
 IB probeButton("Probe", &probingScene, "probetp.png");
+
 #ifdef USE_WMB_FSS
 IB filesButton("Files", &wmbFileSelectScene, "filestp.png");
 #else
@@ -79,6 +89,10 @@ public:
             controlButton.enable();
             setupButton.enable();
             powerButton.enable();
+            if (state == Idle) {
+                push_scene(&jogScene);
+                return;
+            }
         }
         reDisplay();
     }
