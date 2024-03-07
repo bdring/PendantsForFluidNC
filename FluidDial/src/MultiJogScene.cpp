@@ -143,7 +143,7 @@ public:
             select(num_axes - 1);
             return;
         }
-        printf("Uns %d\n", the_axis);
+        unselect(the_axis);
         if (++the_axis == num_axes) {
             the_axis = 0;
         }

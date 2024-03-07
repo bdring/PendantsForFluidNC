@@ -74,8 +74,8 @@ void PieMenu::menuBackground() {
     text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);
 }
 
-void PieMenu::onTouchFlick(int x, int y, int dx, int dy) {
-    int item = touchedItem(x, y);
+void PieMenu::onTouchFlick() {
+    int item = touchedItem(touchX, touchY);
     if (item != -1) {
         select(item);
         ackBeep();
