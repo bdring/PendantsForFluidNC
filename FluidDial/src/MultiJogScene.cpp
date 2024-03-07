@@ -3,10 +3,12 @@
 
 #include "Config.h"
 
-#ifdef USE_MULTI_JOG
-#    include "Scene.h"
-#    include "ConfirmScene.h"
-#    include "e4math.h"
+#include "Scene.h"
+#include "ConfirmScene.h"
+#include "e4math.h"
+#include "polar.h"
+
+extern Scene fileSelectScene;
 
 class MultiJogScene : public Scene {
 private:
@@ -18,6 +20,7 @@ private:
 
 public:
     MultiJogScene() : Scene("Jog", 4) {}
+
     e4_t distance(int axis) { return e4_power10(_dist_index[axis]); }
     void unselect_all() { _selected_mask = 0; }
     bool selected(int axis) { return _selected_mask & (1 << axis); }
@@ -41,13 +44,15 @@ public:
 
     void reDisplay() {
         background();
+        drawPngBackground("/jogbg.png");
+
         drawMenuTitle(current_scene->name());
 
         DRO dro(30, 68, 200, 32);
         for (size_t axis = 0; axis < num_axes; axis++) {
             dro.draw(axis, 3 + _dist_index[axis], selected(axis));
         }
-        drawPngFile("/zero.png", { 20, -85 });
+        drawButtonLegends("Jog-", "Jog+", "Zero");
         refreshDisplay();
     }
     void zero_axes() {
@@ -138,11 +143,11 @@ public:
             select(num_axes - 1);
             return;
         }
-        if (the_axis == num_axes - 1) {
-            return;
+        printf("Uns %d\n", the_axis);
+        if (++the_axis == num_axes) {
+            the_axis = 0;
         }
-        unselect(the_axis);
-        select(the_axis + 1);
+        select(the_axis);
     }
     void prev_axis() {
         int the_axis = the_selected_axis();
@@ -155,44 +160,59 @@ public:
             select(0);
             return;
         }
-        if (the_axis == 0) {
-            return;
-        }
         unselect(the_axis);
-        select(the_axis - 1);
+        if (--the_axis < 0) {
+            the_axis = num_axes - 1;
+        }
+        select(the_axis);
     }
-    void onTouchRelease(int x, int y) {
-#    if 0
-        int axis = which(x, y);
-        if (axis < 0) {
-            return;
-        }
-
-        unselect_all();
-        select(axis);
-        if (x < 80) {
-            if (selected(axis)) {
-                unselect(axis);
-                select(next(axis));
-            } else {
-                unselect_all();
-                select(axis);
-            }
-        } else if (x < 80) {
-            increment_distance(axis);
-        } else {
-            decrement_distance(axis);
-        }
-#    else
-        if (x < 120) {
-            increment_distance();
-        } else {
-            decrement_distance();
-        }
-#    endif
+    void touch_top() {
+        prev_axis();
         reDisplay();
     }
+    void touch_bottom() {
+        next_axis();
+        reDisplay();
+    }
+    void touch_left() {
+        increment_distance();
+        reDisplay();
+    }
+    void touch_right() {
+        decrement_distance();
+        reDisplay();
+    }
+
+    void onTouchRelease(int x, int y) {
+        // Convert from screen coordinates to 0,0 in the center
+        Point ctr = Point { x, y }.from_display();
+
+        x = ctr.x;
+        y = ctr.y;
+
+        int dead_radius = display.width() / 6;
+
+        if ((x * x + y * y) < (dead_radius * dead_radius)) {
+            return;  // In middle dead zone
+        }
+
+        // Sense touches at top, bottom, left, and right
+        if (std::abs(y) > std::abs(x)) {
+            if (y > 0) {
+                touch_top();
+            } else {
+                touch_bottom();
+            }
+        } else {
+            if (x > 0) {
+                touch_right();
+            } else {
+                touch_left();
+            }
+        }
+    }
     void onTouchHold(int x, int y) {
+        // Select multiple axes
         if (x < 80) {
             int axis = which(x, y);
             if (selected(axis) && !only(axis)) {
@@ -203,31 +223,16 @@ public:
             reDisplay();
             return;
         }
+#if 0
         if (x < 160 && y > 160) {
             confirm_zero_axes();
         }
+#endif
     }
 
-    void onTouchFlick(int x, int y, int dx, int dy) override {
-        int absdx = std::abs(dx);
-        int absdy = std::abs(dy);
-        if (absdy < 30 && dx < -40) {  // Flick left
-            pop_scene();
-            return;
-        }
-        if (absdx < 30) {
-            if (dy > 40) {  // Flick down
-                next_axis();
-                // decrement_distance();
-            } else if (dy < -40) {
-                // increment_distance();
-                prev_axis();
-            }
-            reDisplay();
-            return;
-        }
-    }
-    void onDialButtonPress() { pop_scene(); }
+    void onRightFlick() override { activate_scene(&fileSelectScene); }
+
+    void onDialButtonPress() { zero_axes(); }
 
     void start_mpg_jog(int delta) {
         // e.g. $J=G91F1000X-10000
@@ -298,6 +303,4 @@ public:
     void onLimitsChange() { reDisplay(); }
     void onAlarm() { reDisplay(); }
     void onExit() { cancel_jog(); }
-} joggingScene;
-
-#endif
+} multiJogScene;

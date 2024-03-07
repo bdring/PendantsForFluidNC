@@ -3,10 +3,10 @@
 
 #include "Config.h"
 
-#ifndef USE_MULTI_JOG
-#    include "Scene.h"
-#    include <string>
-#    include "e4math.h"
+#include "Scene.h"
+#include <string>
+#include "e4math.h"
+
 extern Scene fileSelectScene;
 
 class JoggingScene : public Scene {
@@ -264,4 +264,3 @@ public:
     }
 };
 JoggingScene joggingScene;
-#endif
