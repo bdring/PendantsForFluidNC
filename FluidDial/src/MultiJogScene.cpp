@@ -27,6 +27,8 @@ private:
     int       _selected_mask = 1 << 0;
     const int num_axes       = 3;
     bool      _cancelling    = false;
+    bool      _cancel_held   = false;
+    bool      _continuous    = false;
 
 public:
     MultiJogScene() : Scene("Jog", 4) {}
@@ -58,7 +60,10 @@ public:
 
         drawMenuTitle(current_scene->name());
 
-        if (_cancelling) {
+        if (state != Jog && _cancelling) {
+            _cancelling = false;
+        }
+        if (_cancelling || _cancel_held) {
             centered_text("Cancel", 120, RED, LARGE);
         } else {
             DRO dro(20, 68, 210, 32);
@@ -66,7 +71,9 @@ public:
                 dro.draw(axis, _dist_index[axis], selected(axis));
             }
             if (state == Jog) {
-                centered_text("Touch to Cancel", 180, WHITE, SMALL);
+                if (!_continuous) {
+                    centered_text("Touch to Cancel", 185, YELLOW, SMALL);
+                }
             } else {
                 std::string dialLegend("Zero");
                 for (int axis = 0; axis < num_axes; axis++) {
@@ -158,7 +165,13 @@ public:
             }
         }
     }
-    void cancel_jog() { fnc_realtime(JogCancel); }
+    void cancel_jog() {
+        if (state == Jog) {
+            fnc_realtime(JogCancel);
+            _continuous = false;
+            _cancelling = true;
+        }
+    }
     void next_axis() {
         int the_axis = the_selected_axis();
         if (the_axis == -2) {
@@ -212,19 +225,19 @@ public:
 
     void onTouchPress() {
         if (state == Jog) {
+            _cancel_held = true;
             cancel_jog();
-            _cancelling = true;
         }
         reDisplay();
     }
 
     void onTouchRelease() {
-        _cancelling = false;
+        _cancel_held = false;
         reDisplay();
     }
 
     void onTouchClick() {
-        if (state == Jog || _cancelling) {
+        if (state == Jog || _cancelling || _cancel_held) {
             return;
         }
         // Convert from screen coordinates to 0,0 in the center
@@ -323,6 +336,7 @@ public:
             }
         }
         send_line(cmd.c_str());
+        _continuous = true;
     }
 
     void onGreenButtonPress() {
