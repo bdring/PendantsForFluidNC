@@ -47,10 +47,21 @@ public:
         dbg_println("Sleep");
 #endif
     }
+    void onGreenButtonPress() {
+        set_disconnected_state();
+#ifdef ARDUINO
+        esp_restart();
+#endif
+    }
     void onDialButtonPress() { pop_scene(); }
     void reDisplay() {
         background();
-        drawButtonLegends("Sleep", "", "Back");
+#ifdef ARDUINO
+        const char* greenLegend = "Restart";
+#else
+        const char* greenLegend = "";
+#endif
+        drawButtonLegends("Sleep", greenLegend, "Back");
         refreshDisplay();
     }
 } powerScene;
