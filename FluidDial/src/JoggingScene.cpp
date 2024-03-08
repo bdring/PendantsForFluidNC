@@ -145,14 +145,14 @@ public:
 
     void onRightFlick() { activate_scene(&fileSelectScene); }
 
-    void onTouchRelease(int x, int y) {
+    void onTouchClick() {
         //Use dial to break out of continuous mode
         if (state == Idle) {
-            if (y < 70) {
+            if (touchY < 70) {
                 _continuous = !_continuous;
-            } else if (y < 105) {
+            } else if (touchY < 105) {
                 rotateNumberLoop(_axis, 1, 0, n_axes - 1);
-            } else if (y < 140) {
+            } else if (touchY < 140) {
                 send_linef("G10L20P0%c0", axisNumToChar(_axis));
             } else {
                 rotateNumberLoop(_active_setting, 1, 0, 1);

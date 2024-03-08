@@ -97,7 +97,7 @@ public:
         ackBeep();
     }
 
-    void onTouchRelease(int x, int y) { onGreenButtonPress(); }
+    void onTouchClick() { onGreenButtonPress(); }
 
     void onFilesList() override {
         DBG_PREV_SELECT("prevSelect::back:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);

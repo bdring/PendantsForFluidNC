@@ -201,8 +201,8 @@ public:
         _items[item]->highlight();
         reDisplay();
     }
-    void onTouchRelease(int x, int y) override {
-        select(touchedItem(x, y));
+    void onTouchClick() override {
+        select(touchedItem(touchX, touchY));
         ackBeep();
     }
     void invoke() { _items[_selected]->invoke(); }

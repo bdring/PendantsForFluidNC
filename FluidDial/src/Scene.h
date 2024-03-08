@@ -45,9 +45,10 @@ public:
     virtual void onGreenButtonRelease() {}
     virtual void onDialButtonPress() {}
     virtual void onDialButtonRelease() {}
-    virtual void onTouchPress(int x, int y) {}
-    virtual void onTouchRelease(int x, int y) {}
-    virtual void onTouchHold(int x, int y) {}
+    virtual void onTouchPress() {}
+    virtual void onTouchRelease() {}
+    virtual void onTouchClick() {}
+    virtual void onTouchHold() {}
     virtual void onLeftFlick() { pop_scene(); }
     virtual void onRightFlick() { onTouchFlick(); }
     virtual void onUpFlick() { onTouchFlick(); }

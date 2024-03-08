@@ -16,7 +16,7 @@ public:
     void onGreenButtonPress() {}
     void onRedButtonPress() {}
 
-    void onTouchRelease(int x, int y) override {
+    void onTouchClick() override {
         fnc_realtime(StatusReport);
         if (state == Idle) {
             send_line("$G");

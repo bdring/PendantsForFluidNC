@@ -24,7 +24,7 @@ public:
         }
     }
 
-    void onTouchRelease(int x, int y) {
+    void onTouchClick() {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 

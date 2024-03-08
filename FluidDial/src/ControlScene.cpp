@@ -50,7 +50,7 @@ public:
         }
     }
 
-    void onTouchRelease(int x, int y) {
+    void onTouchClick() {
         // Rotate through the items to be adjusted.
         rotateNumberLoop(current_button, 1, 0, 3);
         reDisplay();

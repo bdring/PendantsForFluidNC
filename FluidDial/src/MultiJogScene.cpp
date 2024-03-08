@@ -10,7 +10,7 @@
 extern Scene helpScene;
 extern Scene fileSelectScene;
 
-static const char* help_text[] = { "Jog",
+static const char* help_text[] = { "Jog Help",
                                    "Touch:",
                                    "Top/Bottom: choose axis",
                                    "Left/Right: set digit"
@@ -21,16 +21,17 @@ static const char* help_text[] = { "Jog",
 
 class MultiJogScene : public Scene {
 private:
-    int       _dist_index[3] = { -1, -1, -1 };
-    int       max_index() { return 6 - num_digits(); }  // 10^3 = 1000;
-    int       min_index() { return -num_digits(); }     // 10^3 = 1000;
+    int       _dist_index[3] = { 2, 2, 2 };
+    int       max_index() { return 6; }  // 10^3 = 1000;
+    int       min_index() { return 0; }  // 10^3 = 1000;
     int       _selected_mask = 1 << 0;
     const int num_axes       = 3;
+    bool      _cancelling    = false;
 
 public:
     MultiJogScene() : Scene("Jog", 4) {}
 
-    e4_t distance(int axis) { return e4_power10(_dist_index[axis]); }
+    e4_t distance(int axis) { return e4_power10(_dist_index[axis] - num_digits()); }
     void unselect_all() { _selected_mask = 0; }
     bool selected(int axis) { return _selected_mask & (1 << axis); }
     bool only(int axis) { return _selected_mask == (1 << axis); }
@@ -57,11 +58,25 @@ public:
 
         drawMenuTitle(current_scene->name());
 
-        DRO dro(30, 68, 200, 32);
-        for (size_t axis = 0; axis < num_axes; axis++) {
-            dro.draw(axis, 3 + _dist_index[axis], selected(axis));
+        if (_cancelling) {
+            centered_text("Cancel", 120, RED, LARGE);
+        } else {
+            DRO dro(20, 68, 210, 32);
+            for (size_t axis = 0; axis < num_axes; axis++) {
+                dro.draw(axis, _dist_index[axis], selected(axis));
+            }
+            if (state == Jog) {
+                centered_text("Touch to Cancel", 180, WHITE, SMALL);
+            } else {
+                std::string dialLegend("Zero");
+                for (int axis = 0; axis < num_axes; axis++) {
+                    if (selected(axis)) {
+                        dialLegend += axisNumToChar(axis);
+                    }
+                }
+                drawButtonLegends("Jog-", "Jog+", dialLegend.c_str());
+            }
         }
-        drawButtonLegends("Jog-", "Jog+", "Zero");
         refreshDisplay();
     }
     void zero_axes() {
@@ -75,10 +90,6 @@ public:
         send_line(cmd.c_str());
     }
     void onEntry(void* arg) {
-        if (arg) {
-            dbg_printf("Entry %s\n", (const char*)arg);
-        }
-
         if (arg && strcmp((const char*)arg, "Confirmed") == 0) {
             zero_axes();
         }
@@ -132,15 +143,12 @@ public:
         for (int axis = 0; axis < num_axes; axis++) {
             if (selected(axis)) {
                 if (++_dist_index[axis] >= max_index()) {
-                    _dist_index[axis] = 0;
+                    _dist_index[axis] = min_index();
                 }
             }
         }
     }
-    void cancel_jog() {
-        dbg_println("Cancel");
-        fnc_realtime(JogCancel);
-    }
+    void cancel_jog() { fnc_realtime(JogCancel); }
     void next_axis() {
         int the_axis = the_selected_axis();
         if (the_axis == -2) {
@@ -192,12 +200,28 @@ public:
         reDisplay();
     }
 
-    void onTouchRelease(int x, int y) {
-        // Convert from screen coordinates to 0,0 in the center
-        Point ctr = Point { x, y }.from_display();
+    void onTouchPress() {
+        if (state == Jog) {
+            cancel_jog();
+            _cancelling = true;
+        }
+        reDisplay();
+    }
 
-        x = ctr.x;
-        y = ctr.y;
+    void onTouchRelease() {
+        _cancelling = false;
+        reDisplay();
+    }
+
+    void onTouchClick() {
+        if (state == Jog || _cancelling) {
+            return;
+        }
+        // Convert from screen coordinates to 0,0 in the center
+        Point ctr = Point { touchX, touchY }.from_display();
+
+        int x = ctr.x;
+        int y = ctr.y;
 
         int center_radius = display.width() / 6;
 
@@ -222,10 +246,10 @@ public:
             }
         }
     }
-    void onTouchHold(int x, int y) {
+    void onTouchHold() {
         // Select multiple axes
-        if (x < 80) {
-            int axis = which(x, y);
+        if (touchX < 80) {
+            int axis = which(touchX, touchY);
             if (selected(axis) && !only(axis)) {
                 unselect(axis);
             } else {
@@ -235,7 +259,7 @@ public:
             return;
         }
 #if 0
-        if (x < 160 && y > 160) {
+        if (touchX < 160 && touchY > 160) {
             confirm_zero_axes();
         }
 #endif

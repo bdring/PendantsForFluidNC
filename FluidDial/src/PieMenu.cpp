@@ -86,15 +86,15 @@ void PieMenu::onDialButtonPress() {
     invoke();
 }
 
-void PieMenu::onTouchHold(int x, int y) {
-    int item = touchedItem(x, y);
+void PieMenu::onTouchHold() {
+    int item = touchedItem(touchX, touchY);
     if (item != -1) {
         select(item);
     }
 }
 
-void PieMenu::onTouchRelease(int x, int y) {
-    int item = touchedItem(x, y);
+void PieMenu::onTouchClick() {
+    int item = touchedItem(touchX, touchY);
     if (item != -1) {
         select(item);
         invoke();
