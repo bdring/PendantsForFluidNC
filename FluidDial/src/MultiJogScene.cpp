@@ -93,6 +93,11 @@ public:
         if (arg && strcmp((const char*)arg, "Confirmed") == 0) {
             zero_axes();
         }
+        if (initPrefs()) {
+            for (size_t axis = 0; axis < 3; axis++) {
+                getPref("DistanceDigit", axis, &_dist_index[axis]);
+            }
+        }
     }
 
     int which(int x, int y) {
@@ -114,9 +119,14 @@ public:
         dbg_println(confirmMsg.c_str());
         push_scene(&confirmScene, (void*)confirmMsg.c_str());
     }
+    void set_dist_index(int axis, int value) {
+        _dist_index[axis] = value;
+        setPref("DistanceDigit", axis, value);
+    }
+
     void increment_distance(int axis) {
         if (_dist_index[axis] < max_index()) {
-            ++_dist_index[axis];
+            set_dist_index(axis, _dist_index[axis] + 1);
         }
     }
     void increment_distance() {
@@ -128,7 +138,7 @@ public:
     }
     void decrement_distance(int axis) {
         if (_dist_index[axis] > min_index()) {
-            --_dist_index[axis];
+            set_dist_index(axis, _dist_index[axis] - 1);
         }
     }
 
