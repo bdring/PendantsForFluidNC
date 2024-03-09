@@ -70,8 +70,8 @@ int PieMenu::touchedItem(int x, int y) {
 }
 void PieMenu::menuBackground() {
     background();
-    drawStatusTiny(91);
     text(selectedItem()->name(), { 0, -8 }, WHITE, SMALL);
+    drawStatusSmall(80);
 }
 
 void PieMenu::onTouchFlick() {
