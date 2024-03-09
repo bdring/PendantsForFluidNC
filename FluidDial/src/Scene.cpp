@@ -45,6 +45,14 @@ Scene* parent_scene() {
     return scene_stack.size() ? scene_stack.back() : nullptr;
 }
 
+bool touchIsCenter() {
+    // Convert from screen coordinates to 0,0 in the center
+    Point ctr = Point { touchX, touchY }.from_display();
+
+    int center_radius = display.width() / 6;
+
+    return (ctr.x * ctr.x + ctr.y * ctr.y) < (center_radius * center_radius);
+}
 // This handles touches that are outside the round area of the M5Dial screen.
 // It is used for the PC emulation version, where the display is rectangular.
 // Touches (mouse clicks) outside of the round dial screen part are used
