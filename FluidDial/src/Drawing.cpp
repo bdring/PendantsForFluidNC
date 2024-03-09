@@ -65,20 +65,37 @@ void drawPngBackground(const char* filename) {
     drawPngFile(filename, 0, 0);
 }
 
+// We use 1 to mean no background
+// 1 is visually indistinguishable from black so losing that value is unimportant
+#define NO_BG 1
 // clang-format off
-std::map<state_t, int> stateColors = {
-    { Idle,        WHITE },
+std::map<state_t, int> stateBGColors = {
+    { Idle,        NO_BG },
     { Alarm,       RED },
     { CheckMode,   WHITE },
-    { Homing,      CYAN },
-    { Cycle,       GREEN },
+    { Homing,      NO_BG },
+    { Cycle,       NO_BG },
     { Hold,        YELLOW },
-    { Jog,         CYAN },
+    { Jog,         NO_BG },
     { SafetyDoor,  WHITE },
     { GrblSleep,   WHITE },
     { ConfigAlarm, WHITE },
     { Critical,    WHITE },
     { Disconnected, RED },
+};
+std::map<state_t, int> stateFGColors = {
+    { Idle,        LIGHTGREY },
+    { Alarm,       BLACK },
+    { CheckMode,   BLACK },
+    { Homing,      CYAN },
+    { Cycle,       GREEN },
+    { Hold,        BLACK },
+    { Jog,         CYAN },
+    { SafetyDoor,  BLACK },
+    { GrblSleep,   BLACK },
+    { ConfigAlarm, BLACK },
+    { Critical,    BLACK },
+    { Disconnected, BLACK },
 };
 // clang-format on
 
@@ -88,12 +105,16 @@ void drawStatus() {
     static constexpr int width  = 140;
     static constexpr int height = 36;
 
-    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    int fgColor = stateFGColors[state];
     if (state == Alarm) {
-        centered_text(my_state_string, y + height / 2 - 4, BLACK, SMALL);
-        centered_text(alarm_name[lastAlarm], y + height / 2 + 12, BLACK);
+        centered_text(my_state_string, y + height / 2 - 4, fgColor, SMALL);
+        centered_text(alarm_name[lastAlarm], y + height / 2 + 12, fgColor);
     } else {
-        centered_text(my_state_string, y + height / 2 + 3, BLACK, MEDIUM);
+        centered_text(my_state_string, y + height / 2 + 3, fgColor, MEDIUM);
     }
 }
 
@@ -101,7 +122,7 @@ void drawStatusTiny(int y) {
     static constexpr int width  = 90;
     static constexpr int height = 20;
 
-    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
+    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateBGColors[state]);
     centered_text(my_state_string, y + height / 2 + 3, BLACK, TINY);
 }
 

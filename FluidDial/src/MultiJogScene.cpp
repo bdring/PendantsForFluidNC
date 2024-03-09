@@ -59,7 +59,7 @@ public:
         background();
         drawPngBackground("/jogbg3.png");
         drawMenuTitle(current_scene->name());
-        drawStatusTiny(28);
+        drawStatus();
 
         if (state != Jog && _cancelling) {
             _cancelling = false;
