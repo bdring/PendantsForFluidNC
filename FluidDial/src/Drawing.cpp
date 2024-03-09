@@ -181,7 +181,7 @@ void putDigit(int& n, int x, int y, int color) {
 void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
     fontnum_t font     = SMALL;
     int       n_digits = n_decimals + 1;
-    size_t    i;
+    int       i;
     bool      isneg = n < 0;
     if (isneg) {
         n = -n;

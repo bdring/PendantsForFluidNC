@@ -91,10 +91,10 @@ public:
         const char* grnLabel = "";
         const char* redLabel = "";
 
-        DRO dro(10, 68, 220, 32);
-        dro.draw(0, false);
-        dro.draw(1, false);
-        dro.draw(2, false);
+        DRO dro(16, 68, 210, 32);
+        dro.draw(0, -1, true);
+        dro.draw(1, -1, true);
+        dro.draw(2, -1, true);
 
         int y = 170;
         if (state == Cycle || state == Hold) {
