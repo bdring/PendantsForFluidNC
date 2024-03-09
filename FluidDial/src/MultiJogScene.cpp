@@ -17,6 +17,7 @@ static const char* help_text[] = { "Jog Help",
                                    "",
                                    "Turn: jog by digit",
                                    "Red/Grn: hold to jog",
+                                   "Swipe left to exit",
                                    NULL };
 
 class MultiJogScene : public Scene {
@@ -56,23 +57,23 @@ public:
 
     void reDisplay() {
         background();
-        drawPngBackground("/jogbg.png");
-
+        drawPngBackground("/jogbg3.png");
         drawMenuTitle(current_scene->name());
+        drawStatusTiny(28);
 
         if (state != Jog && _cancelling) {
             _cancelling = false;
         }
         if (_cancelling || _cancel_held) {
-            centered_text("Cancel", 120, RED, LARGE);
+            centered_text("Jog Canceled", 120, RED, MEDIUM);
         } else {
-            DRO dro(20, 68, 210, 32);
+            DRO dro(16, 68, 210, 32);
             for (size_t axis = 0; axis < num_axes; axis++) {
                 dro.draw(axis, _dist_index[axis], selected(axis));
             }
             if (state == Jog) {
                 if (!_continuous) {
-                    centered_text("Touch to Cancel", 185, YELLOW, SMALL);
+                    centered_text("Touch to cancel jog", 185, YELLOW, TINY);
                 }
             } else {
                 std::string dialLegend("Zero");
