@@ -213,19 +213,19 @@ extern "C" void show_alarm(int alarm) {
 }
 
 extern "C" void show_gcode_modes(struct gcode_modes* modes) {
-    inInches = strcmp(modes->units, "In") == 0;
+    inInches = strcmp(modes->units, "In") == 0 || strcmp(modes->units, "G20") == 0;
 
     myModes = modes->wcs;
-    myModes += "|";
+    myModes += " ";
     myModes += modes->units;
-    myModes += "|";
+    myModes += " ";
     myModes += modes->distance;
-    myModes += "|";
+    myModes += " ";
     myModes += modes->spindle;
-    myModes += "|";
+    myModes += " ";
     myModes += modes->coolant;
-    myModes += "|T";
-    myModes += modes->tool;
+    //    myModes += " T";
+    //    myModes += modes->tool;
     current_scene->reDisplay();
 }
 

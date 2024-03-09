@@ -436,7 +436,11 @@ static struct GCodeMode {
 static void lookup_mode(const char* tag) {
     for (struct GCodeMode* p = modes_map; p->tag; p++) {
         if (strcmp(tag, p->tag) == 0) {
+#ifdef VERBATIM_GCODE_MODES
+            *p->variable = p->tag;
+#else
             *p->variable = p->value;
+#endif
             return;
         }
     }
