@@ -241,6 +241,12 @@ public:
         if (state == Jog || _cancelling || _cancel_held) {
             return;
         }
+        if (touchIsCenter()) {
+            // Center of screen
+            push_scene(&helpScene, (void*)help_text);
+            return;
+        }
+
         // Convert from screen coordinates to 0,0 in the center
         Point ctr = Point { touchX, touchY }.from_display();
 
@@ -248,12 +254,6 @@ public:
         int y = ctr.y;
 
         int center_radius = display.width() / 6;
-
-        if ((x * x + y * y) < (center_radius * center_radius)) {
-            // Center of screen
-            push_scene(&helpScene, (void*)help_text);
-            return;
-        }
 
         // Sense touches at top, bottom, left, and right
         if (std::abs(y) > std::abs(x)) {
