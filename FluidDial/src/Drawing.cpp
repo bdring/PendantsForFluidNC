@@ -122,8 +122,22 @@ void drawStatusTiny(int y) {
     static constexpr int width  = 90;
     static constexpr int height = 20;
 
-    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateBGColors[state]);
-    centered_text(my_state_string, y + height / 2 + 3, BLACK, TINY);
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    centered_text(my_state_string, y + height / 2 + 3, stateFGColors[state], TINY);
+}
+
+void drawStatusSmall(int y) {
+    static constexpr int width  = 90;
+    static constexpr int height = 25;
+
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    centered_text(my_state_string, y + height / 2 + 3, stateFGColors[state], SMALL);
 }
 
 Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}

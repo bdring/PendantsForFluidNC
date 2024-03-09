@@ -54,14 +54,13 @@ public:
 
         background();
         drawMenuTitle(name());
-        drawStatusTiny(20);
 
         const char* grnLabel = "";
         const char* redLabel = "";
 
         if (state == Idle) {
             if (_needlines == false) {
-                int y  = 39;
+                int y  = 48;
                 int tl = 0;
                 if (fileLines.size()) {
                     for (auto const& line : fileLines) {
@@ -82,6 +81,7 @@ public:
         }
 
         drawButtonLegends(redLabel, grnLabel, "Menu");
+        drawStatusSmall(21);
         refreshDisplay();
     }
 };

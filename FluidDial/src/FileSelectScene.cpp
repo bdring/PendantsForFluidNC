@@ -153,7 +153,6 @@ public:
         // canvas.createSprite(240, 240);
         // drawBackground(BLACK);
         background();
-        drawStatusTiny(20);
         drawMenuTitle(current_scene->name());
         std::string fName;
         int         finfoT_color = BLUE;
@@ -251,6 +250,7 @@ public:
             }
         }  // for(fx)
         buttonLegends();
+        drawStatusSmall(21);
         refreshDisplay();
     }
 
