@@ -14,8 +14,11 @@ private:
     std::vector<int> _slopes;  // Slopes of lines dividing switch positions
 
 public:
-    PieMenu(const char* name, int item_radius) : Menu(name), _item_radius(item_radius) {}
-    PieMenu(const char* name, int item_radius, int num_items) : Menu(name, num_items), _item_radius(item_radius) { calculatePositions(); }
+    PieMenu(const char* name, int item_radius, const char** help_text = nullptr) : Menu(name, help_text), _item_radius(item_radius) {}
+    PieMenu(const char* name, int item_radius, int num_items, const char** help_text = nullptr) :
+        Menu(name, num_items, help_text), _item_radius(item_radius) {
+        calculatePositions();
+    }
     void menuBackground() override;
     void calculatePositions();
     void onEncoder(int delta) override { Menu::onEncoder(delta); }

@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+extern Scene helpScene;
+
 typedef int color_t;
 typedef void (*callback_t)(void*);
 
@@ -147,15 +149,18 @@ private:
 
     int _num_items = 0;
 
+protected:
+    const char** _help_text = nullptr;
+
 public:
     std::vector<Point> _positions;
     std::vector<Item*> _items;
 
     int _selected = 0;
 
-    Menu(const char* name) : Scene(name, 4) {}
+    Menu(const char* name, const char** help_text = nullptr) : Scene(name, 4), _help_text(help_text) {}
 
-    Menu(const char* name, int num_items) : Scene(name, 4), _num_items(num_items) {
+    Menu(const char* name, int num_items, const char** help_text = nullptr) : Scene(name, 4), _num_items(num_items), _help_text(help_text) {
         _items.reserve(num_items);
         _positions.reserve(num_items);
     }
@@ -202,6 +207,10 @@ public:
         reDisplay();
     }
     void onTouchClick() override {
+        if (_help_text && touchIsCenter()) {
+            push_scene(&helpScene), (void*)_help_text;
+            return;
+        }
         select(touchedItem(touchX, touchY));
         ackBeep();
     }

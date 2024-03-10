@@ -9,7 +9,16 @@ void noop(void* arg) {}
 
 const int buttonRadius = 30;
 
-PieMenu axisMenu("Axes", buttonRadius);
+static const char* menu_help_text[] = { "FluidDial",
+                                        "Touch icon for scene",
+                                        "Touch center for help",
+                                        "Flick left to go back",
+                                        "Authors: @bdring,@Mitch",
+                                        "Bradley,@bDuthieDev,",
+                                        "@Design8Studio",
+                                        NULL };
+
+// PieMenu axisMenu("Axes", buttonRadius);
 
 class LB : public RoundButton {
 public:
@@ -65,7 +74,7 @@ IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {
 public:
-    MenuScene() : PieMenu("Main", buttonRadius) {}
+    MenuScene() : PieMenu("Main", buttonRadius, menu_help_text) {}
     void onEntry(void* arg) {
         PieMenu::onEntry(arg);
         if (state == Disconnected) {

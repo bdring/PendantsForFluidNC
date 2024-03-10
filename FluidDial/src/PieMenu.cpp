@@ -94,6 +94,11 @@ void PieMenu::onTouchHold() {
 }
 
 void PieMenu::onTouchClick() {
+    if (_help_text && touchIsCenter()) {
+        push_scene(&helpScene, (void*)_help_text);
+        return;
+    }
+
     int item = touchedItem(touchX, touchY);
     if (item != -1) {
         select(item);
