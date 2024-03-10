@@ -149,18 +149,15 @@ private:
 
     int _num_items = 0;
 
-protected:
-    const char** _help_text = nullptr;
-
 public:
     std::vector<Point> _positions;
     std::vector<Item*> _items;
 
     int _selected = 0;
 
-    Menu(const char* name, const char** help_text = nullptr) : Scene(name, 4), _help_text(help_text) {}
+    Menu(const char* name, const char** help_text = nullptr) : Scene(name, 4, help_text) {}
 
-    Menu(const char* name, int num_items, const char** help_text = nullptr) : Scene(name, 4), _num_items(num_items), _help_text(help_text) {
+    Menu(const char* name, int num_items, const char** help_text = nullptr) : Scene(name, 4, help_text), _num_items(num_items) {
         _items.reserve(num_items);
         _positions.reserve(num_items);
     }

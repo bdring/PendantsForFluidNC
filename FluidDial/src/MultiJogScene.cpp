@@ -10,15 +10,15 @@
 extern Scene helpScene;
 extern Scene fileSelectScene;
 
-static const char* help_text[] = { "Jog Help",
-                                   "Touch:",
-                                   "Top/Bottom: choose axis",
-                                   "Left/Right: set digit"
-                                   "",
-                                   "Turn: jog by digit",
-                                   "Red/Grn: hold to jog",
-                                   "Swipe left to exit",
-                                   NULL };
+static const char* jog_help_text[] = { "Jog Help",
+                                       "Touch:",
+                                       "Top/Bottom: choose axis",
+                                       "Left/Right: set digit"
+                                       "",
+                                       "Turn: jog by digit",
+                                       "Red/Grn: hold to jog",
+                                       "Swipe left to exit",
+                                       NULL };
 
 class MultiJogScene : public Scene {
 private:
@@ -32,7 +32,7 @@ private:
     bool      _continuous    = false;
 
 public:
-    MultiJogScene() : Scene("Jog", 4) {}
+    MultiJogScene() : Scene("Jog", 4, jog_help_text) {}
 
     e4_t distance(int axis) { return e4_power10(_dist_index[axis] - num_digits()); }
     void unselect_all() { _selected_mask = 0; }
@@ -242,8 +242,7 @@ public:
             return;
         }
         if (touchIsCenter()) {
-            // Center of screen
-            push_scene(&helpScene, (void*)help_text);
+            push_scene(&helpScene, (void*)_help_text);
             return;
         }
 

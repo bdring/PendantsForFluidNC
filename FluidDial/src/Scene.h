@@ -34,8 +34,12 @@ private:
     int _encoder_accum = 0;
     int _encoder_scale = 1;
 
+protected:
+    const char** _help_text = nullptr;
+
 public:
-    Scene(const char* name, int encoder_scale = 1) : _name(name), _encoder_scale(encoder_scale) {}
+    Scene(const char* name, int encoder_scale = 1, const char** help_text = nullptr) :
+        _name(name), _help_text(help_text), _encoder_scale(encoder_scale) {}
 
     const char* name() { return _name; }
 
