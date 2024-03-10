@@ -3,11 +3,12 @@
 
 #include "Scene.h"
 
+static const char* null_help[] = { "", "HelpScene:", "Null pointer", NULL };
 class HelpScene : public Scene {
 public:
     HelpScene() : Scene("Help") {}
     void onEntry(void* arg) {
-        const char** msg = static_cast<const char**>(arg);
+        const char** msg = arg ? static_cast<const char**>(arg) : null_help;
         const char*  line;
         drawBackground(BROWN);
         int pos = 20;
