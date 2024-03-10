@@ -111,6 +111,8 @@ public:
             char legend[50];
             sprintf(legend, "Feed Rate Ovr:%d%%", myFro);
             centered_text(legend, y + 23);
+        } else {
+            centered_text(mode_string(), y + 23, GREEN, TINY);
         }
 
         const char* encoder_button_text = "Menu";
