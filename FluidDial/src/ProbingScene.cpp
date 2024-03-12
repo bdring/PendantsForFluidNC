@@ -25,7 +25,7 @@ public:
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
-            send_linef("G38.2G91F%s%c%sP%s", intToCStr(_rate), axisNumToChar(_axis), intToCStr(_travel), e4_to_cstr(_offset, 2));
+            send_linef("G38.2G91F%d%c%dP%s", _rate, axisNumToChar(_axis), _travel, e4_to_cstr(_offset, 2));
             return;
         }
         if (state == Cycle) {
