@@ -8,6 +8,8 @@
 #include "Scene.h"
 #include "e4math.h"
 
+extern Scene statusScene;
+
 // local copies of status items
 const char*        my_state_string    = "N/C";
 state_t            state              = Idle;
@@ -188,7 +190,11 @@ extern "C" void show_state(const char* state_string) {
             init_file_list();
         }
         state = new_state;
-        current_scene->onStateChange(old_state);
+        if (state == Alarm) {
+            push_scene(&statusScene);
+        } else {
+            current_scene->onStateChange(old_state);
+        }
     }
 }
 

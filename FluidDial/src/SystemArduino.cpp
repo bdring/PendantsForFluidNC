@@ -69,6 +69,11 @@ void drawPngFile(const char* filename, int x, int y) {
 
 #    define FORMAT_LITTLEFS_IF_FAILED true
 
+// Baud rates up to 10M work
+#    ifndef FNC_BAUD
+#        define FNC_BAUD 115200
+#    endif
+
 void init_system() {
     auto cfg = M5.config();
     // Don't enable the encoder because M5's encoder driver is flaky
@@ -88,7 +93,7 @@ void init_system() {
     USBSerial.begin();
 
     uart_set_pin(fnc_uart_num, FNC_TX_PIN, FNC_RX_PIN, -1, -1);
-    int baudrate = 5000000;  // 10 MBaud works, but we use 5M for margin
+    int baudrate = FNC_BAUD;
     uart_driver_delete(fnc_uart_num);
     uart_config_t conf;
     // UART_SCLK_XTAL is independent of the APB frequency

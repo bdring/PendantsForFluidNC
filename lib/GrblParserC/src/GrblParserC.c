@@ -540,6 +540,10 @@ static void parse_report() {
         parse_msg(body);
         return;
     }
+    if (is_report_type(_report, &body, "[JSON:", "]")) {
+        handle_json(body);
+        return;
+    }
     if (is_report_type(_report, &body, "[VER:", "]")) {
         parse_version_report(body);
         return;
@@ -605,6 +609,8 @@ void __attribute__((weak)) show_timeout() {}
 // can first call handle_expander_msg(), which will return true if an
 // expander message was handled.
 void __attribute__((weak)) handle_msg(char* command, char* arguments) {}
+
+void __attribute__((weak)) handle_json(const char* line) {}
 
 void __attribute__((weak)) handle_signon(char* version, char* extra) {}
 void __attribute__((weak)) handle_other(char* line) {}

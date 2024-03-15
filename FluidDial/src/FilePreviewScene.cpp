@@ -9,6 +9,7 @@ extern Scene menuScene;
 extern Scene statusScene;
 
 class FilePreviewScene : public Scene {
+    std::string _error_string;
     std::string _filename;
     bool        _needlines;
 
@@ -25,7 +26,12 @@ public:
         }
     }
     void onFileLines() {
-        _needlines = false;
+        _error_string = false;
+        _needlines    = false;
+        reDisplay();
+    }
+    void onError(const char* errstr) {
+        _error_string = errstr;
         reDisplay();
     }
 
@@ -42,16 +48,17 @@ public:
 
     void onGreenButtonPress() {
         if (state == Idle) {
-            send_linef("$SD/Run=%s/%s", dirName.c_str(), _filename.c_str());
+            send_linef("$SD/Run=%s", _filename.c_str());
             ackBeep();
         }
     }
-    void reDisplay() {
+    void onStateChange(state_t old_state) {
         if (state == Cycle) {
             push_scene(&statusScene);
-            return;
         }
+    }
 
+    void reDisplay() {
         background();
         drawMenuTitle(name());
 
@@ -70,6 +77,8 @@ public:
                 } else {
                     text("Empty File", 120, 120, WHITE, SMALL, middle_center);
                 }
+            } else if (_error_string.length()) {
+                text(_error_string, 120, 120, WHITE, SMALL, middle_center);
             } else {
                 text("Reading File", 120, 120, WHITE, TINY, middle_center);
             }

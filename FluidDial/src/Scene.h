@@ -59,6 +59,8 @@ public:
     virtual void onDownFlick() { onTouchFlick(); }
     virtual void onTouchFlick() {}
 
+    virtual void onError(const char* errstr) {}
+
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
     virtual void onLimitsChange() {}

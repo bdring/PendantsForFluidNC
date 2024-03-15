@@ -7,19 +7,6 @@
 
 // #define SMOOTH_SCROLL
 #define WRAP_FILE_LIST
-// clang-format off
-#if 0
-#define DBG_WRAP_FILES(...) dbg_printf(__VA_ARGS__)
-#else
-#define DBG_WRAP_FILES(...)
-#endif
-
-#if 0
-#define DBG_PREV_SELECT(...) dbg_printf(__VA_ARGS__)
-#else
-#define DBG_PREV_SELECT(...)
-#endif
-// clang-format on
 
 extern Scene filePreviewScene;
 
@@ -29,6 +16,8 @@ class FileSelectScene : public Scene {
 private:
     int              _selected_file = 0;
     std::vector<int> prevSelect;
+    std::string      dirName  = "/sd";
+    int              dirLevel = 0;
 
     const char* format_size(size_t size) {
         const int   buflen = 30;
@@ -55,7 +44,6 @@ public:
         if (prevSelect.size() == 0) {
             prevSelect.push_back(0);
         }
-        DBG_PREV_SELECT("prevSelect::init:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
     }
 
     void onDialButtonPress() { pop_scene(); }
@@ -66,29 +54,36 @@ public:
             return;
         }
         if (fileVector.size()) {
-            std::string dName;
             fileInfo                                 = fileVector[_selected_file];
             prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
             if (fileInfo.isDir()) {
                 prevSelect.push_back(0);
-                DBG_PREV_SELECT("prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
-                enter_directory(fileInfo.fileName);
+                if (dirLevel) {
+                    dirName += "/";
+                    dirName += fileInfo.fileName;
+                    ++dirLevel;
+                    request_file_list(dirName.c_str());
+                }
             } else {
-                push_scene(&filePreviewScene, (void*)fileInfo.fileName.c_str());
+                std::string path(dirName);
+                path += "/";
+                path += fileInfo.fileName;
+                push_scene(&filePreviewScene, (void*)path.c_str());
             }
         }
         ackBeep();
     }
 
-    // XXX maybe a touch on the top of the screen i.e. the dirname field
     void onRedButtonPress() {
         if (state != Idle) {
             return;
         }
         if (dirLevel) {
             prevSelect.pop_back();
-            DBG_PREV_SELECT("prevSelect::pop:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
-            exit_directory();
+            auto pos = dirName.rfind('/');
+            dirName  = dirName.substr(0, pos);
+            --dirLevel;
+            request_file_list(dirName.c_str());
         } else {
             prevSelect.clear();
             prevSelect.push_back(0);
@@ -100,7 +95,6 @@ public:
     void onTouchClick() { onGreenButtonPress(); }
 
     void onFilesList() override {
-        DBG_PREV_SELECT("prevSelect::back:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
         _selected_file = prevSelect.back();
         reDisplay();
     }
@@ -175,9 +169,6 @@ public:
             }
 #endif
             if (fdIter < 0) {
-                if (yo == 0) {
-                    DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
-                }
                 continue;
             }
 
@@ -235,9 +226,6 @@ public:
             if ((yo == 0) || (yo < 0 && yo + middle._yt > 45) || (yo > 0 && yo + middle._yt + middle._h < 202)) {
                 auto_text(fName, middle._xt, yo + middle._yt, middle._w, (yo) ? WHITE : middle_txt, middle._f, middle_center);
             }
-            if (yo == 0) {
-                DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d - %s\r\n", fx, fdIter, _selected_file, fName.c_str());
-            }
             if (fx == 1) {
 #ifdef WRAP_FILE_LIST
                 if (fileVector.size() > 2) {
@@ -287,8 +275,6 @@ public:
 #endif
         _selected_file = nextSelect;
         showFiles(0);
-
-        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
     }
 
     void reDisplay() { showFiles(0); }

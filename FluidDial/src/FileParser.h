@@ -12,13 +12,20 @@ struct fileinfo {
     bool        isDir() const { return fileSize < 0; }
 };
 
-extern std::string dirName;
-extern int         dirLevel;
-
 extern fileinfo              fileInfo;
 extern std::vector<fileinfo> fileVector;
 
-extern void request_file_list();
+extern void request_file_list(const char* dirname);
+
+struct Macro {
+    std::string name;
+    std::string filename;
+    std::string target;
+};
+
+extern std::vector<Macro*> macros;
+
+extern void request_macros();
 
 extern std::vector<std::string> fileLines;
 
@@ -28,9 +35,3 @@ extern std::string current_filename;
 
 void init_listener();
 void init_file_list();
-
-void        enter_directory(const char* dirname);
-inline void enter_directory(const std::string& dirname) {
-    enter_directory(dirname.c_str());
-}
-void exit_directory();

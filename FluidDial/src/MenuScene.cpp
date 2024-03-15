@@ -40,6 +40,7 @@ extern Scene joggingScene2;
 extern Scene multiJogScene;
 extern Scene probingScene;
 extern Scene statusScene;
+extern Scene macroMenu;
 
 #ifdef USE_WMB_FSS
 extern Scene wmbFileSelectScene;
@@ -69,7 +70,8 @@ IB           filesButton("Files", &fileSelectScene, "filestp.png");
 #endif
 
 IB controlButton("Control", &controlScene, "controltp.png");
-IB setupButton("Setup", &setupScene, "setuptp.png");
+// IB setupButton("Setup", &setupScene, "setuptp.png");
+IB setupButton("Setup", &macroMenu, "setuptp.png");
 IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {

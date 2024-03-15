@@ -139,9 +139,10 @@ extern void expander_nak(const char* msg);
 extern void expander_pin_msg(uint8_t pin_num, bool active);
 
 // [MSG: messages
-// General handler that can be ovverridden
+// General handler that can be overridden
 extern void handle_msg(char* command, char* arguments);
 
+extern void handle_json(const char* line);
 extern void handle_grbl(char* line);
 
 // Handle signon messages like "Grbl 3.4 [stuff]"

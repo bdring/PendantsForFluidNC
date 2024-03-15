@@ -168,8 +168,8 @@ public:
 
     void reDisplay();
 
-    virtual void menuBackground()          = 0;
-    virtual int  touchedItem(int x, int y) = 0;
+    virtual void menuBackground() {}
+    virtual int  touchedItem(int x, int y) { return -1; }
     virtual void rotate(int delta);
 
     void onEncoder(int delta) override { rotate(delta); }
@@ -184,7 +184,7 @@ public:
     void removeAllItems();
 
     void onEntry(void* arg) override {
-        if (_selected != -1) {
+        if (num_items() && _selected != -1) {
             _items[_selected]->highlight();
         }
     }
@@ -211,5 +211,5 @@ public:
         select(touchedItem(touchX, touchY));
         ackBeep();
     }
-    void invoke() { _items[_selected]->invoke(); }
+    void invoke(void* arg = nullptr) { _items[_selected]->invoke(arg); }
 };
