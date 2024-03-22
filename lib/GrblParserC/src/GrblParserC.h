@@ -153,6 +153,7 @@ extern void show_linenum(int linenum);
 extern void show_spindle_coolant(int spindle, bool flood, bool mist);
 extern void show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed);
 extern void show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr);
+extern void show_probe(const pos_t* axes, const bool probe_success, size_t n_axis);
 
 // [GC: messages
 extern void show_gcode_modes(struct gcode_modes* modes);
