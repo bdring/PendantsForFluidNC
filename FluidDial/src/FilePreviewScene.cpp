@@ -35,7 +35,7 @@ public:
         reDisplay();
     }
 
-    void onDialButtonPress() { activate_scene(&menuScene); }
+    void onDialButtonPress() { pop_scene(); }
 
     void onRedButtonPress() {
         if (state == Idle) {
@@ -89,7 +89,7 @@ public:
             centered_text("File Preview", 145, WHITE, SMALL);
         }
 
-        drawButtonLegends(redLabel, grnLabel, "Menu");
+        drawButtonLegends(redLabel, grnLabel, "Back");
         drawStatusSmall(21);
         refreshDisplay();
     }

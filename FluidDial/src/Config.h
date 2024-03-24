@@ -11,4 +11,10 @@
 #define USE_MULTI_JOG
 
 // Automatically go to Jog Scene when first connected
-#define AUTO_JOG_SCENE
+// #define AUTO_JOG_SCENE
+
+// Automatically go to Homing Scene when unhomed alarm is present
+// #define AUTO_HOMING_SCENE
+
+// Automatically leave Homing Scene after homing is finished
+// #define AUTO_HOMING_RETURN

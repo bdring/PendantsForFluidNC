@@ -77,35 +77,51 @@ IB powerButton("Power", &powerScene, "powertp.png");
 class MenuScene : public PieMenu {
 public:
     MenuScene() : PieMenu("Main", buttonRadius, menu_help_text) {}
+    void disableIcons() {
+        statusButton.disable();
+        homingButton.disable();
+        jogButton.disable();
+        probeButton.disable();
+        filesButton.disable();
+        controlButton.disable();
+        setupButton.enable();
+        powerButton.enable();
+    }
+    void enableIcons() {
+        statusButton.enable();
+        homingButton.enable();
+        jogButton.enable();
+        probeButton.enable();
+        filesButton.enable();
+        controlButton.enable();
+        setupButton.enable();
+        powerButton.enable();
+    }
     void onEntry(void* arg) {
         PieMenu::onEntry(arg);
         if (state == Disconnected) {
-            statusButton.disable();
-            homingButton.disable();
-            jogButton.disable();
-            probeButton.disable();
-            filesButton.disable();
-            controlButton.disable();
-            setupButton.enable();
-            powerButton.enable();
+            disableIcons();
+        } else {
+            enableIcons();
         }
     }
     void onStateChange(state_t old_state) override {
         if (state != Disconnected) {
-            statusButton.enable();
-            homingButton.enable();
-            jogButton.enable();
-            probeButton.enable();
-            filesButton.enable();
-            controlButton.enable();
-            setupButton.enable();
-            powerButton.enable();
+            enableIcons();
+            if (old_state == Disconnected) {
 #ifdef AUTO_JOG_SCENE
-            if (state == Idle) {
-                push_scene(&jogScene);
-                return;
-            }
+                if (state == Idle) {
+                    push_scene(&jogScene);
+                    return;
+                }
 #endif
+#ifdef AUTO_HOMING_SCENE
+                if (state == Alarm && lastAlarm == 14) {  // Unknown or Unhomed
+                    push_scene(&homingScene, (void*)"auto");
+                    return;
+                }
+#endif
+            }
         }
         reDisplay();
     }

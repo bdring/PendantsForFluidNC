@@ -6,6 +6,7 @@
 #include "Scene.h"  // current_scene->reDisplay()
 #include "Menu.h"
 #include "GrblParserC.h"  // send_line()
+#include "HomingScene.h"  // set_axis_homed()
 
 #include <JsonStreamingParser.h>
 #include <JsonListener.h>
@@ -570,8 +571,20 @@ extern "C" void handle_json(const char* line) {
 }
 
 extern "C" void handle_msg(char* command, char* arguments) {
+    if (strcmp(command, "Homed") == 0) {
+        char c;
+        while ((c = *arguments++) != '\0') {
+            const char* letters = "XYZABCUVW";
+            char*       pos     = strchr(letters, c);
+            if (pos) {
+                set_axis_homed(pos - letters);
+            }
+        }
+    }
     if (strcmp(command, "RST") == 0) {
         dbg_println("FluidNC Reset");
+        state = Disconnected;
+        act_on_state_change();
     }
     if (strcmp(command, "Files changed") == 0) {
         init_file_list();

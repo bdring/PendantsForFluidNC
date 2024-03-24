@@ -2,11 +2,13 @@
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
 #include "FluidNCModel.h"
+#include "ConfigItem.h"
 #include "FileParser.h"  // init_file_list()
 #include <map>
 #include "System.h"
 #include "Scene.h"
 #include "e4math.h"
+#include "HomingScene.h"
 
 extern Scene statusScene;
 
@@ -181,19 +183,41 @@ const char* mode_string() {
     return myModes.c_str();
 }
 
+state_t previous_state;
+bool    awaiting_alarm = false;
+
 extern "C" void show_state(const char* state_string) {
-    state_t old_state = state, new_state;
+    previous_state = state;
+    state_t new_state;
     if (decode_state_string(state_string, new_state) && state != new_state) {
         if (state == Disconnected) {
             send_line("$G");  // Refresh GCode modes
             send_line("$RI=200");
             init_file_list();
+            detect_homing_info();
         }
         state = new_state;
-        if (state == Alarm) {
-            push_scene(&statusScene);
-        } else {
-            current_scene->onStateChange(old_state);
+        if (state == Alarm && lastAlarm == 0) {  // Unknown
+            send_line("$A");                     // Get last alarm
+            awaiting_alarm = true;
+            return;
+        }
+        act_on_state_change();
+    }
+}
+
+extern "C" void handle_other(char* line) {
+    if (*line == '$') {
+        parse_dollar(line);
+        return;
+    }
+    int alarmlen = strlen("Active alarm: ");
+    if (strncmp(line, "Active alarm: ", alarmlen) == 0) {
+        lastAlarm = atoi(line + alarmlen);
+        if (awaiting_alarm) {
+            dbg_printf("Got alarm %d\n", lastAlarm);
+            awaiting_alarm = false;
+            act_on_state_change();
         }
     }
 }

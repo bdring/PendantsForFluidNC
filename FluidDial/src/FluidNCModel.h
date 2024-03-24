@@ -23,6 +23,7 @@ enum state_t {
 // Variables and functions to model the state of the FluidNC controller
 
 extern state_t     state;
+extern state_t     previous_state;
 extern const char* my_state_string;
 
 extern int                n_axes;

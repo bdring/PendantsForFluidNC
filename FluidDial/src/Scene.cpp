@@ -9,6 +9,9 @@
 #    include <sys/types.h>
 #endif
 
+extern Scene homingScene;
+extern Scene statusScene;
+
 Scene* current_scene = nullptr;
 
 int touchX;
@@ -292,4 +295,8 @@ void Scene::background() {
 #else
     drawPngBackground("PCBackground.png");
 #endif
+}
+
+void act_on_state_change() {
+    current_scene->onStateChange(previous_state);
 }

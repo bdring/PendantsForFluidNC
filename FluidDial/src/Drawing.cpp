@@ -168,7 +168,7 @@ void Stripe::draw(const char* center, bool highlighted) {
 // This shows on the display what the button currently do.
 void drawButtonLegends(const char* red, const char* green, const char* orange) {
     text(red, 80, PUSH_BUTTON_LINE, RED);
-    text(green, 160, PUSH_BUTTON_LINE, GREEN);
+    text(green, 190, PUSH_BUTTON_LINE, GREEN, TINY, middle_right);
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
 }
 
@@ -222,6 +222,12 @@ void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_c
     if (isneg) {
         text("-", x, y, text_color, MEDIUM, middle_right);
     }
+}
+
+void DRO::drawHoming(int axis, bool highlight, bool homed) {
+    text(axisNumToCStr(axis), text_left_x(), text_middle_y(), myLimitSwitches[axis] ? GREEN : YELLOW, MEDIUM, middle_left);
+    fancyNumber(myAxes[axis], num_digits(), -1, text_right_x(), text_middle_y(), highlight ? (homed ? GREEN : RED) : DARKGREY, RED);
+    advance();
 }
 
 void DRO::draw(int axis, int hl_digit, bool highlight) {

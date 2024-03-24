@@ -116,3 +116,4 @@ void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
 extern Scene* current_scene;
 
 void dispatch_events();
+void act_on_state_change();

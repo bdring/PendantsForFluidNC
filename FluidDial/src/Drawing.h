@@ -50,6 +50,7 @@ public:
     DRO(int x, int y, int width, int height) : Stripe(x, y, width, height, MEDIUM_MONO) {}
     void draw(int axis, bool highlight);
     void draw(int axis, int hl_digit, bool highlight);
+    void drawHoming(int axis, bool highlight, bool homed);
 };
 
 // draw stuff

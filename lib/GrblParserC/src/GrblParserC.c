@@ -166,7 +166,7 @@ static void parse_signon(char* body) {
     handle_signon(body, arguments);
 }
 
-static pos_t atopos(const char* s) {
+pos_t atopos(const char* s) {
 #ifdef E4_POS_T
     int32_t  num;
     uint32_t denom;

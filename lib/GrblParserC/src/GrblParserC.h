@@ -120,6 +120,8 @@ extern void debug_print(const char* msg);
 extern void debug_println(const char* msg);
 extern int  debug_getchar();
 
+extern pos_t atopos(const char* s);
+
 // The following can be implemented to do whatever your app
 // wants to do.  Any that you do not implement will be automatically
 // handled as no-ops.

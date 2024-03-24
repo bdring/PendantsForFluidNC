@@ -7,10 +7,13 @@ extern Scene menuScene;
 
 class StatusScene : public Scene {
 private:
-    int menu_item = 0;
+    const char* _entry = nullptr;
 
 public:
     StatusScene() : Scene("Status") {}
+
+    void onEntry(void* arg) { _entry = static_cast<const char*>(arg); }
+    void onExit() override { dbg_println("SoX"); }
 
     void onDialButtonPress() {
         if (state != Cycle) {
