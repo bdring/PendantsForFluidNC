@@ -35,8 +35,8 @@ public:
 };
 
 extern Scene homingScene;
-extern Scene joggingScene;
-extern Scene joggingScene2;
+//extern Scene joggingScene;
+//extern Scene joggingScene2;
 extern Scene multiJogScene;
 extern Scene probingScene;
 extern Scene statusScene;
@@ -48,14 +48,11 @@ extern Scene wmbFileSelectScene;
 extern Scene fileSelectScene;
 #endif
 
-#ifdef USE_MULTI_JOG
+
 Scene& jogScene = multiJogScene;
-#else
-Scene&       jogScene = joggingScene;
-#endif
 
 extern Scene controlScene;
-extern Scene setupScene;
+extern Scene aboutScene;
 extern Scene powerScene;
 
 IB statusButton("Status", &statusScene, "statustp.png");
@@ -70,7 +67,7 @@ IB           filesButton("Files", &fileSelectScene, "filestp.png");
 #endif
 
 IB controlButton("Macros", &macroMenu, "macrostp.png");
-IB setupButton("About", &setupScene, "abouttp.png");
+IB setupButton("About", &aboutScene, "abouttp.png");
 IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {

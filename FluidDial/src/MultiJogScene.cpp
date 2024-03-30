@@ -57,7 +57,7 @@ public:
 
     void reDisplay() {
         background();
-        drawPngBackground("/jogbg3.png");
+        drawPngBackground("/jogbg.png");
         drawMenuTitle(current_scene->name());
         drawStatus();
 

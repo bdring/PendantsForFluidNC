@@ -5,10 +5,10 @@
 
 extern Scene menuScene;
 
-class SetupScene : public Scene {
+class AboutScene : public Scene {
 private:
 public:
-    SetupScene() : Scene("About") {}
+    AboutScene() : Scene("About") {}
 
     void onEntry() {}
 
@@ -41,4 +41,4 @@ public:
         refreshDisplay();
     }
 };
-SetupScene setupScene;
+AboutScene aboutScene;
