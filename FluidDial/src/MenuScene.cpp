@@ -69,9 +69,8 @@ IB filesButton("Files", &wmbFileSelectScene, "filestp.png");
 IB           filesButton("Files", &fileSelectScene, "filestp.png");
 #endif
 
-IB controlButton("Control", &controlScene, "controltp.png");
-// IB setupButton("Setup", &setupScene, "setuptp.png");
-IB setupButton("Setup", &macroMenu, "setuptp.png");
+IB controlButton("Macros", &macroMenu, "macrostp.png");
+IB setupButton("About", &setupScene, "abouttp.png");
 IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {

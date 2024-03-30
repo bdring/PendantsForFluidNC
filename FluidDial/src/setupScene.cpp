@@ -8,7 +8,7 @@ extern Scene menuScene;
 class SetupScene : public Scene {
 private:
 public:
-    SetupScene() : Scene("Setup") {}
+    SetupScene() : Scene("About") {}
 
     void onEntry() {}
 
@@ -28,9 +28,6 @@ public:
     void reDisplay() {
         background();
         drawStatus();
-
-        centered_text("GCode modes:", 73, LIGHTGREY, TINY);
-        centered_text(mode_string(), 91, GREEN, TINY);
 
         centered_text("Credits:", 118, LIGHTGREY, TINY);
         centered_text("@bdring", 140, GREEN, TINY);
