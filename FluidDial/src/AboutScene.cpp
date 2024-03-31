@@ -32,11 +32,20 @@ public:
 
         const int key_x = 118;
         const int val_x = 122;
+        const int y_spacing = 20;
+        int y     = 90;
+        
 
-        text("version:", key_x, 90, LIGHTGREY, TINY, bottom_right);
-        text(version_info, val_x, 90, GREEN, TINY, bottom_left);
-        text("baud:", key_x, 110, LIGHTGREY, TINY, bottom_right);
-        text(intToCStr(FNC_BAUD), val_x, 110, GREEN, TINY, bottom_left);
+        text("Version:", key_x, y, LIGHTGREY, TINY, bottom_right);
+        text(version_info, val_x, y, GREEN, TINY, bottom_left);
+
+        text("FNC baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
+        text(intToCStr(FNC_BAUD), val_x, y, GREEN, TINY, bottom_left);
+
+#ifdef DEBUG_TO_USB
+        text("Debug baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
+        text(intToCStr(USB_BAUD), val_x, y, GREEN, TINY, bottom_left);
+#endif
 
         drawMenuTitle(current_scene->name());
         drawButtonLegends("", "", "Menu");
