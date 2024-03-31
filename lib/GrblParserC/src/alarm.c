@@ -16,3 +16,23 @@ const char* alarm_name[] = {
     "Unhomed",                   // 14
     "Init",                      // 15
 };
+
+// a standardized set of shorter names
+const char* alarm_name_short[] = {
+    "Unknown",        // 0
+    "Hard Limit",     // 1
+    "Soft Limit",     // 2
+    "Abort Cycle",    // 3
+    "Probe Initial",  // 4
+    "Probe Contact",  // 5
+    "Home Reset",     // 6
+    "Home Door",      // 7
+    "Home Pulloff",   // 8
+    "Home Approach",  // 9
+    "Spindle Ctrl",   // 10
+    "Ctrl Pin On",    // 11
+    "Ambiguous Sw",   // 12
+    "Hard Stop",      // 13
+    "Unhomed",        // 14
+    "Init",           // 15
+};

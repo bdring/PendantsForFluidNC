@@ -112,7 +112,7 @@ void drawStatus() {
     int fgColor = stateFGColors[state];
     if (state == Alarm) {
         centered_text(my_state_string, y + height / 2 - 4, fgColor, SMALL);
-        centered_text(alarm_name[lastAlarm], y + height / 2 + 12, fgColor);
+        centered_text(alarm_name_short[lastAlarm], y + height / 2 + 12, fgColor);
     } else {
         centered_text(my_state_string, y + height / 2 + 3, fgColor, MEDIUM);
     }

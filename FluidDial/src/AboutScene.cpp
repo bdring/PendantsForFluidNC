@@ -4,6 +4,7 @@
 #include "Scene.h"
 
 extern Scene menuScene;
+extern const char* version_info;  // auto generated version.cpp
 
 class AboutScene : public Scene {
 private:
@@ -29,11 +30,13 @@ public:
         background();
         drawStatus();
 
-        centered_text("Credits:", 118, LIGHTGREY, TINY);
-        centered_text("@bdring", 140, GREEN, TINY);
-        centered_text("@MitchBradley", 160, GREEN, TINY);
-        centered_text("@bDuthieDev ", 180, GREEN, TINY);
-        centered_text("@Design8Studio", 200, GREEN, TINY);
+        const int key_x = 118;
+        const int val_x = 122;
+
+        text("version:", key_x, 90, LIGHTGREY, TINY, bottom_right);
+        text(version_info, val_x, 90, GREEN, TINY, bottom_left);
+        text("baud:", key_x, 110, LIGHTGREY, TINY, bottom_right);
+        text(intToCStr(FNC_BAUD), val_x, 110, GREEN, TINY, bottom_left);
 
         drawMenuTitle(current_scene->name());
         drawButtonLegends("", "", "Menu");
