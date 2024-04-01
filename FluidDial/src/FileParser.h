@@ -32,6 +32,7 @@ extern std::vector<std::string> fileLines;
 extern void request_file_preview(const char* name);
 
 extern std::string current_filename;
+extern std::string wifi_mode, wifi_ip, wifi_connected, wifi_ssid;
 
 void init_listener();
 void init_file_list();

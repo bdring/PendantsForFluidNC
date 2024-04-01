@@ -570,6 +570,43 @@ extern "C" void handle_json(const char* line) {
     fnc_realtime((realtime_cmd_t)Ack);
 }
 
+std::string wifi_mode;
+std::string wifi_ssid;
+std::string wifi_connected;
+std::string wifi_ip;
+// e.g. SSID=fooStatus=Connected:IP=192.168.0.67:MAC=40-F5-20-57-CE-64
+void parse_wifi(char* arguments) {
+    char* key = arguments;
+    char* value;
+    while (*key) {
+        char* next;
+        split(key, &next, ':');
+        split(key, &value, '=');
+        if (strcmp(key, "SSID") == 0) {
+            wifi_ssid = value;
+        } else if (strcmp(key, "Status") == 0) {
+            wifi_connected = value;
+        } else if (strcmp(key, "IP") == 0) {
+            wifi_ip += value;
+            // } else if (strcmp(key, "MAC") == 0) {
+            //    mac = value;
+        }
+        key = next;
+    }
+}
+
+// command is "Mode=STA" - or AP or No Wifi
+void handle_radio_mode(char* command, char* arguments) {
+    dbg_printf("Mode %s %s\n", command, arguments);
+    char* value;
+    split(command, &value, '=');
+    wifi_mode = value;
+    if (strcmp(value, "No Wifi") != 0) {
+        parse_wifi(arguments);
+        current_scene->reDisplay();
+    }
+}
+
 extern "C" void handle_msg(char* command, char* arguments) {
     if (strcmp(command, "Homed") == 0) {
         char c;
@@ -591,5 +628,8 @@ extern "C" void handle_msg(char* command, char* arguments) {
     }
     if (strcmp(command, "JSON") == 0) {
         handle_json(arguments);
+    }
+    if (strncmp(command, "Mode=", strlen("Mode=")) == 0) {
+        handle_radio_mode(command, arguments);
     }
 }
