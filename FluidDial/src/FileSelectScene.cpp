@@ -1,34 +1,23 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 #include "FileParser.h"
+#include "polar.h"
 
 // #define SMOOTH_SCROLL
 #define WRAP_FILE_LIST
-// clang-format off
-#if 0
-#define DBG_WRAP_FILES(...) log_printf(__VA_ARGS__)
-#else
-#define DBG_WRAP_FILES(...)
-#endif
-
-#if 0
-#define DBG_PREV_SELECT(...) log_printf(__VA_ARGS__)
-#else
-#define DBG_PREV_SELECT(...)
-#endif
-// clang-format on
 
 extern Scene filePreviewScene;
 
-String displayTitle = "Files";
+extern Scene& jogScene;
 
 class FileSelectScene : public Scene {
 private:
     int              _selected_file = 0;
     std::vector<int> prevSelect;
+    std::string      dirName  = "/sd";
+    int              dirLevel = 0;
 
     const char* format_size(size_t size) {
         const int   buflen = 30;
@@ -55,7 +44,6 @@ public:
         if (prevSelect.size() == 0) {
             prevSelect.push_back(0);
         }
-        DBG_PREV_SELECT("prevSelect::init:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
     }
 
     void onDialButtonPress() { pop_scene(); }
@@ -66,33 +54,36 @@ public:
             return;
         }
         if (fileVector.size()) {
-            String dName;
             fileInfo                                 = fileVector[_selected_file];
             prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
-            switch (fileInfo.fileType) {
-                case 1:  //directory
-                    prevSelect.push_back(0);
-                    DBG_PREV_SELECT(
-                        "prevSelect::push: size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
-                    enter_directory(fileInfo.fileName);
-                    break;
-                case 2:  // file
-                    push_scene(&filePreviewScene, (void*)fileInfo.fileName.c_str());
-                    break;
+            if (fileInfo.isDir()) {
+                prevSelect.push_back(0);
+                if (dirLevel) {
+                    dirName += "/";
+                    dirName += fileInfo.fileName;
+                    ++dirLevel;
+                    request_file_list(dirName.c_str());
+                }
+            } else {
+                std::string path(dirName);
+                path += "/";
+                path += fileInfo.fileName;
+                push_scene(&filePreviewScene, (void*)path.c_str());
             }
         }
         ackBeep();
     }
 
-    // XXX maybe a touch on the top of the screen i.e. the dirname field
     void onRedButtonPress() {
         if (state != Idle) {
             return;
         }
         if (dirLevel) {
             prevSelect.pop_back();
-            DBG_PREV_SELECT("prevSelect::pop:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
-            exit_directory();
+            auto pos = dirName.rfind('/');
+            dirName  = dirName.substr(0, pos);
+            --dirLevel;
+            request_file_list(dirName.c_str());
         } else {
             prevSelect.clear();
             prevSelect.push_back(0);
@@ -101,10 +92,9 @@ public:
         ackBeep();
     }
 
-    void onTouchRelease(int x, int y) { onGreenButtonPress(); }
+    void onTouchClick() { onGreenButtonPress(); }
 
     void onFilesList() override {
-        DBG_PREV_SELECT("prevSelect::back:  size:%d, select:%d\r\n", prevSelect.size(), (prevSelect.size()) ? prevSelect.back() : 0);
         _selected_file = prevSelect.back();
         reDisplay();
     }
@@ -112,30 +102,22 @@ public:
     void onEncoder(int delta) override { scroll(delta); }
 
     void onMessage(char* command, char* arguments) override {
-        log_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
+        dbg_printf("FileSelectScene::onMessage(\"%s\", \"%s\")\r\n", command, arguments);
         // now just need to know what to do with messages
     }
 
     void buttonLegends() {
-        String grnText, redText = "";
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
-            redText = dirLevel ? "Up..." : "Refresh";
+            redLabel = dirLevel ? "Up.." : "Refresh";
             if (fileVector.size()) {
-                switch (fileVector[_selected_file].fileType) {
-                    case 0:
-                        break;
-                    case 1:
-                        grnText = "Load";
-                        break;
-                    case 2:
-                        grnText = "Select";
-                        break;
-                }
+                grnLabel = fileVector[_selected_file].isDir() ? "Down.." : "Load";
             }
         }
 
-        drawButtonLegends(redText, grnText, "Back");
+        drawButtonLegends(redLabel, grnLabel, "Back");
     }
 
     struct {
@@ -159,14 +141,15 @@ public:
     };
     int box_fi[3] = { 1, 3, 5 };
 
+    void onRightFlick() { activate_scene(&jogScene); }
+
     void showFiles(int yo) {
-        canvas.createSprite(240, 240);
-        drawBackground(BLACK);
-        displayTitle = current_scene->name();
-        drawStatusTiny(20);
-        drawMenuTitle(displayTitle);
-        String fName;
-        int    finfoT_color = BLUE;
+        // canvas.createSprite(240, 240);
+        // drawBackground(BLACK);
+        background();
+        drawMenuTitle(current_scene->name());
+        std::string fName;
+        int         finfoT_color = BLUE;
 
         int fdIter = _selected_file - 1;  // first file in display list
 
@@ -186,9 +169,6 @@ public:
             }
 #endif
             if (fdIter < 0) {
-                if (yo == 0) {
-                    DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d\r\n", fx, fdIter, _selected_file);
-                }
                 continue;
             }
 
@@ -201,26 +181,20 @@ public:
             }
             int middle_txt = middle._txt;
             if (fx == 1) {
-                String fInfoT = "";  // file info top line
-                String fInfoB = "";  // File info bottom line
-                int    ext    = fName.lastIndexOf('.');
-                float  fs     = 0.0;
+                std::string fInfoT = "";  // file info top line
+                std::string fInfoB = "";  // File info bottom line
+                int         ext    = fName.rfind('.');
                 if (fileVector.size()) {
-                    switch (fileVector[_selected_file].fileType) {
-                        case 0:
-                            break;
-                        case 1:
-                            fInfoB     = "Folder";
-                            middle_txt = BLUE;
-                            break;
-                        case 2:
-                            if (ext > 0) {
-                                fInfoT = fName.substring(ext, fName.length());
-                                fInfoT += " file";
-                                fName.remove(ext);
-                            }
-                            fInfoB = format_size(fileVector[_selected_file].fileSize);
-                            break;
+                    if (fileVector[_selected_file].isDir()) {
+                        fInfoB     = "Folder";
+                        middle_txt = BLUE;
+                    } else {
+                        if (ext > 0) {
+                            fInfoT = fName.substr(ext, fName.length());
+                            fInfoT += " file";
+                            fName.erase(ext);
+                        }
+                        fInfoB = format_size(fileVector[_selected_file].fileSize);
                     }
                 }
 
@@ -230,29 +204,27 @@ public:
                         canvas.drawArc(120, 120, 118 - i, 115 - i, -50, 50, DARKGREY);
                     }
 
-                    float mx  = 1.745;
-                    float s   = mx / -2.0;
-                    float inc = mx / (float)(fileVector.size() - 1);
-
-                    int x = cosf(s + inc * (float)_selected_file) * 114.0;
-                    int y = sinf(s + inc * (float)_selected_file) * 114.0;
-                    canvas.fillCircle(x + 120, y + 120, 5, LIGHTGREY);
+                    int x, y;
+                    int arc_degrees = 100;
+                    int divisor     = fileVector.size() - 1;
+                    int increment   = arc_degrees / divisor;
+                    int start_angle = (arc_degrees / 2);
+                    int angle       = start_angle - (_selected_file * arc_degrees) / divisor;
+                    r_degrees_to_xy(114, angle, &x, &y);
+                    canvas.fillCircle(120 + x, 120 - y, 5, LIGHTGREY);
                 }
 
                 if (yo == 0) {
                     auto top    = box[fi - 1];
                     auto bottom = box[fi + 1];
                     canvas.fillRoundRect(middle._xb, yo + middle._yb, middle._w, middle._h, middle._h / 2, middle._bg);
-                    text(fInfoT, top._xt, yo + top._yt, finfoT_color, top._f, top_center);
-                    text(fInfoB, bottom._xt, yo + bottom._yt, bottom._txt, bottom._f, top_center);
+                    text(fInfoT.c_str(), top._xt, yo + top._yt, finfoT_color, top._f, top_center);
+                    text(fInfoB.c_str(), bottom._xt, yo + bottom._yt, bottom._txt, bottom._f, top_center);
                 }
             }  // if (fx == 1)
 
             if ((yo == 0) || (yo < 0 && yo + middle._yt > 45) || (yo > 0 && yo + middle._yt + middle._h < 202)) {
                 auto_text(fName, middle._xt, yo + middle._yt, middle._w, (yo) ? WHITE : middle_txt, middle._f, middle_center);
-            }
-            if (yo == 0) {
-                DBG_WRAP_FILES("showFiles(): fx:%2d, fdIter:%2d, _selected_file:%2d - %s\r\n", fx, fdIter, _selected_file, fName.c_str());
             }
             if (fx == 1) {
 #ifdef WRAP_FILE_LIST
@@ -266,6 +238,7 @@ public:
             }
         }  // for(fx)
         buttonLegends();
+        drawStatusSmall(21);
         refreshDisplay();
     }
 
@@ -296,16 +269,14 @@ public:
 #ifdef SMOOTH_SCROLL
         while (abs(yo) < ylimit) {
             showFiles(yo);
-            delay(10);
+            delay_ms(10);
             yo -= yinc;
         }
 #endif
         _selected_file = nextSelect;
         showFiles(0);
-
-        DBG_PREV_SELECT("scroll(%d): _selected_file:%2d, files:%2d\r\n", updown, _selected_file, fileVector.size());
     }
 
     void reDisplay() { showFiles(0); }
 };
-FileSelectScene filesScene;
+FileSelectScene fileSelectScene;

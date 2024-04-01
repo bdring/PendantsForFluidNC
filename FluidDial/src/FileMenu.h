@@ -1,32 +1,40 @@
 // Copyright (c) 2023 - Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#pragma once
 #include "Menu.h"
-
-void selectFile(void* arg);
 
 class FileItem : public Item {
 private:
 public:
-    FileItem(const String& name) : Item(name) {}
-    void   show(const Point& where) override;
-    void   invoke(void* arg = nullptr) override;
-    bool   isDirectory() { return name().endsWith("/"); }
-    String baseName();
+    FileItem(const char* name) : Item(name) {}
+    void invoke(void* arg) override {
+        // doFileScreen(_name);
+    }
+    void show(const Point& where) override;
 };
 
 class FileMenu : public Menu {
 private:
-    int    _first;
-    String _dirname = "/";
+    int         _selected_file = 0;
+    std::string _dirname       = "/";
 
 public:
-    FileMenu(const char* name) : Menu(name) {}
+    FileMenu() : Menu("Files") {}
+
+    const std::string& selected_name();
+    void               onEntry(void* arg) override;
+
+    void onRedButtonPress() override;
+    void onFilesList() override;
+
+    void onDialButtonPress() override;
+
+    void onGreenButtonPress() override;
     void reDisplay() override;
+
+    void buttonLegends();
     void rotate(int delta) override;
     int  touchedItem(int x, int y) override;
+
     void menuBackground() override;
-    void onTouchFlick(int x, int y, int dx, int dy) override;
-    void setFolder(const String& name) { _dirname = name; }
 };

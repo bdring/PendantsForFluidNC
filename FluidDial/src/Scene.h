@@ -4,25 +4,44 @@
 #pragma once
 
 #include "GrblParserC.h"
-#include "Button.h"
 #include "Drawing.h"
-#include "nvs_flash.h"
+#ifdef ARDUINO
+#    include "nvs_flash.h"
+#endif
 
 void pop_scene(void* arg = nullptr);
 
+#ifdef ARDUINO
+#else
+typedef const char* nvs_handle_t;
+#endif
+
+extern int touchX;
+extern int touchY;
+extern int touchDeltaX;
+extern int touchDeltaY;
+
 class Scene {
 private:
-    String _name;
+    const char* _name;
 
     nvs_handle_t _prefs {};
+#ifdef ARDUINO
+#else
+    const char* prefFileName(const char* pname, int axis);
+#endif
 
     int _encoder_accum = 0;
     int _encoder_scale = 1;
 
-public:
-    Scene(const char* name, int encoder_scale = 1) : _name(name), _encoder_scale(encoder_scale) {}
+protected:
+    const char** _help_text = nullptr;
 
-    const String& name() { return _name; }
+public:
+    Scene(const char* name, int encoder_scale = 1, const char** help_text = nullptr) :
+        _name(name), _help_text(help_text), _encoder_scale(encoder_scale) {}
+
+    const char* name() { return _name; }
 
     virtual void onRedButtonPress() {}
     virtual void onRedButtonRelease() {}
@@ -30,14 +49,17 @@ public:
     virtual void onGreenButtonRelease() {}
     virtual void onDialButtonPress() {}
     virtual void onDialButtonRelease() {}
-    virtual void onTouchPress(int x, int y) {}
-    virtual void onTouchRelease(int x, int y) {}
-    virtual void onTouchHold(int x, int y) {}
-    virtual void onTouchFlick(int x, int y, int dx, int dy) {
-        if (dx < -60) {
-            pop_scene();
-        }
-    }
+    virtual void onTouchPress() {}
+    virtual void onTouchRelease() {}
+    virtual void onTouchClick() {}
+    virtual void onTouchHold() {}
+    virtual void onLeftFlick() { pop_scene(); }
+    virtual void onRightFlick() { onTouchFlick(); }
+    virtual void onUpFlick() { onTouchFlick(); }
+    virtual void onDownFlick() { onTouchFlick(); }
+    virtual void onTouchFlick() {}
+
+    virtual void onError(const char* errstr) {}
 
     virtual void onStateChange(state_t) {}
     virtual void onDROChange() {}
@@ -57,23 +79,28 @@ public:
 
     void setPref(const char* name, int value);
     void getPref(const char* name, int* value);
-    void setPref(const char* name, float value);
-    void getPref(const char* name, float* value);
     void setPref(const char* name, int axis, int value);
     void getPref(const char* name, int axis, int* value);
+    void setPref(const char* name, int axis, const char* value);
+    void getPref(const char* name, int axis, char* value, int maxlen);
+
+    void background();
 };
 
-void activate_at_top_level(Scene* scene, void* arg = nullptr);
-void activate_scene(Scene* scene, void* arg = nullptr);
-void push_scene(Scene* scene, void* arg = nullptr);
+bool touchIsCenter();
+
+void   activate_at_top_level(Scene* scene, void* arg = nullptr);
+void   activate_scene(Scene* scene, void* arg = nullptr);
+void   push_scene(Scene* scene, void* arg = nullptr);
+Scene* parent_scene();
 
 // helper functions
 
 // Function to rotate through an aaray of numbers
 // Example:  rotateNumberLoop(variable, 1, 0, 2)
 // The variable can be integer or float.  If it is float, you need
-// to cast increment, min, and max to float otherwise the compiler
-// will try to use double and complain
+// to cast increment, min, and max to float in the calls, otherwise
+// the compiler will try to use double and complain
 
 template <typename T>
 void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
@@ -88,8 +115,5 @@ void rotateNumberLoop(T& currentVal, T increment, T min, T max) {
 
 extern Scene* current_scene;
 
-extern Button greenButton;
-extern Button redButton;
-extern Button dialButton;
-
 void dispatch_events();
+void act_on_state_change();

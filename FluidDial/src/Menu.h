@@ -3,10 +3,12 @@
 
 #pragma once
 
-#include <Arduino.h>
 #include "Scene.h"
 #include <math.h>
 #include <vector>
+#include <string>
+
+extern Scene helpScene;
 
 typedef int color_t;
 typedef void (*callback_t)(void*);
@@ -14,7 +16,8 @@ typedef void (*callback_t)(void*);
 void do_nothing(void* arg);
 class Item {
 protected:
-    String     _name;
+    std::string _name;
+
     bool       _highlighted = false;
     bool       _disabled    = false;
     bool       _hidden      = false;
@@ -22,10 +25,12 @@ protected:
     Scene*     _scene       = nullptr;
 
 public:
-    Item(const String& name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
     Item(const char* name, callback_t callback = do_nothing) : _name(name), _callback(callback) {}
     Item(const char* name, Scene* scene) : _name(name), _callback(nullptr), _scene(scene) {}
     Item() : Item("") {}
+
+    // Virtual so we can delete derived classes via pointer
+    virtual ~Item() {}
 
     virtual void show(const Point& where) {};
 
@@ -43,17 +48,18 @@ public:
         }
     };
 
-    String name() { return _name; }
-    void   highlight() { _highlighted = true; }
-    void   unhighlight() { _highlighted = false; }
-    bool   highlighted() { return _highlighted; }
-    void   disable() { _disabled = true; }
-    void   enable() { _disabled = false; }
-    bool   enabled() { return !_disabled; }
-    bool   disabled() { return _disabled; }
-    void   hide() { _hidden = true; }
-    void   unhide() { _hidden = false; }
-    bool   hidden() { return _hidden; }
+    const std::string& name() { return _name; }
+
+    void highlight() { _highlighted = true; }
+    void unhighlight() { _highlighted = false; }
+    bool highlighted() { return _highlighted; }
+    void disable() { _disabled = true; }
+    void enable() { _disabled = false; }
+    bool enabled() { return !_disabled; }
+    bool disabled() { return _disabled; }
+    void hide() { _hidden = true; }
+    void unhide() { _hidden = false; }
+    bool hidden() { return _hidden; }
 
     void set_action(callback_t callback) { _callback = callback; }
 };
@@ -92,9 +98,9 @@ public:
 
 class ImageButton : public Item {
 private:
-    String  _filename;
-    int     _radius;
-    color_t _outline_color;
+    const char* _filename;
+    int         _radius;
+    color_t     _outline_color;
 
 public:
     ImageButton(const char* name, callback_t callback, const char* filename, int radius, color_t outline_color = WHITE) :
@@ -108,18 +114,18 @@ public:
 
 class RectangularButton : public Item {
 private:
-    String _text;
-    int    _width;
-    int    _height;
-    int    _radius;
-    int    _bg_color;
-    int    _text_color;
-    int    _outline_color;
+    const char* _text;
+    int         _width;
+    int         _height;
+    int         _radius;
+    int         _bg_color;
+    int         _text_color;
+    int         _outline_color;
 
 public:
     RectangularButton(const char* name,
                       callback_t  callback,
-                      String&     text,
+                      const char* text,
                       int         width,
                       int         height,
                       int         radius,
@@ -149,9 +155,9 @@ public:
 
     int _selected = 0;
 
-    Menu(const char* name) : Scene(name, 4) {}
+    Menu(const char* name, const char** help_text = nullptr) : Scene(name, 4, help_text) {}
 
-    Menu(const char* name, int num_items) : Scene(name, 4), _num_items(num_items) {
+    Menu(const char* name, int num_items, const char** help_text = nullptr) : Scene(name, 4, help_text), _num_items(num_items) {
         _items.reserve(num_items);
         _positions.reserve(num_items);
     }
@@ -162,8 +168,8 @@ public:
 
     void reDisplay();
 
-    virtual void menuBackground()          = 0;
-    virtual int  touchedItem(int x, int y) = 0;
+    virtual void menuBackground() {}
+    virtual int  touchedItem(int x, int y) { return -1; }
     virtual void rotate(int delta);
 
     void onEncoder(int delta) override { rotate(delta); }
@@ -175,9 +181,10 @@ public:
         _positions.push_back(position);
         ++_num_items;
     }
+    void removeAllItems();
 
     void onEntry(void* arg) override {
-        if (_selected != -1) {
+        if (num_items() && _selected != -1) {
             _items[_selected]->highlight();
         }
     }
@@ -196,9 +203,13 @@ public:
         _items[item]->highlight();
         reDisplay();
     }
-    void onTouchRelease(int x, int y) override {
-        select(touchedItem(x, y));
+    void onTouchClick() override {
+        if (_help_text && touchIsCenter()) {
+            push_scene(&helpScene), (void*)_help_text;
+            return;
+        }
+        select(touchedItem(touchX, touchY));
         ackBeep();
     }
-    void invoke() { _items[_selected]->invoke(); }
+    void invoke(void* arg = nullptr) { _items[_selected]->invoke(arg); }
 };

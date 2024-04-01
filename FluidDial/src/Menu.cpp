@@ -9,7 +9,7 @@ void do_nothing(void* foo) {}
 
 void RoundButton::show(const Point& where) {
     drawOutlinedCircle(where, _radius, _highlighted ? _hl_fill_color : _fill_color, _highlighted ? _hl_outline_color : _outline_color);
-    text(name().substring(0, 1), where, _highlighted ? MAROON : WHITE, MEDIUM);
+    text(name().substr(0, 1), where, _highlighted ? MAROON : WHITE, MEDIUM);
 }
 void ImageButton::show(const Point& where) {
     if (_highlighted) {
@@ -22,6 +22,15 @@ void ImageButton::show(const Point& where) {
 void RectangularButton::show(const Point& where) {
     drawOutlinedRect(where, _width, _height, _highlighted ? BLUE : _outline_color, _bg_color);
     text(_text, where, _text_color, SMALL);
+}
+
+void Menu::removeAllItems() {
+    for (auto const& item : _items) {
+        delete item;
+    }
+    _items.clear();
+    _positions.clear();
+    _num_items = 0;
 }
 
 void Menu::reDisplay() {

@@ -1,8 +1,9 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
+#include <string>
 #include "Scene.h"
+#include "e4math.h"
 
 class ProbingScene : public Scene {
 private:
@@ -10,11 +11,11 @@ private:
     long oldPosition = 0;
 
     // Saved to NVS
-    float _offset  = 0.0;
-    float _travel  = -20.0;
-    float _rate    = 80.0;
-    float _retract = 20.0;
-    int   _axis    = 2;  // Z is default
+    e4_t _offset  = e4_from_int(0);
+    int  _travel  = -20;
+    int  _rate    = 80;
+    int  _retract = 20;
+    int  _axis    = 2;  // Z is default
 
 public:
     ProbingScene() : Scene("Probe") {}
@@ -24,12 +25,7 @@ public:
     void onGreenButtonPress() {
         // G38.2 G91 F80 Z-20 P8.00
         if (state == Idle) {
-            String gcode = "G38.2G91";
-            gcode += "F" + floatToString(_rate, 0);
-            gcode += axisNumToString(_axis) + floatToString(_travel, 0);
-            gcode += "P" + floatToString(_offset, 2);
-            log_println(gcode);
-            send_line(gcode);
+            send_linef("G38.2G91F%d%c%dP%s", _rate, axisNumToChar(_axis), _travel, e4_to_cstr(_offset, 2));
             return;
         }
         if (state == Cycle) {
@@ -49,18 +45,15 @@ public:
             //send_line("$X");
             return;
         } else if (state == Idle) {
-            String gcode = "$J=G91F1000";
-            gcode += axisNumToString(_axis);
-            gcode += (_travel < 0) ? "+" : "-";  // retract is opposite travel
-            gcode += floatToString(_retract, 0);
-            send_line(gcode);
+            int retract = _travel >= 0 ? _retract : -_retract;
+            send_linef("$J=G91F1000%c%d", axisNumToChar(_axis), retract);
             return;
         } else if (state == Hold) {
             fnc_realtime(Reset);
         }
     }
 
-    void onTouchRelease(int x, int y) {
+    void onTouchClick() {
         // Rotate through the items to be adjusted.
         rotateNumberLoop(selection, 1, 0, 4);
         reDisplay();
@@ -73,7 +66,7 @@ public:
         if (abs(delta) > 0) {
             switch (selection) {
                 case 0:
-                    _offset += (float)delta / 100;
+                    _offset += delta * 100;  // Increment by 0.0100
                     setPref("Offset", _offset);
                     break;
                 case 1:
@@ -112,11 +105,12 @@ public:
     }
 
     void reDisplay() {
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 
-        String grnText, redText;
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
             int    x      = 40;
@@ -125,24 +119,24 @@ public:
             int    height = 25;
             int    pitch  = 27;  // for spacing of buttons
             Stripe button(x, y, width, height, TINY);
-            button.draw("Offset", floatToString(_offset, 2), selection == 0);
-            button.draw("Max Travel", floatToString(_travel, 0), selection == 1);
+            button.draw("Offset", e4_to_cstr(_offset, 2), selection == 0);
+            button.draw("Max Travel", intToCStr(_travel), selection == 1);
             y = button.y();  // For LED
-            button.draw("Feed Rate", floatToString(_rate, 0), selection == 2);
+            button.draw("Feed Rate", intToCStr(_rate), selection == 2);
 
-            button.draw("Retract", floatToString(_retract, 0), selection == 3);
-            button.draw("Axis", axisNumToString(_axis), selection == 4);
+            button.draw("Retract", intToCStr(_retract), selection == 3);
+            button.draw("Axis", axisNumToCStr(_axis), selection == 4);
 
             //LED led(x - 20, y + height / 2, 10, button.gap());
             //led.draw(myProbeSwitch);
 
-            grnText = "Probe";
-            redText = "Retract";
+            grnLabel = "Probe";
+            redLabel = "Retract";
         } else {
             if (state == Jog || state == Alarm) {  // there is no Probing state, so Cycle is a valid state on this
                 //centered_text("Invalid State", 105, WHITE, MEDIUM);
                 //centered_text("For Probing", 145, WHITE, MEDIUM);
-                redText = "Reset";
+                redLabel = "Reset";
             } else {
                 int x      = 14;
                 int height = 35;
@@ -159,22 +153,22 @@ public:
 
                 switch (state) {
                     case Cycle:
-                        redText = "E-Stop";
-                        grnText = "Hold";
+                        redLabel = "E-Stop";
+                        grnLabel = "Hold";
                         break;
                     case Hold:
-                        redText = "Reset";
-                        grnText = "Resume";
+                        redLabel = "Reset";
+                        grnLabel = "Resume";
                         break;
                     case Alarm:
-                        redText = "Reset";
+                        redLabel = "Reset";
                         break;
                 }
             }
         }
 
-        drawButtonLegends(redText, grnText, "Back");
-        showError();  // only if one just happened
+        drawButtonLegends(redLabel, grnLabel, "Back");
+        drawError();  // only if one just happened
         refreshDisplay();
     }
 };

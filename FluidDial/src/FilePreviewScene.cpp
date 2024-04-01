@@ -1,7 +1,7 @@
 // Copyright (c) 2023 - Barton Dringstarting
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
+#include <string>
 #include "Scene.h"
 #include "FileParser.h"
 
@@ -9,23 +9,33 @@ extern Scene menuScene;
 extern Scene statusScene;
 
 class FilePreviewScene : public Scene {
-    String _filename;
-    bool   _needlines;
+    std::string _error_string;
+    std::string _filename;
+    bool        _needlines;
 
 public:
     FilePreviewScene() : Scene("Preview") {}
     void onEntry(void* arg) {
-        char* fname = (char*)arg;
-        _filename   = fname;
-        _needlines  = true;
-        request_file_preview(fname);
+        if (arg) {
+            char* fname = (char*)arg;
+            _filename   = fname;
+            _needlines  = true;
+            request_file_preview(fname);
+        } else {
+            _needlines = false;
+        }
     }
     void onFileLines() {
-        _needlines = false;
+        _error_string = false;
+        _needlines    = false;
+        reDisplay();
+    }
+    void onError(const char* errstr) {
+        _error_string = errstr;
         reDisplay();
     }
 
-    void onDialButtonPress() { activate_scene(&menuScene); }
+    void onDialButtonPress() { pop_scene(); }
 
     void onRedButtonPress() {
         if (state == Idle) {
@@ -38,46 +48,50 @@ public:
 
     void onGreenButtonPress() {
         if (state == Idle) {
-            String command = "$SD/Run=" + dirName + "/" + fileInfo.fileName;
-            send_line(command.c_str());
+            send_linef("$SD/Run=%s", _filename.c_str());
             ackBeep();
         }
     }
-    void reDisplay() {
-        if (state == Cycle) {
-            activate_scene(&statusScene);
-            return;
-        }
-        String grnText, redText = "";
 
-        canvas.createSprite(240, 240);
-        drawBackground(BLACK);
+    void onStateChange(state_t old_state) {
+        if (state == Cycle) {
+            push_scene(&statusScene);
+        }
+    }
+
+    void reDisplay() {
+        background();
         drawMenuTitle(name());
-        drawStatusTiny(20);
+
+        const char* grnLabel = "";
+        const char* redLabel = "";
 
         if (state == Idle) {
             if (_needlines == false) {
-                int y  = 39;
+                int y  = 48;
                 int tl = 0;
                 if (fileLines.size()) {
                     for (auto const& line : fileLines) {
-                        text(line, 25, y + tl * 22, WHITE, TINY, top_left);
+                        text(line.c_str(), 25, y + tl * 22, WHITE, TINY, top_left);
                         ++tl;
                     }
                 } else {
-                    text("No Text", 120, 120, WHITE, SMALL, middle_center);
+                    text("Empty File", 120, 120, WHITE, SMALL, middle_center);
                 }
+            } else if (_error_string.length()) {
+                text(_error_string, 120, 120, WHITE, SMALL, middle_center);
             } else {
                 text("Reading File", 120, 120, WHITE, TINY, middle_center);
             }
-            grnText = "Run";
-            redText = "Back";
+            grnLabel = "Run";
+            redLabel = "Back";
         } else {
             centered_text("Invalid State", 105, WHITE, SMALL);
             centered_text("File Preview", 145, WHITE, SMALL);
         }
 
-        drawButtonLegends(redText, grnText, "Menu");
+        drawButtonLegends(redLabel, grnLabel, "Back");
+        drawStatusSmall(21);
         refreshDisplay();
     }
 };

@@ -21,7 +21,12 @@ extern "C" {
 #define B_AXIS 4
 #define C_AXIS 5
 
-typedef float    pos_t;
+#ifdef E4_POS_T
+#    include "e4math.h"
+typedef e4_t pos_t;
+#else
+typedef float pos_t;
+#endif
 typedef int32_t  feedrate_t;
 typedef uint32_t override_percent_t;
 typedef int32_t  file_percent_t;
@@ -92,6 +97,9 @@ void fnc_send_line(const char* line, int timeout_ms);
 bool split(char* input, char** right, char delim);
 bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator);
 
+// Convert a pos_t value to a decimal string
+const char* pos_to_cstr(pos_t val, int afterDecimal);
+
 // Inject a byte into the parser.  Normally this happens automatically
 // via fnc_poll(), but it can also be called explicitly for debugging
 void collect(uint8_t data);
@@ -112,6 +120,8 @@ extern void debug_print(const char* msg);
 extern void debug_println(const char* msg);
 extern int  debug_getchar();
 
+extern pos_t atopos(const char* s);
+
 // The following can be implemented to do whatever your app
 // wants to do.  Any that you do not implement will be automatically
 // handled as no-ops.
@@ -131,9 +141,10 @@ extern void expander_nak(const char* msg);
 extern void expander_pin_msg(uint8_t pin_num, bool active);
 
 // [MSG: messages
-// General handler that can be ovverridden
+// General handler that can be overridden
 extern void handle_msg(char* command, char* arguments);
 
+extern void handle_json(const char* line);
 extern void handle_grbl(char* line);
 
 // Handle signon messages like "Grbl 3.4 [stuff]"

@@ -1,14 +1,24 @@
 #include "Menu.h"
 #include "PieMenu.h"
-#include "FileMenu.h"
+#ifdef USE_WMB_FSS
+#    include "FileMenu.h"
+#endif
 #include "System.h"
 
 void noop(void* arg) {}
 
 const int buttonRadius = 30;
 
-FileMenu fileMenu("Files");
-PieMenu  axisMenu("Axes", buttonRadius);
+static const char* menu_help_text[] = { "FluidDial",
+                                        "Touch icon for scene",
+                                        "Touch center for help",
+                                        "Flick left to go back",
+                                        "Authors: @bdring,@Mitch",
+                                        "Bradley,@bDuthieDev,",
+                                        "@Design8Studio",
+                                        NULL };
+
+// PieMenu axisMenu("Axes", buttonRadius);
 
 class LB : public RoundButton {
 public:
@@ -25,55 +35,89 @@ public:
 };
 
 extern Scene homingScene;
-extern Scene joggingScene;
+//extern Scene joggingScene;
+//extern Scene joggingScene2;
+extern Scene multiJogScene;
 extern Scene probingScene;
 extern Scene statusScene;
-extern Scene filesScene;
+extern Scene macroMenu;
+
+#ifdef USE_WMB_FSS
+extern Scene wmbFileSelectScene;
+#else
+extern Scene fileSelectScene;
+#endif
+
+
+Scene& jogScene = multiJogScene;
+
 extern Scene controlScene;
-extern Scene setupScene;
+extern Scene aboutScene;
 extern Scene powerScene;
 
-IB statusButton("Status", &statusScene, "/statustp.png");
-IB homingButton("Homing", &homingScene, "/hometp.png");
-IB jogButton("Jog", &joggingScene, "/jogtp.png");
-IB probeButton("Probe", &probingScene, "/probetp.png");
-IB filesButton("Files", &filesScene, "/filestp.png");
-IB controlButton("Control", &controlScene, "/controltp.png");
-IB setupButton("Setup", &setupScene, "/setuptp.png");
-IB powerButton("Power", &powerScene, "/powertp.png");
+IB statusButton("Status", &statusScene, "statustp.png");
+IB homingButton("Homing", &homingScene, "hometp.png");
+IB jogButton("Jog", &jogScene, "jogtp.png");
+IB probeButton("Probe", &probingScene, "probetp.png");
+
+#ifdef USE_WMB_FSS
+IB filesButton("Files", &wmbFileSelectScene, "filestp.png");
+#else
+IB           filesButton("Files", &fileSelectScene, "filestp.png");
+#endif
+
+IB controlButton("Macros", &macroMenu, "macrostp.png");
+IB setupButton("About", &aboutScene, "abouttp.png");
+IB powerButton("Power", &powerScene, "powertp.png");
 
 class MenuScene : public PieMenu {
 public:
-    MenuScene() : PieMenu("Main", buttonRadius) {}
+    MenuScene() : PieMenu("Main", buttonRadius, menu_help_text) {}
+    void disableIcons() {
+        statusButton.disable();
+        homingButton.disable();
+        jogButton.disable();
+        probeButton.disable();
+        filesButton.disable();
+        controlButton.disable();
+        setupButton.enable();
+        powerButton.enable();
+    }
+    void enableIcons() {
+        statusButton.enable();
+        homingButton.enable();
+        jogButton.enable();
+        probeButton.enable();
+        filesButton.enable();
+        controlButton.enable();
+        setupButton.enable();
+        powerButton.enable();
+    }
     void onEntry(void* arg) {
         PieMenu::onEntry(arg);
         if (state == Disconnected) {
-            log_println("Menu Scene in disconnected state");
-            statusButton.disable();
-            homingButton.disable();
-            jogButton.disable();
-            probeButton.disable();
-            filesButton.disable();
-            controlButton.disable();
-            setupButton.enable();
-            powerButton.enable();
+            disableIcons();
         } else {
-            log_println("Menu Scene in Connected state");
+            enableIcons();
         }
     }
-    void onStateChange(state_t state) override {
+    void onStateChange(state_t old_state) override {
         if (state != Disconnected) {
-            log_println("Menu state change not disconnected");
-            statusButton.enable();
-            homingButton.enable();
-            jogButton.enable();
-            probeButton.enable();
-            filesButton.enable();
-            controlButton.enable();
-            setupButton.enable();
-            powerButton.enable();
-        } else {
-            log_println("Menu state change IS disconnected");
+            enableIcons();
+            if (old_state == Disconnected) {
+#ifdef AUTO_JOG_SCENE
+                if (state == Idle) {
+                    push_scene(&jogScene);
+                    return;
+                }
+#endif
+#ifdef AUTO_HOMING_SCENE
+                if (state == Alarm && lastAlarm == 14) {  // Unknown or Unhomed
+                    push_scene(&homingScene, (void*)"auto");
+                    return;
+                }
+#endif
+            }
         }
         reDisplay();
     }
