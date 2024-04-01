@@ -52,6 +52,7 @@ public:
             ackBeep();
         }
     }
+
     void onStateChange(state_t old_state) {
         if (state == Cycle) {
             push_scene(&statusScene);
