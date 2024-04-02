@@ -339,6 +339,10 @@ void try_next_macro_file(JsonListener* listener) {
         request_json_file("macrocfg.json");
         return;
     }
+    if (listener == &preferencesListener) {
+        current_scene->onError("No Macros");
+        return;
+    }
     if (listener == &macrocfgListener) {
         request_json_file("preferences.json");
     }

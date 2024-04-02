@@ -38,7 +38,8 @@ void MacroItem::show(const Point& where) {
 
 class MacroMenu : public Menu {
 private:
-    bool _need_macros = true;
+    bool        _need_macros = true;
+    std::string _error_string;
 
 public:
     MacroMenu() : Menu("Macros") {}
@@ -50,11 +51,17 @@ public:
         request_macros();
     }
     void onFilesList() {
+        _error_string.clear();
         _need_macros = 0;
         if (num_items()) {
             _selected = 0;
             _items[_selected]->highlight();
         }
+        reDisplay();
+    }
+
+    void onError(const char* errstr) {
+        _error_string = errstr;
         reDisplay();
     }
 
@@ -84,7 +91,11 @@ public:
             // Point where { 0, 0 };
             // Point wh { 200, 45 };
             // drawRect(where, wh, 20, YELLOW);
-            text(_need_macros ? "Reading Macros" : "No Macros", { 0, 0 }, WHITE, SMALL, middle_center);
+            if (_error_string.length()) {
+                text(_error_string, 120, 120, WHITE, SMALL, middle_center);
+            } else {
+                text(_need_macros ? "Reading Macros" : "No Macros", { 0, 0 }, WHITE, SMALL, middle_center);
+            }
         } else {
             if (_selected > 1) {
                 _items[_selected - 2]->show({ 0, 80 });
