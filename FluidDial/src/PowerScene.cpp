@@ -46,7 +46,7 @@ public:
         centered_text("Use red button to wakeup", 118, RED, TINY);
         refreshDisplay();
         delay_ms(2000);
-        
+
         deep_sleep(0);
 #else
         dbg_println("Sleep");

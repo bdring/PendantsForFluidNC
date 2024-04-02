@@ -44,7 +44,7 @@ public:
             fnc_realtime(Reset);
             //send_line("$X");
             return;
-        } else if (state == Idle) {            
+        } else if (state == Idle) {
             int retract = _travel < 0 ? _retract : -_retract;
             send_linef("$J=G91F1000%c%d", axisNumToChar(_axis), retract);
             return;
