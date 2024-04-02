@@ -44,8 +44,10 @@ public:
         text("Version:", key_x, y, LIGHTGREY, TINY, bottom_right);
         text(version_info, val_x, y, GREEN, TINY, bottom_left);
 
+#ifdef FNC_BAUD  // FNC_BAUD might not be defined for Windows
         text("FNC baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
         text(intToCStr(FNC_BAUD), val_x, y, GREEN, TINY, bottom_left);
+#endif
 
         std::string wifi_str = wifi_mode;
         if (wifi_mode == "No Wifi") {
