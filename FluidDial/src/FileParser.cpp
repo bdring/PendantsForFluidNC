@@ -587,7 +587,7 @@ void parse_wifi(char* arguments) {
         } else if (strcmp(key, "Status") == 0) {
             wifi_connected = value;
         } else if (strcmp(key, "IP") == 0) {
-            wifi_ip += value;
+            wifi_ip = value;
             // } else if (strcmp(key, "MAC") == 0) {
             //    mac = value;
         }
