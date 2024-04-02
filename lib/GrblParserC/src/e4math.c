@@ -32,7 +32,7 @@ e4_t e4_inch_to_mm(e4_t inch) {
 e4_t e4_magnitude(e4_t n1, e4_t n2) {
     long long n = ((long long)n1 * n1) + ((long long)n2 * n2);
     long long x = n;
-    long long y = 10000;
+    long long y = 1;
     // printf("X %lld Y %lld\n", x, y);
     while (x > y) {
         x = (x + y) >> 1;

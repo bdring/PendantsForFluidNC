@@ -26,8 +26,8 @@ public:
         }
     }
     void onFileLines() {
-        _error_string = false;
-        _needlines    = false;
+        _error_string.clear();
+        _needlines = false;
         reDisplay();
     }
     void onError(const char* errstr) {
