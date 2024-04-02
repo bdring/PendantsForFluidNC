@@ -38,6 +38,7 @@ class PowerScene : public Scene {
 private:
 public:
     PowerScene() : Scene("Power") {}
+    int  brightness = 255;
     void onEntry() {}
     void onRedButtonPress() {
         set_disconnected_state();
@@ -65,7 +66,20 @@ public:
 #else
         const char* greenLegend = "";
 #endif
+        text("Brightness:", 122, 90, LIGHTGREY, TINY, bottom_right);
+        text(intToCStr(brightness), 126, 90, GREEN, TINY, bottom_left);
         drawButtonLegends("Sleep", greenLegend, "Back");
         refreshDisplay();
+    }
+
+    void onEncoder(int delta) {
+        if (delta > 0 && brightness < 255) {
+            M5Dial.Display.setBrightness(++brightness);
+        }
+        if (delta < 0 && brightness > 0) {
+            M5Dial.Display.setBrightness(--brightness);
+        }
+        USBSerial.printf("Brighness:%d\r\n", brightness);
+        reDisplay();
     }
 } powerScene;
