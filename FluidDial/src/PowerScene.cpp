@@ -46,7 +46,7 @@ public:
         centered_text("Use red button to wakeup", 118, RED, TINY);
         refreshDisplay();
         delay_ms(2000);
-        
+
         deep_sleep(0);
 #else
         dbg_println("Sleep");
@@ -79,7 +79,6 @@ public:
         if (delta < 0 && brightness > 0) {
             M5Dial.Display.setBrightness(--brightness);
         }
-        USBSerial.printf("Brighness:%d\r\n", brightness);
         reDisplay();
     }
 } powerScene;
