@@ -58,12 +58,10 @@ public:
             prevSelect[(int)(prevSelect.size() - 1)] = _selected_file;
             if (fileInfo.isDir()) {
                 prevSelect.push_back(0);
-                if (dirLevel) {
-                    dirName += "/";
-                    dirName += fileInfo.fileName;
-                    ++dirLevel;
-                    request_file_list(dirName.c_str());
-                }
+                dirName += "/";
+                dirName += fileInfo.fileName;
+                ++dirLevel;
+                request_file_list(dirName.c_str());
             } else {
                 std::string path(dirName);
                 path += "/";

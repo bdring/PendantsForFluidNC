@@ -80,6 +80,7 @@ public:
 
     void endArray() override {
         std::sort(fileVector.begin(), fileVector.end(), fileinfoCompare);
+        current_scene->onFilesList();
         parser.setListener(pInitialListener);
     }
 
