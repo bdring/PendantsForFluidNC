@@ -6,7 +6,7 @@
 
 extern Scene menuScene;
 
-extern const char* version_info;  // auto generated version.cpp
+extern const char* git_info;  // auto generated version.cpp
 
 class AboutScene : public Scene {
 private:
@@ -42,7 +42,7 @@ public:
         int       y         = 90;
 
         text("Version:", key_x, y, LIGHTGREY, TINY, bottom_right);
-        text(version_info, val_x, y, GREEN, TINY, bottom_left);
+        text(git_info, val_x, y, GREEN, TINY, bottom_left);
 
         text("FNC baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
         text(intToCStr(FNC_BAUD), val_x, y, GREEN, TINY, bottom_left);
