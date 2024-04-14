@@ -1,15 +1,9 @@
 // Copyright (c) 2023 - Barton Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include <Arduino.h>
 #include "Scene.h"
 
-extern Scene probingScene;
-extern Scene homingScene;
-extern Scene joggingScene;
-extern Scene controlScene;
 extern Scene menuScene;
-//extern Scene fileScene;
 
 class MainScene : public Scene {
 private:
@@ -26,7 +20,7 @@ public:
         }
     }
 
-    void onTouchRelease(int x, int y) {
+    void onTouchClick() {
         fnc_realtime(StatusReport);  // sometimes you want an extra status
     }
 
@@ -79,7 +73,7 @@ public:
 
     void display() {
         canvas.createSprite(240, 240);
-        drawBackground(BLACK);
+        background();
         drawMenuTitle(current_scene->name());
         drawStatus();
 
@@ -93,39 +87,41 @@ public:
             int width = 192;
             if (myPercent > 0) {
                 canvas.fillRoundRect(20, y, width, 10, 5, LIGHTGREY);
-                width = (float)width * myPercent / 100.0;
+                width = (width * myPercent) / 100;
                 if (width > 0) {
                     canvas.fillRoundRect(20, y, width, 10, 5, GREEN);
                 }
             }
 
             // Feed override
-            centered_text("Feed Rate Ovr:" + String(myFro) + "%", y + 23);
+            char legend[50];
+            sprintf(legend, "Feed Rate Ovr:%d%%", myFro);
+            centered_text(legend, y + 23);
         }
 
-        String encoder_button_text = "Menu";
-        String redButtonText       = "";
-        String greenButtonText     = "";
+        const char* dialLabel  = "Menu";
+        const char* redLabel   = "";
+        const char* greenLabel = "";
         switch (state) {
             case Alarm:
-                drawButtonLegends("Reset", "Home All", encoder_button_text);
+                drawButtonLegends("Reset", "Home All", dialLabel);
             case Homing:
-                drawButtonLegends("Reset", "", encoder_button_text);
+                drawButtonLegends("Reset", "", dialLabel);
                 break;
             case Cycle:
                 drawButtonLegends("E-Stop", "Hold", "FRO End");
                 break;
             case Hold:
-                drawButtonLegends("Quit", "Start", encoder_button_text);
+                drawButtonLegends("Quit", "Start", dialLabel);
                 break;
             case Jog:
-                drawButtonLegends("Jog Cancel", "", encoder_button_text);
+                drawButtonLegends("Jog Cancel", "", dialLabel);
                 break;
             case Idle:
-                drawButtonLegends("", "", encoder_button_text);
+                drawButtonLegends("", "", dialLabel);
                 break;
         }
-        showError();  // if there is one
+        drawError();  // if there is one
         refreshDisplay();
     }
 };

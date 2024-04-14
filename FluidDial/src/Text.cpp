@@ -13,60 +13,59 @@ const GFXfont* font[] = {
     &fonts::FreeMonoBold18pt7b,  // MEDIUM_MONO
 };
 
-void text(const String& msg, int x, int y, int color, fontnum_t fontnum, int datum) {
+void text(const char* msg, int x, int y, int color, fontnum_t fontnum, int datum) {
     canvas.setFont(font[fontnum]);
     canvas.setTextDatum(datum);
     canvas.setTextColor(color);
     canvas.drawString(msg, x, y);
 }
+void text(const std::string& msg, int x, int y, int color, fontnum_t fontnum, int datum) {
+    text(msg.c_str(), x, y, color, fontnum, datum);
+}
 
-void text(const String& msg, Point xy, int color, fontnum_t fontnum, int datum) {
+void text(const char* msg, Point xy, int color, fontnum_t fontnum, int datum) {
     Point dispxy = xy.to_display();
     text(msg, dispxy.x, dispxy.y, color, fontnum, datum);
 }
+void text(const std::string& msg, Point xy, int color, fontnum_t fontnum, int datum) {
+    text(msg.c_str(), xy, color, fontnum, datum);
+}
 
-void centered_text(const String& msg, int y, int color, fontnum_t fontnum) {
+void centered_text(const char* msg, int y, int color, fontnum_t fontnum) {
     text(msg, display.width() / 2, y, color, fontnum);
 }
 
-bool text_fits(const String& txt, fontnum_t fontnum, int w) {
-    canvas.setFont(font[fontnum]);
-    if (canvas.textWidth(txt) <= w)
-        return true;
-    return false;
-}
-
-void auto_text(const String& txt, int x, int y, int w, int color, fontnum_t fontnum, int datum,
-                                  bool tryfonts, bool trimleft) {
+void auto_text(const std::string& txt, int x, int y, int w, int color, fontnum_t fontnum, int datum, bool tryfonts, bool trimleft) {
     bool doesnotfit = true;
-    while (true) { // forever loop
+    while (true) {  // forever loop
         int f = fontnum;
-        if (text_fits(txt, fontnum, w)) {
+        if (canvas.textWidth(txt.c_str(), font[fontnum]) <= w) {
             doesnotfit = false;
             break;
         }
-        if (fontnum && tryfonts)
-            fontnum = (fontnum_t) (--f);
-        else
+        if (fontnum && tryfonts) {
+            fontnum = (fontnum_t)(--f);
+        } else {
             break;
+        }
     }
-    
-    String s(txt);
+
+    std::string s(txt);
 
     if (doesnotfit) {
         int dotswidth = canvas.textWidth(" ...");
 
         while (s.length() > 4) {
-            if (trimleft)
-                s.remove(0,1);
-            else
-                s.remove(s.length()-1);
-            if (canvas.textWidth(s)+dotswidth <= w) {
+            if (trimleft) {
+                s.erase(0, 1);
+            } else {
+                s.erase(s.length() - 1);
+            }
+            if (canvas.textWidth(s.c_str()) + dotswidth <= w) {
                 if (trimleft) {
-                    s = String("... " + s);
-                    USBSerial.printf("trimleft: %s\r\n", s.c_str());
+                    s.insert(0, "... ");
                 } else {
-                    s.concat(" ...");
+                    s += " ...";
                 }
                 break;
             }
@@ -74,4 +73,4 @@ void auto_text(const String& txt, int x, int y, int w, int color, fontnum_t font
     }
 
     text(s, x, y, color, fontnum, datum);
-    }
+}

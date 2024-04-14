@@ -5,6 +5,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+#ifdef E4_POS_T
+#    include "e4math.h"
+// #    include <limits.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,6 +81,18 @@ bool atofraction(const char* p, int32_t* pnumerator, uint32_t* pdenominator) {
     *pdenominator = denominator;
 
     return c == '\0';
+}
+
+const char* pos_to_cstr(pos_t val, int afterDecimal) {
+#ifdef E4_POS_T
+    return e4_to_cstr(val, afterDecimal);
+#else
+    blah blah blah a;
+    dlfjasdl;
+    fj static char buffer[20];
+    sprintf(buffer, "%.*f", afterDecimal, val);
+    return buffer;
+#endif
 }
 
 static bool is_report_type(char* report, char** body, const char* prefix, const char* suffix) {
@@ -148,11 +166,22 @@ static void parse_signon(char* body) {
     handle_signon(body, arguments);
 }
 
-static pos_t atopos(const char* s) {
+pos_t atopos(const char* s) {
+#ifdef E4_POS_T
+    int32_t  num;
+    uint32_t denom;
+    atofraction(s, &num, &denom);
+    if (denom == 10000) {
+        return num;
+    }
+    int64_t res = num;
+    return res * 10000 / denom;
+#else
     int32_t  numerator;
     uint32_t denominator;
     atofraction(s, &numerator, &denominator);
     return (pos_t)numerator / denominator;
+#endif
 }
 
 static size_t parse_axes(char* s, pos_t* axes) {
@@ -211,11 +240,12 @@ static void parse_status_report(char* field) {
     bool  isMpos = false;
 
     bool           has_filename = false;
-    char*          filename     = '\0';
+    const char*    filename     = "";
     file_percent_t file_percent = 0;
-    //unused values
-    pos_t wcos[MAX_N_AXIS] = { 0 };
-    //unused values end
+
+    // WCOs are not issued on every status report so we must
+    // remember the last value.
+    static pos_t wcos[MAX_N_AXIS] = { 0 };
 
     // feedrate,spindle_speed
     uint32_t           fs[2];
@@ -405,7 +435,11 @@ static struct GCodeMode {
 static void lookup_mode(const char* tag) {
     for (struct GCodeMode* p = modes_map; p->tag; p++) {
         if (strcmp(tag, p->tag) == 0) {
+#ifdef VERBATIM_GCODE_MODES
+            *p->variable = p->tag;
+#else
             *p->variable = p->value;
+#endif
             return;
         }
     }
@@ -515,6 +549,10 @@ static void parse_report() {
         parse_msg(body);
         return;
     }
+    if (is_report_type(_report, &body, "[JSON:", "]")) {
+        handle_json(body);
+        return;
+    }
     if (is_report_type(_report, &body, "[VER:", "]")) {
         parse_version_report(body);
         return;
@@ -581,6 +619,8 @@ void __attribute__((weak)) show_timeout() {}
 // expander message was handled.
 void __attribute__((weak)) handle_msg(char* command, char* arguments) {}
 
+void __attribute__((weak)) handle_json(const char* line) {}
+
 void __attribute__((weak)) handle_signon(char* version, char* extra) {}
 void __attribute__((weak)) handle_other(char* line) {}
 
@@ -592,6 +632,7 @@ void __attribute__((weak)) show_file(const char* filename, file_percent_t percen
 void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mist) {}
 void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed) {}
 void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
+void __attribute__((weak)) show_linenum(int linenum) {}
 
 // [GC: messages
 // If you want to handle GCode reports directly without having the data parsed

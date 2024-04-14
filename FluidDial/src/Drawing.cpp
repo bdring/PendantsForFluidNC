@@ -1,10 +1,10 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+#include "System.h"
 #include "Drawing.h"
 #include "alarm.h"
 #include <map>
-#include <LittleFS.h>
 
 void drawBackground(int color) {
     canvas.fillSprite(color);
@@ -58,32 +58,44 @@ void drawOutlinedRect(Point xy, int width, int height, int bgcolor, int outlinec
     drawOutlinedRect(dispxy.x, dispxy.y, width, height, bgcolor, outlinecolor);
 }
 
-void drawPngFile(const String& filename, int x, int y) {
-    // When datum is middle_center, the origin is the center of the canvas and the
-    // +Y direction is down.
-    canvas.drawPngFile(LittleFS, filename, x, -y, 0, 0, 0, 0, 1.0f, 1.0f, datum_t::middle_center);
-}
-void drawPngFile(const String& filename, Point xy) {
+void drawPngFile(const char* filename, Point xy) {
     drawPngFile(filename, xy.x, xy.y);
 }
-void drawPngBackground(const String& filename) {
+void drawPngBackground(const char* filename) {
     drawPngFile(filename, 0, 0);
 }
 
+// We use 1 to mean no background
+// 1 is visually indistinguishable from black so losing that value is unimportant
+#define NO_BG 1
 // clang-format off
-std::map<state_t, int> stateColors = {
-    { Idle,        WHITE },
+std::map<state_t, int> stateBGColors = {
+    { Idle,        NO_BG },
     { Alarm,       RED },
     { CheckMode,   WHITE },
-    { Homing,      CYAN },
-    { Cycle,       GREEN },
+    { Homing,      NO_BG },
+    { Cycle,       NO_BG },
     { Hold,        YELLOW },
-    { Jog,         CYAN },
+    { Jog,         NO_BG },
     { SafetyDoor,  WHITE },
-    { Sleep,       WHITE },
+    { GrblSleep,   WHITE },
     { ConfigAlarm, WHITE },
     { Critical,    WHITE },
     { Disconnected, RED },
+};
+std::map<state_t, int> stateFGColors = {
+    { Idle,        LIGHTGREY },
+    { Alarm,       BLACK },
+    { CheckMode,   BLACK },
+    { Homing,      CYAN },
+    { Cycle,       GREEN },
+    { Hold,        BLACK },
+    { Jog,         CYAN },
+    { SafetyDoor,  BLACK },
+    { GrblSleep,   BLACK },
+    { ConfigAlarm, BLACK },
+    { Critical,    BLACK },
+    { Disconnected, BLACK },
 };
 // clang-format on
 
@@ -93,12 +105,16 @@ void drawStatus() {
     static constexpr int width  = 140;
     static constexpr int height = 36;
 
-    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    int fgColor = stateFGColors[state];
     if (state == Alarm) {
-        centered_text(stateString, y + height / 2 - 4, BLACK, SMALL);
-        centered_text(alarm_name[lastAlarm], y + height / 2 + 12, BLACK);
+        centered_text(my_state_string, y + height / 2 - 4, fgColor, SMALL);
+        centered_text(alarm_name_short[lastAlarm], y + height / 2 + 12, fgColor);
     } else {
-        centered_text(stateString, y + height / 2 + 3, BLACK, MEDIUM);
+        centered_text(my_state_string, y + height / 2 + 3, fgColor, MEDIUM);
     }
 }
 
@@ -106,40 +122,123 @@ void drawStatusTiny(int y) {
     static constexpr int width  = 90;
     static constexpr int height = 20;
 
-    canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, stateColors[state]);
-    centered_text(stateString, y + height / 2 + 3, BLACK, TINY);
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    centered_text(my_state_string, y + height / 2 + 3, stateFGColors[state], TINY);
+}
+
+void drawStatusSmall(int y) {
+    static constexpr int width  = 90;
+    static constexpr int height = 25;
+
+    int bgColor = stateBGColors[state];
+    if (bgColor != 1) {
+        canvas.fillRoundRect((display.width() - width) / 2, y, width, height, 5, bgColor);
+    }
+    centered_text(my_state_string, y + height / 2 + 3, stateFGColors[state], SMALL);
 }
 
 Stripe::Stripe(int x, int y, int width, int height, fontnum_t font) : _x(x), _y(y), _width(width), _height(height), _font(font) {}
 
-void Stripe::draw(const String& left, const String& right, bool highlighted, int left_color) {
+void Stripe::draw(char left, const char* right, bool highlighted, int left_color) {
+    char t[2] = { left, '\0' };
+    draw(t, right, highlighted, left_color);
+}
+void Stripe::draw(const char* left, const char* right, bool highlighted, int left_color) {
     drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
-    if (left.length()) {
+    if (*left) {
         text(left, text_left_x(), text_middle_y(), left_color, _font, middle_left);
     }
-    if (right.length()) {
+    if (*right) {
         text(right, text_right_x(), text_middle_y(), WHITE, _font, middle_right);
     }
-    _y += gap();
+    advance();
 }
-void Stripe::draw(const String& center, bool highlighted) {
+void Stripe::draw(const char* center, bool highlighted) {
     drawOutlinedRect(_x, _y, _width, _height, highlighted ? BLUE : NAVY, WHITE);
     text(center, text_center_x(), text_middle_y(), WHITE, _font, middle_center);
-    _y += gap();
+    advance();
 }
 
 #define PUSH_BUTTON_LINE 212
 #define DIAL_BUTTON_LINE 228
 
 // This shows on the display what the button currently do.
-void drawButtonLegends(const String& red, const String& green, const String& orange) {
+void drawButtonLegends(const char* red, const char* green, const char* orange) {
     text(red, 80, PUSH_BUTTON_LINE, RED);
-    text(green, 160, PUSH_BUTTON_LINE, GREEN);
+    text(green, 190, PUSH_BUTTON_LINE, GREEN, TINY, middle_right);
     centered_text(orange, DIAL_BUTTON_LINE, ORANGE);
 }
 
+void putDigit(int& n, int x, int y, int color) {
+    char txt[2] = { '\0', '\0' };
+    txt[0]      = "0123456789"[n % 10];
+    n /= 10;
+    text(txt, x, y, color, MEDIUM, middle_right);
+}
+void fancyNumber(pos_t n, int n_decimals, int hl_digit, int x, int y, int text_color, int hl_text_color) {
+    fontnum_t font     = SMALL;
+    int       n_digits = n_decimals + 1;
+    int       i;
+    bool      isneg = n < 0;
+    if (isneg) {
+        n = -n;
+    }
+#ifdef E4_POS_T
+    // in e4 format, the number always has 4 postdecimal digits,
+    // so if n_decimals is less than 4, we discard digits from
+    // the right.  We could do this by computing a divisor
+    // based on e4_power10(4 - n_decimals), but the expected
+    // number of iterations of this loop is max 4, typically 2,
+    // so that is hardly worthwhile.
+    for (i = 4; i > n_decimals; --i) {
+        if (i == (n_decimals + 1)) {  // Round
+            n += 5;
+        }
+        n /= 10;
+    }
+#else
+    for (i = 0; i < n_decimals; i++) {
+        n *= 10;
+    }
+#endif
+    const int char_width = 20;
+
+    int ni = (int)n;
+    for (i = 0; i < n_decimals; i++) {
+        putDigit(ni, x, y, i == hl_digit ? hl_text_color : text_color);
+        x -= char_width;
+    }
+    if (n_decimals) {
+        text(".", x - 10, y, text_color, MEDIUM, middle_center);
+        x -= char_width;
+    }
+    do {
+        putDigit(ni, x, y, i++ == hl_digit ? hl_text_color : text_color);
+        x -= char_width;
+    } while (ni || i <= hl_digit);
+    if (isneg) {
+        text("-", x, y, text_color, MEDIUM, middle_right);
+    }
+}
+
+void DRO::drawHoming(int axis, bool highlight, bool homed) {
+    text(axisNumToCStr(axis), text_left_x(), text_middle_y(), myLimitSwitches[axis] ? GREEN : YELLOW, MEDIUM, middle_left);
+    fancyNumber(myAxes[axis], num_digits(), -1, text_right_x(), text_middle_y(), highlight ? (homed ? GREEN : RED) : DARKGREY, RED);
+    advance();
+}
+
+void DRO::draw(int axis, int hl_digit, bool highlight) {
+    text(axisNumToCStr(axis), text_left_x(), text_middle_y(), highlight ? GREEN : DARKGREY, MEDIUM, middle_left);
+    fancyNumber(
+        myAxes[axis], num_digits(), hl_digit, text_right_x(), text_middle_y(), highlight ? WHITE : DARKGREY, highlight ? RED : DARKGREY);
+    advance();
+}
+
 void DRO::draw(int axis, bool highlight) {
-    Stripe::draw(axisNumToString(axis), floatToString(myAxes[axis], 2), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
+    Stripe::draw(axisNumToChar(axis), pos_to_cstr(myAxes[axis], num_digits()), highlight, myLimitSwitches[axis] ? GREEN : WHITE);
 }
 
 void LED::draw(bool highlighted) {
@@ -147,7 +246,7 @@ void LED::draw(bool highlighted) {
     _y += _gap;
 }
 
-void drawMenuTitle(const String& name) {
+void drawMenuTitle(const char* name) {
     centered_text(name, 12);
 }
 
@@ -157,26 +256,15 @@ void refreshDisplay() {
     display.endWrite();
 }
 
-void drawMenuView(std::vector<String> labels, int start, int selected) {}
-
-void showImageFile(const char* name, int x, int y, int width, int height) {
-    auto file = LittleFS.open(name);
-    if (!file) {
-        log_println("Can't open logo_img.bin");
-        return;
-    }
-    auto      len   = file.size();
-    uint16_t* buf   = (uint16_t*)malloc(len);
-    auto      nread = file.read((uint8_t*)buf, len);
-    display.pushImage(0, 70, width, height, buf, true);
-    free(buf);
-}
-
-void showError() {
-    if ((milliseconds() - errorExpire) < 0) {
-        canvas.fillCircle(120, 120, 95, RED);
-        drawCircle(120, 120, 95, 5, WHITE);
-        centered_text("Error", 95, WHITE, MEDIUM);
-        centered_text(decode_error_number(lastError), 140, WHITE, TINY);
+void drawError() {
+    if (lastError) {
+        if ((milliseconds() - errorExpire) < 0) {
+            canvas.fillCircle(120, 120, 95, RED);
+            drawCircle(120, 120, 95, 5, WHITE);
+            centered_text("Error", 95, WHITE, MEDIUM);
+            centered_text(decode_error_number(lastError), 140, WHITE, TINY);
+        } else {
+            lastError = 0;
+        }
     }
 }
