@@ -41,12 +41,15 @@ public:
         const int y_spacing = 20;
         int       y         = 80;
 
+
         std::string version_str = "Ver ";
         version_str += git_info;
         centered_text(version_str.c_str(), y, LIGHTGREY, TINY);
         y += 10;
+#ifdef FNC_BAUD  // FNC_BAUD might not be defined for Windows
         text("FNC baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
         text(intToCStr(FNC_BAUD), val_x, y, GREEN, TINY, bottom_left);
+#endif
 
         if (wifi_ssid.length()) {
             std::string wifi_str = wifi_mode;
