@@ -395,6 +395,7 @@ static void parse_status_report(char* field) {
     end_status_report();
 }
 
+// clang-format off
 static struct GCodeMode {
     const char*  tag;
     const char** variable;
@@ -427,11 +428,9 @@ static struct GCodeMode {
                   { "M3", &new_gcode_modes.spindle, "CW" },
                   { "M4", &new_gcode_modes.spindle, "CCW" },
                   { "M5", &new_gcode_modes.spindle, "Off" },
-                  { "M7", &new_gcode_modes.coolant, "Mist" },
-                  { "M8", &new_gcode_modes.coolant, "Flood" },
-                  { "M9", &new_gcode_modes.coolant, "Off" },
                   { "M56", &new_gcode_modes.parking, "Ovr" },
                   { NULL, NULL, NULL } };
+// clang-format on
 
 static void lookup_mode(const char* tag) {
     for (struct GCodeMode* p = modes_map; p->tag; p++) {
@@ -465,7 +464,17 @@ static void parse_gcode_report(char* tag) {
                     break;
                 case 'G':
                 case 'M':
-                    lookup_mode(tag);
+                    // We have to handle M7-M9 differently because GCode is stupid
+                    if (strcmp(tag, "M7") == 0) {
+                        new_gcode_modes.mist = "On";
+                    } else if (strcmp(tag, "M8") == 0) {
+                        new_gcode_modes.flood = "On";
+                    } else if (strcmp(tag, "M9") == 0) {
+                        new_gcode_modes.mist  = "Off";
+                        new_gcode_modes.flood = "Off";
+                    } else {
+                        lookup_mode(tag);
+                    }
                     break;
             }
         }
@@ -624,7 +633,13 @@ void __attribute__((weak)) show_spindle_coolant(int spindle, bool flood, bool mi
 void __attribute__((weak)) show_feed_spindle(uint32_t feedrate, uint32_t spindle_speed) {}
 void __attribute__((weak)) show_overrides(override_percent_t feed_ovr, override_percent_t rapid_ovr, override_percent_t spindle_ovr) {}
 void __attribute__((weak)) show_linenum(int linenum) {}
+
 // [GC: messages
+// If you want to handle GCode reports directly without having the data parsed
+// into a gcode_modes struct, you can implement your own show_gcode_report()
+void __attribute__((weak)) show_gcode_report(char* tag) {
+    parse_gcode_report(tag);
+}
 void __attribute__((weak)) show_gcode_modes(struct gcode_modes* modes) {}
 
 // Version information
