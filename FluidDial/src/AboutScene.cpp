@@ -6,7 +6,7 @@
 
 extern Scene menuScene;
 
-extern const char* version_info;  // auto generated version.cpp
+extern const char* git_info;  // auto generated version.cpp
 
 class AboutScene : public Scene {
 private:
@@ -39,29 +39,33 @@ public:
         const int key_x     = 118;
         const int val_x     = 122;
         const int y_spacing = 20;
-        int       y         = 90;
+        int       y         = 80;
 
-        text("Version:", key_x, y, LIGHTGREY, TINY, bottom_right);
-        text(version_info, val_x, y, GREEN, TINY, bottom_left);
 
+        std::string version_str = "Ver ";
+        version_str += git_info;
+        centered_text(version_str.c_str(), y, LIGHTGREY, TINY);
+        y += 10;
 #ifdef FNC_BAUD  // FNC_BAUD might not be defined for Windows
         text("FNC baud:", key_x, y += y_spacing, LIGHTGREY, TINY, bottom_right);
         text(intToCStr(FNC_BAUD), val_x, y, GREEN, TINY, bottom_left);
 #endif
 
-        std::string wifi_str = wifi_mode;
-        if (wifi_mode == "No Wifi") {
-            centered_text(wifi_str.c_str(), y += y_spacing, LIGHTGREY, TINY);
-        } else {
-            wifi_str += " ";
-            wifi_str += wifi_ssid;
-            centered_text(wifi_str.c_str(), y += y_spacing, LIGHTGREY, TINY);
-            if (wifi_mode == "STA" && wifi_connected == "Not connected") {
-                centered_text(wifi_connected.c_str(), y += y_spacing, RED, TINY);
-            } else {
-                wifi_str = "IP ";
-                wifi_str += wifi_ip;
+        if (wifi_ssid.length()) {
+            std::string wifi_str = wifi_mode;
+            if (wifi_mode == "No Wifi") {
                 centered_text(wifi_str.c_str(), y += y_spacing, LIGHTGREY, TINY);
+            } else {
+                wifi_str += " ";
+                wifi_str += wifi_ssid;
+                centered_text(wifi_str.c_str(), y += y_spacing, LIGHTGREY, TINY);
+                if (wifi_mode == "STA" && wifi_connected == "Not connected") {
+                    centered_text(wifi_connected.c_str(), y += y_spacing, RED, TINY);
+                } else {
+                    wifi_str = "IP ";
+                    wifi_str += wifi_ip;
+                    centered_text(wifi_str.c_str(), y += y_spacing, LIGHTGREY, TINY);
+                }
             }
         }
 
