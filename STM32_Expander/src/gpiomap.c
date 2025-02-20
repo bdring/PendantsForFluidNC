@@ -9,7 +9,7 @@
 // This version is for STM32 port/pin numbers, with the
 // pin order of the bdring STM Expander board.
 pin_t gpios[] = {
-    //           port num  can_PWM?   io_num
+    //          port   num         can_PWM?     io_num
     { .gpio = { GPIOA, GPIO_PIN_4, false } },   //   0
     { .gpio = { GPIOA, GPIO_PIN_5, false } },   //   1
     { .gpio = { GPIOA, GPIO_PIN_8, true } },    //   2
