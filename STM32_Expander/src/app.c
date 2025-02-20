@@ -6,6 +6,14 @@
 #include "stm32f1xx_hal.h"
 #include "string.h"
 
+#include "gpio_pin.h"
+#include "gpiomap.h"
+#ifdef TIMING_DEBUG
+#    define DEBUG_PIN 5
+#    define GH HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
+#    define GL HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#endif
+
 UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
 UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
 
@@ -62,23 +70,24 @@ int milliseconds() {
 
 // Perform extra operations after the normal polling for input from FluidNC
 void poll_extra() {
+#if 0
     uint8_t c;
     while (HAL_UART_Receive(DebugSerial, &c, 1, 0) == HAL_OK) {
-        fnc_putchar(c);
         collect(c);  // for testing from pendant terminal
     }
+#endif
 
     expander_poll();
 }
 
-// Send MSG: messages to the IO Expander code for processing
-void handle_msg(char* command, char* arguments) {
-    if (!expander_handle_msg(command, arguments)) {
-        debug_print("[MSG:");
-        debug_print(command);
-        debug_putchar(':');
-        debug_print(arguments);
-        debug_println("]");
+// Handle IO Expander messages
+void handle_report(char* report) {
+    if (!expander_handle_command(report)) {
+#ifdef PASSTHROUGH
+        pass_report(report);
+#else
+        debug_println(report);
+#endif
     }
 }
 
@@ -88,9 +97,6 @@ void handle_signon(char* version, char* arguments) {
     debug_print(" ");
     debug_println(arguments);
 }
-void handle_other(char* line) {
-    debug_println(line);
-}
 
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
 // the basic driver setup code that CubeMX generated has finished.
@@ -98,6 +104,9 @@ void setup() {
     HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
     last_dma_count = UART_DMA_LEN;
 
+#ifdef TIMING_DEBUG
+    set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
+#endif
     debug_println("[MSG:INFO: Hello from STM32_Expander]");
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
@@ -111,5 +120,7 @@ void setup() {
 // Application execution, called from the while(1) loop()
 // in CubeMX/Core/Src/main.c
 void loop() {
-    fnc_poll();
+    for (int i = 100; i; --i) {
+        fnc_poll();
+    }
 }
