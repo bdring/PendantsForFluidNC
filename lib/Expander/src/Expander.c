@@ -71,84 +71,120 @@ static void trim(char** str) {
     *str = s;
 }
 
-bool expander_handle_msg(char* command, char* pinspecs) {
-    if (strcmp(command, "RST") == 0) {
+static void expander_ack_nak(bool okay, const char* errmsg) {
+    if (okay) {
+        expander_ack();
+    } else {
+        expander_nak(errmsg);
+    }
+}
+
+#define PinLowFirst 0x100
+#define PinLowLast 0x13f
+#define PinHighFirst 0x140
+#define PinHighLast 0x17f
+void handle_extended_command(uint32_t cmd) {
+    int value;
+    int pin_num;
+    if (cmd >= PinLowFirst && cmd < PinLowLast) {
+        value   = 0;
+        pin_num = cmd - PinLowFirst;
+    } else if (cmd >= PinHighFirst && cmd < PinHighLast) {
+        value   = 1;
+        pin_num = cmd - PinHighFirst;
+    } else {
+        return;
+    }
+    int fail = set_output(pin_num, value, 0);
+    if (fail) {
+        fnc_putchar(fail);
+    }
+    expander_ack_nak(fail == fail_none, "Set failed");
+}
+
+bool expander_handle_command(char* command) {
+    size_t len = strlen(command);
+    if (!len || command[len - 1] != ']') {
+        return false;
+    }
+    command[len - 1] = '\0';
+
+    if (strcmp(command, "[MSG:RST") == 0) {
         expander_rst();
         expander_ack();
         return true;
     }
-    if ((strcmp(command, "INI") == 0) || (strcmp(command, "GET") == 0) || (strcmp(command, "SET") == 0)) {
-        // IO operation examples:
-        //   INI: io.N=out,low
-        //   INI: io.N=inp,pu
-        //   INI: io.N=pwm
-        //   GET: io.*
-        //   GET: io.N
-        //   SET: io.N=0.5
-        uint8_t pin_num = 0;
+    char* pinspec;
+    split(command, &pinspec, ':');
 
-        trim(&pinspecs);
-
-        size_t prefixlen = strlen("io.");
-        if (strncmp(pinspecs, "io.", prefixlen) != 0) {
-            expander_nak("Missing io. specifier");
-            return true;
+    // IO operation examples:
+    //   [INI: io.N=out,low]
+    //   [INI: io.N=inp,pu]
+    //   [INI: io.N=pwm]
+    //   [GET: io.*]
+    //   [GET: io.N]
+    //   [SET: io.N=0.5]
+    bool is_set = false, is_get = false, is_ini = false;
+    is_set = strncmp(command, "[SET", 5) == 0;
+    if (!is_set) {
+        is_get = strncmp(command, "[GET", 5) == 0;
+        if (!is_get) {
+            is_ini = strncmp(command, "[INI", 5) == 0;
         }
-
-        char* pin_str = pinspecs + prefixlen;
-        char* params;
-
-        if (strcmp(command, "GET") == 0) {
-            split(pin_str, &params, '=');
-
-            if (*pin_str == '*') {
-                expander_ack();
-                expander_get_all();
-                return true;
-            }
-            pin_num = atoi(pin_str);
-
-            if (expander_get(pin_num)) {
-                expander_ack();
-            } else {
-                expander_nak("Invalid pin_str number");
-            }
-            return true;
-        }
-
-        if (strcmp(command, "INI") == 0) {
-            split(pin_str, &params, '=');
-            pin_num = atoi(pin_str);
-
-            if (expander_ini(pin_num, parse_io_mode(params))) {
-                expander_ack();
-            } else {
-                expander_nak("INI Error");
-            }
-            return true;
-        }
-
-        if (strcmp(command, "SET") == 0) {
-            split(pin_str, &params, '=');
-            pin_num = atoi(pin_str);
-            if (*params == '\0') {
-                expander_nak("Missing value for SET");
-            } else {
-                int32_t  numerator;
-                uint32_t denominator;
-                if (atofraction(params, &numerator, &denominator)) {
-                    if (expander_set(pin_num, numerator, denominator)) {
-                        expander_ack();
-                    } else {
-                        expander_nak("Set Error");
-                    }
-                } else {
-                    expander_nak("Bad set value");
-                }
-            }
-            return true;
+        if (!is_ini) {
+            return false;
         }
     }
+    // Now we know that the command is for the expander so it is okay to modify the string
+    char* params;
+    split(pinspec, &params, '=');
+
+    trim(&pinspec);  // Remove leading and trailing blanks
+    trim(&params);   // Remove leading and trailing blanks
+
+    size_t prefixlen = strlen("io.");
+    if (strncmp(pinspec, "io.", prefixlen) != 0) {
+        expander_nak("Missing io. specifier");
+        return true;
+    }
+
+    char* pin_str = pinspec + prefixlen;
+    int   pin_num = atoi(pin_str);  // Will be 0 if pin_str is "*"
+
+    if (is_set) {
+        if (*params == '\0') {
+            expander_nak("Missing value for SET");
+        } else {
+            int32_t  numerator;
+            uint32_t denominator;
+            if (atofraction(params, &numerator, &denominator)) {
+                expander_ack_nak(expander_set(pin_num, numerator, denominator), "Set Error");
+            } else {
+                expander_nak("Bad set value");
+            }
+        }
+        return true;
+    }
+
+    if (is_get) {
+        if (*pin_str == '*') {
+            expander_ack();
+            expander_get_all();
+            return true;
+        }
+        expander_ack_nak(expander_get(pin_num), "Invalid pin_str number");
+        return true;
+    }
+
+    if (is_ini) {
+        bool res = expander_ini(pin_num, parse_io_mode(params));
+        expander_ack_nak(res, "INI Error");
+        if (res) {
+            expander_get(pin_num);
+        }
+        return true;
+    }
+
     return false;  // Not handled
 }
 
@@ -158,7 +194,8 @@ bool __attribute__((weak)) expander_rst() {
     return true;
 }
 bool __attribute__((weak)) expander_ini(uint8_t pin_num, pin_mode_t pinmode) {
-    return set_pin_mode(pin_num, pinmode) == fail_none;
+    int fail = set_pin_mode(pin_num, pinmode);
+    return fail == fail_none;
 }
 bool __attribute__((weak)) expander_get_all() {
     update_all_pins();
