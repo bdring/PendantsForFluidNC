@@ -37,23 +37,37 @@ void expander_pin_msg(uint8_t pin_num, bool active) {
 
 pin_mode_t parse_io_mode(const char* params) {
     pin_mode_t mode = 0;
-    if (strstr(params, "low")) {
-        mode |= PIN_ACTIVELOW;
-    }
-    if (strstr(params, "out")) {
-        mode |= PIN_OUTPUT;
-    }
-    if (strstr(params, "in")) {
-        mode |= PIN_INPUT;
-    }
-    if (strstr(params, "pwm")) {
-        mode |= PIN_PWM;
-    }
-    if (strstr(params, "pu")) {
-        mode |= PIN_PULLUP;
-    }
-    if (strstr(params, "pd")) {
-        mode |= PIN_PULLDOWN;
+    for (const char* rest; *params; params = rest) {
+        split(params, &rest, ',');
+        if (strcasecmp(params, "low") == 0) {
+            mode |= PIN_ACTIVELOW;
+            continue;
+        }
+        if (strcasecmp(params, "out") == 0) {
+            mode |= PIN_OUTPUT;
+            continue;
+        }
+        if (strcasecmp(params, "in") == 0) {
+            mode |= PIN_INPUT;
+            continue;
+        }
+        if (strcasecmp(params, "pwm") == 0) {
+            mode |= PIN_PWM;
+            continue;
+        }
+        if (strcasecmp(params, "pu") == 0) {
+            mode |= PIN_PULLUP;
+            continue;
+        }
+        if (strcasecmp(params, "pd") == 0) {
+            mode |= PIN_PULLDOWN;
+            continue;
+        }
+        if (strncasecmp(params, "frequency=", strlen("frequency=")) == 0) {
+            int freq = atoi(params + strlen("frequency="));
+            mode |= freq << PIN_FREQ_SHIFT;
+            continue;
+        }
     }
     return mode;
 }
@@ -83,10 +97,15 @@ static void expander_ack_nak(bool okay, const char* errmsg) {
 #define PinLowLast 0x13f
 #define PinHighFirst 0x140
 #define PinHighLast 0x17f
+#define SetPWM 0x10000
 void handle_extended_command(uint32_t cmd) {
-    int value;
-    int pin_num;
-    if (cmd >= PinLowFirst && cmd < PinLowLast) {
+    uint32_t value;
+    int      pin_num;
+    if (cmd >= SetPWM) {
+        value   = cmd - SetPWM;
+        pin_num = value >> 10;
+        value   = value & 0x3ff;
+    } else if (cmd >= PinLowFirst && cmd < PinLowLast) {
         value   = 0;
         pin_num = cmd - PinLowFirst;
     } else if (cmd >= PinHighFirst && cmd < PinHighLast) {
@@ -95,7 +114,7 @@ void handle_extended_command(uint32_t cmd) {
     } else {
         return;
     }
-    int fail = set_output(pin_num, value, 0);
+    int fail = set_output(pin_num, value, 999);
     if (fail) {
         fnc_putchar(fail);
     }

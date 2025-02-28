@@ -104,10 +104,10 @@ int set_pin_mode(uint8_t pin_num, pin_mode_t pinmode) {
 
     pin->active_low = pinmode & PIN_ACTIVELOW;
 
-    if (pinmode & PIN_OUTPUT) {
-        pin->type = pin_type_output;
-    } else if (pinmode & PIN_PWM) {
+    if (pinmode & PIN_PWM) {
         pin->type = pin_type_PWM;
+    } else if (pinmode & PIN_OUTPUT) {
+        pin->type = pin_type_output;
     } else if (pinmode & PIN_INPUT) {
         pin->last_value = -1;  // reset to unknown value
         pin->type       = pin_type_input;

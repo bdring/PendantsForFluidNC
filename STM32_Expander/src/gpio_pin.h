@@ -10,8 +10,10 @@
 typedef struct {
     // Implementation for STM32 HAL
     GPIO_TypeDef* port;
-    uint16_t       pin_num;
-    bool          pwm_capable;
+    uint16_t      pin_num;
+    uint8_t       capabilities;
+    uint8_t       timer_num;
+    uint8_t       timer_channel;
 } gpio_pin_t;
 
 // This API is MCU-independent

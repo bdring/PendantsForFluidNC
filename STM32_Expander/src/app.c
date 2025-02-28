@@ -5,6 +5,7 @@
 #include "Expander.h"
 #include "stm32f1xx_hal.h"
 #include "string.h"
+#include "pwm_pin.h"
 
 #include "gpio_pin.h"
 #include "gpiomap.h"
@@ -97,6 +98,8 @@ void handle_signon(char* version, char* arguments) {
     debug_print(" ");
     debug_println(arguments);
 }
+
+extern TIM_HandleTypeDef htim5;
 
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
 // the basic driver setup code that CubeMX generated has finished.
