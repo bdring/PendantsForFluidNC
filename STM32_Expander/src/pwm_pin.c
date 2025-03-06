@@ -34,27 +34,27 @@ bool Timer_Init(int timer_num, int frequency) {
         return existing_divisor == divisor;
     }
 
-    TIM_HandleTypeDef handle = *timer_handles[timer_num];
+    TIM_HandleTypeDef* handle = timer_handles[timer_num];
 
-    handle.Instance               = timers[timer_num];
-    handle.Init.Prescaler         = divisor - 1;
-    handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    handle.Init.Period            = TIMER_RESOLUTION;
-    handle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
-    handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    if (HAL_TIM_Base_Init(&handle) != HAL_OK) {
+    handle->Instance               = timers[timer_num];
+    handle->Init.Prescaler         = divisor - 1;
+    handle->Init.CounterMode       = TIM_COUNTERMODE_UP;
+    handle->Init.Period            = TIMER_RESOLUTION;
+    handle->Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
+    handle->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    if (HAL_TIM_Base_Init(handle) != HAL_OK) {
         return false;
     }
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if (HAL_TIM_ConfigClockSource(&handle, &sClockSourceConfig) != HAL_OK) {
+    if (HAL_TIM_ConfigClockSource(handle, &sClockSourceConfig) != HAL_OK) {
         return false;
     }
-    if (HAL_TIM_PWM_Init(&handle) != HAL_OK) {
+    if (HAL_TIM_PWM_Init(handle) != HAL_OK) {
         return false;
     }
     sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
     sMasterConfig.MasterSlaveMode     = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&handle, &sMasterConfig) != HAL_OK) {
+    if (HAL_TIMEx_MasterConfigSynchronization(handle, &sMasterConfig) != HAL_OK) {
         return false;
     }
     timer_divisors[timer_num] = divisor;
@@ -65,8 +65,8 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
     if (!Timer_Init(timer_num, frequency)) {
         return false;
     }
-    uint32_t          channel = timer_channels[gpio->timer_channel];
-    TIM_HandleTypeDef handle  = *timer_handles[timer_num];
+    uint32_t           channel = timer_channels[gpio->timer_channel];
+    TIM_HandleTypeDef* handle  = timer_handles[timer_num];
 
     TIM_OC_InitTypeDef sConfigOC = { 0 };
 
@@ -74,7 +74,7 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
     sConfigOC.Pulse      = 0;
     sConfigOC.OCPolarity = invert ? TIM_OCPOLARITY_LOW : TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    if (HAL_TIM_PWM_ConfigChannel(&handle, &sConfigOC, channel) != HAL_OK) {
+    if (HAL_TIM_PWM_ConfigChannel(handle, &sConfigOC, channel) != HAL_OK) {
         return false;
     }
 
@@ -97,25 +97,25 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
     GPIO_InitStruct.Pin              = gpio->pin_num;
     GPIO_InitStruct.Mode             = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed            = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(port, &GPIO_InitStruct);
 
-    return HAL_TIM_PWM_Start(&handle, channel) == HAL_OK;
+    return HAL_TIM_PWM_Start(handle, channel) == HAL_OK;
 }
 void PWM_Duty(gpio_pin_t* gpio, uint32_t duty) {
-    uint8_t           timer_num = gpio->timer_num;
-    TIM_HandleTypeDef handle    = *timer_handles[timer_num];
+    uint8_t            timer_num = gpio->timer_num;
+    TIM_HandleTypeDef* handle    = timer_handles[timer_num];
     switch (gpio->timer_channel) {
         case 1:
-            handle.Instance->CCR1 = duty;
+            handle->Instance->CCR1 = duty;
             break;
         case 2:
-            handle.Instance->CCR2 = duty;
+            handle->Instance->CCR2 = duty;
             break;
         case 3:
-            handle.Instance->CCR3 = duty;
+            handle->Instance->CCR3 = duty;
             break;
         case 4:
-            handle.Instance->CCR4 = duty;
+            handle->Instance->CCR4 = duty;
             break;
     }
 }
