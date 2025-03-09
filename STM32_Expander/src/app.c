@@ -26,7 +26,9 @@ static uint8_t dma_buf[UART_DMA_LEN];
 // Interface routines for interfacing with the pendant UART
 
 void debug_print(const char* msg) {
+#ifdef DEBUG_OUTPUT
     HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
+#endif
 }
 
 void debug_println(const char* msg) {
@@ -36,6 +38,15 @@ void debug_println(const char* msg) {
 
 void debug_putchar(char c) {
     HAL_UART_Transmit(DebugSerial, (uint8_t*)&c, 1, 1000);
+}
+
+void pass_print(const char* msg) {
+    HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
+}
+
+void pass_report(const char* msg) {
+    pass_print(msg);
+    pass_print("\r\n");
 }
 
 // Interface routines for GrblParser
@@ -83,13 +94,10 @@ void poll_extra() {
 
 // Handle IO Expander messages
 void handle_report(char* report) {
-    if (!expander_handle_command(report)) {
-#ifdef PASSTHROUGH
-        pass_report(report);
-#else
-        debug_println(report);
+#ifndef DEBUG_OUTPUT
+    pass_report(report);
 #endif
-    }
+    expander_handle_command(report);
 }
 
 void handle_signon(char* version, char* arguments) {

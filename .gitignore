@@ -7,3 +7,4 @@
 *.map
 build
 junk
+STM32_Expander/.vscode/extensions.json

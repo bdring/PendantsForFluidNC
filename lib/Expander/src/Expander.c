@@ -25,7 +25,9 @@ void expander_ack() {
 }
 
 void expander_nak(const char* msg) {
-    debug_println(msg);
+    debug_print("[MSG:ERR: ");
+    debug_print(msg);
+    debug_println("]");
     fnc_realtime(NAK);
 }
 
@@ -129,6 +131,7 @@ bool expander_handle_command(char* command) {
     command[len - 1] = '\0';
 
     if (strcmp(command, "[MSG:RST") == 0) {
+        debug_println("[MSG:INFO: Reset from FluidNC]");
         expander_rst();
         expander_ack();
         return true;
