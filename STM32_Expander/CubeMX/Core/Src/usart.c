@@ -66,11 +66,7 @@ void MX_USART2_UART_Init(void) {
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-#ifdef DEBUG_OUTPUT
-  huart2.Init.BaudRate = DEBUG_BAUD;
-#else
   huart2.Init.BaudRate = PASSTHROUGH_BAUD;
-#endif
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

@@ -25,28 +25,17 @@ static uint8_t dma_buf[UART_DMA_LEN];
 
 // Interface routines for interfacing with the pendant UART
 
-void debug_print(const char* msg) {
-#ifdef DEBUG_OUTPUT
-    HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
-#endif
-}
-
-void debug_println(const char* msg) {
-    debug_print(msg);
-    debug_print("\r\n");
-}
-
-void debug_putchar(char c) {
-    HAL_UART_Transmit(DebugSerial, (uint8_t*)&c, 1, 1000);
+bool pass_getchar(uint8_t* c) {
+    return HAL_UART_Receive(DebugSerial, c, 1, 0) == HAL_OK;
 }
 
 void pass_print(const char* msg) {
     HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
 }
 
-void pass_report(const char* msg) {
+void pass_println(const char* msg) {
     pass_print(msg);
-    pass_print("\r\n");
+    pass_print("\n");
 }
 
 // Interface routines for GrblParser
@@ -82,30 +71,21 @@ int milliseconds() {
 
 // Perform extra operations after the normal polling for input from FluidNC
 void poll_extra() {
-#if 0
     uint8_t c;
-    while (HAL_UART_Receive(DebugSerial, &c, 1, 0) == HAL_OK) {
-        collect(c);  // for testing from pendant terminal
+    while (pass_getchar(&c)) {
+        fnc_putchar(c);
     }
-#endif
 
     expander_poll();
 }
 
 // Handle IO Expander messages
 void handle_report(char* report) {
-#ifndef DEBUG_OUTPUT
-    pass_report(report);
-#endif
+    pass_println(report);
     expander_handle_command(report);
 }
 
-void handle_signon(char* version, char* arguments) {
-    debug_print("Grbl ");
-    debug_print(version);
-    debug_print(" ");
-    debug_println(arguments);
-}
+// void handle_signon(char* version, char* arguments) { }
 
 extern TIM_HandleTypeDef htim5;
 
@@ -118,7 +98,6 @@ void setup() {
 #ifdef TIMING_DEBUG
     set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
 #endif
-    debug_println("[MSG:INFO: Hello from STM32_Expander]");
     fnc_wait_ready();
     // XXX we need some sort of message to tell FluidNC that the
     // expander has been reset.  At startup, that would be okay, but
