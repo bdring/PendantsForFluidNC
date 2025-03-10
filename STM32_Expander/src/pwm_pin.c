@@ -103,6 +103,14 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
 
     return HAL_TIM_PWM_Start(handle, channel) == HAL_OK;
 }
+void deinit_pwm(gpio_pin_t* gpio) {
+    uint8_t timer_num          = gpio->timer_num;
+    timer_divisors[timer_num]  = 0;
+    uint32_t           channel = timer_channels[gpio->timer_channel];
+    TIM_HandleTypeDef* handle  = timer_handles[timer_num];
+    HAL_TIM_PWM_Stop(handle, channel);
+}
+
 void PWM_Duty(gpio_pin_t* gpio, uint32_t duty) {
     uint8_t            timer_num = gpio->timer_num;
     TIM_HandleTypeDef* handle    = timer_handles[timer_num];

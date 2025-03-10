@@ -84,13 +84,17 @@ void deinit_pin(uint8_t pin_num) {
     }
     pin_t* pin = &gpios[pin_num];
     if (pin->initialized) {
+        if (pin->type == pin_type_PWM) {
+            deinit_pwm(&pin->gpio);
+        } else {
+            deinit_gpio(&pin->gpio);
+        }
         pin->initialized        = false;
         pin->active_low         = false;
         pin->type               = pin_type_none;
         pin->last_value         = -1;   // unknown
         pin->debounce_ms        = 100;  // default
         pin->last_change_millis = 0;
-        deinit_gpio(&pin->gpio);
     }
 }
 
