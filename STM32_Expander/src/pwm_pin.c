@@ -68,6 +68,8 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
     uint32_t           channel = timer_channels[gpio->timer_channel];
     TIM_HandleTypeDef* handle  = timer_handles[timer_num];
 
+    HAL_TIM_PWM_Stop(handle, channel);
+
     TIM_OC_InitTypeDef sConfigOC = { 0 };
 
     sConfigOC.OCMode     = TIM_OCMODE_PWM1;
