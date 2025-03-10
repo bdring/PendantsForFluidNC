@@ -116,26 +116,26 @@ void handle_extended_command(uint32_t cmd) {
     } else {
         return;
     }
-    int fail = set_output(pin_num, value, 999);
+    int fail = set_output(pin_num, value, 1000);
     if (fail) {
-        fnc_putchar(fail);
+        expander_nak("Cannot set output");
     }
-    expander_ack_nak(fail == fail_none, "Set failed");
 }
 
 bool expander_handle_command(char* command) {
     size_t len = strlen(command);
-    if (!len || command[len - 1] != ']') {
+    if (!len) {
         return false;
     }
-    command[len - 1] = '\0';
-
-    if (strcmp(command, "[MSG:RST") == 0) {
-        debug_println("[MSG:INFO: Reset from FluidNC]");
+    if (strcmp(command, "[MSG:RST]") == 0) {
         expander_rst();
-        expander_ack();
-        return true;
+        return false;  // This message is not specific to the expander
     }
+
+    if (command[len - 1] != ']') {
+        return false;
+    }
+
     char* pinspec;
     split(command, &pinspec, ':');
 
@@ -158,6 +158,7 @@ bool expander_handle_command(char* command) {
         }
     }
     // Now we know that the command is for the expander so it is okay to modify the string
+    command[len - 1] = '\0';
     char* params;
     split(pinspec, &params, '=');
 
@@ -207,7 +208,8 @@ bool expander_handle_command(char* command) {
         return true;
     }
 
-    return false;  // Not handled
+    // Can't happen because one of is_set, is_get, is_ini must be true
+    return true;  // Not handled
 }
 
 // Implement these to handle expander IO messages
