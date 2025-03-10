@@ -81,8 +81,9 @@ void poll_extra() {
 
 // Handle IO Expander messages
 void handle_report(char* report) {
-    pass_println(report);
-    expander_handle_command(report);
+    if (!expander_handle_command(report)) {
+        pass_println(report);
+    }
 }
 
 // void handle_signon(char* version, char* arguments) { }
