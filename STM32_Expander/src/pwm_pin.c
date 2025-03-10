@@ -9,7 +9,7 @@ uint32_t           timer_channels[]                  = { 0, TIM_CHANNEL_1, TIM_C
 uint16_t           timer_divisors[MAX_TIMER_NUM + 1] = { 0 };
 
 #define TIMER_CLOCK 60000000
-#define TIMER_RESOLUTION 1000
+#define TIMER_RESOLUTION 999
 
 bool Timer_Init(int timer_num, int frequency) {
     if (timer_num < 1 || timer_num > 4) {
