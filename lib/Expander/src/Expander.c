@@ -41,9 +41,9 @@ void expander_pin_msg(uint8_t pin_num, bool active) {
     fnc_putchar(0x80 + pin_num);
 }
 
-pin_mode_t parse_io_mode(const char* params) {
+pin_mode_t parse_io_mode(char* params) {
     pin_mode_t mode = 0;
-    for (const char* rest; *params; params = rest) {
+    for (char* rest; *params; params = rest) {
         split(params, &rest, ',');
         if (strcasecmp(params, "low") == 0) {
             mode |= PIN_ACTIVELOW;
