@@ -99,13 +99,8 @@ void setup() {
 #ifdef TIMING_DEBUG
     set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
 #endif
+    expander_start();
     fnc_wait_ready();
-    // XXX we need some sort of message to tell FluidNC that the
-    // expander has been reset.  At startup, that would be okay, but
-    // if it happens later, it is probably an alarm condition because
-    // the pins are now invalid.  Maybe the message should be a realtime
-    // character to avoid the need to ack with an ok, since we cannot
-    // depend on FluidNC to be ready when the expander starts.
 }
 
 // Application execution, called from the while(1) loop()

@@ -19,6 +19,10 @@ extern "C" {
 const uint8_t PinLowUTF8Prefix  = 0xC4;
 const uint8_t PinHighUTF8Prefix = 0xC5;
 
+void expander_start() {
+    fnc_realtime(RST);
+}
+
 // With no arguments, return an ACK for okay
 void expander_ack() {
     fnc_realtime(ACK);
