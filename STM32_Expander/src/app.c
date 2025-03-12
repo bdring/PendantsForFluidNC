@@ -9,10 +9,10 @@
 
 #include "gpio_pin.h"
 #include "gpiomap.h"
-#ifdef TIMING_DEBUG
-#    define DEBUG_PIN 5
-#    define GH HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
-#    define GL HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#ifdef STARTUP_DEBUG
+#    define DEBUG_PIN 8
+#    define GH set_output(DEBUG_PIN, 1, 0);
+#    define GL set_output(DEBUG_PIN, 0, 0);
 #endif
 
 UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
@@ -90,14 +90,24 @@ void handle_report(char* report) {
 
 extern TIM_HandleTypeDef htim5;
 
+void delay_ms(uint32_t ms) {
+    HAL_Delay(ms);
+}
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
 // the basic driver setup code that CubeMX generated has finished.
 void setup() {
     HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
     last_dma_count = UART_DMA_LEN;
 
-#ifdef TIMING_DEBUG
+#ifdef STARTUP_DEBUG
     set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
+    GH;
+    delay_ms(500);
+    GL;
+    delay_ms(500);
+    GH;
+    delay_ms(500);
+    GL;
 #endif
     expander_start();
     fnc_wait_ready();
