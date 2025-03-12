@@ -140,9 +140,6 @@ bool expander_handle_command(char* command) {
         return false;
     }
 
-    char* pinspec;
-    split(command, &pinspec, ':');
-
     // IO operation examples:
     //   [INI: io.N=out,low]
     //   [INI: io.N=inp,pu]
@@ -161,6 +158,9 @@ bool expander_handle_command(char* command) {
             return false;
         }
     }
+    char* pinspec;
+    split(command, &pinspec, ':');
+
     // Now we know that the command is for the expander so it is okay to modify the string
     command[len - 1] = '\0';
     char* params;
