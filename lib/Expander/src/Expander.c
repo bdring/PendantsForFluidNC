@@ -148,11 +148,11 @@ bool expander_handle_command(char* command) {
     //   [GET: io.N]
     //   [SET: io.N=0.5]
     bool is_set = false, is_get = false, is_ini = false;
-    is_set = strncmp(command, "[SET", 5) == 0;
+    is_set = strncmp(command, "[SET:", 5) == 0;
     if (!is_set) {
-        is_get = strncmp(command, "[GET", 5) == 0;
+        is_get = strncmp(command, "[GET:", 5) == 0;
         if (!is_get) {
-            is_ini = strncmp(command, "[INI", 5) == 0;
+            is_ini = strncmp(command, "[INI:", 5) == 0;
         }
         if (!is_ini) {
             return false;
