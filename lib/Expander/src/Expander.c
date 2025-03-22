@@ -140,29 +140,19 @@ bool expander_handle_command(char* command) {
         return false;
     }
 
-    // IO operation examples:
+    // INI operation examples:
     //   [INI: io.N=out,low]
     //   [INI: io.N=inp,pu]
     //   [INI: io.N=pwm]
-    //   [GET: io.*]
-    //   [GET: io.N]
-    //   [SET: io.N=0.5]
-    bool is_set = false, is_get = false, is_ini = false;
-    is_set = strncmp(command, "[SET:", 5) == 0;
-    if (!is_set) {
-        is_get = strncmp(command, "[GET:", 5) == 0;
-        if (!is_get) {
-            is_ini = strncmp(command, "[INI:", 5) == 0;
-        }
-        if (!is_ini) {
-            return false;
-        }
+    if (strncmp(command, "[INI:", 5) != 0) {
+        return false;
     }
+    // Now we know that the command is for the expander so it is okay to modify the string
+    command[len - 1] = '\0';
+
     char* pinspec;
     split(command, &pinspec, ':');
 
-    // Now we know that the command is for the expander so it is okay to modify the string
-    command[len - 1] = '\0';
     char* params;
     split(pinspec, &params, '=');
 
@@ -178,42 +168,12 @@ bool expander_handle_command(char* command) {
     char* pin_str = pinspec + prefixlen;
     int   pin_num = atoi(pin_str);  // Will be 0 if pin_str is "*"
 
-    if (is_set) {
-        if (*params == '\0') {
-            expander_nak("Missing value for SET");
-        } else {
-            int32_t  numerator;
-            uint32_t denominator;
-            if (atofraction(params, &numerator, &denominator)) {
-                expander_ack_nak(expander_set(pin_num, numerator, denominator), "Set Error");
-            } else {
-                expander_nak("Bad set value");
-            }
-        }
-        return true;
+    bool res = expander_ini(pin_num, parse_io_mode(params));
+    expander_ack_nak(res, "INI Error");
+    if (res) {
+        expander_get(pin_num);
     }
-
-    if (is_get) {
-        if (*pin_str == '*') {
-            expander_ack();
-            expander_get_all();
-            return true;
-        }
-        expander_ack_nak(expander_get(pin_num), "Invalid pin_str number");
-        return true;
-    }
-
-    if (is_ini) {
-        bool res = expander_ini(pin_num, parse_io_mode(params));
-        expander_ack_nak(res, "INI Error");
-        if (res) {
-            expander_get(pin_num);
-        }
-        return true;
-    }
-
-    // Can't happen because one of is_set, is_get, is_ini must be true
-    return true;  // Not handled
+    return true;
 }
 
 // Implement these to handle expander IO messages

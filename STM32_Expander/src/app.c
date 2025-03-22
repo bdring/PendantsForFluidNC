@@ -15,22 +15,63 @@
 #    define GL set_output(DEBUG_PIN, 0, 0);
 #endif
 
-UART_HandleTypeDef* FNCSerial   = &huart1;  // connects STM32 to ESP32 and FNC
-UART_HandleTypeDef* DebugSerial = &huart2;  // connects STM32 to Debug terminal
+// DMA UART driver
+// DMA ring buffers
+#define UART1_DMA_LEN 4096
+uint8_t uart1_dma_buf[UART1_DMA_LEN];
 
-// DMA ring buffer for the serial port connected to FluidNC
-#define UART_DMA_LEN 8192
-static int     last_dma_count = 0;
-static uint8_t dma_buf[UART_DMA_LEN];
+#define UART2_DMA_LEN 1024
+uint8_t uart2_dma_buf[UART2_DMA_LEN];
 
-// Interface routines for interfacing with the pendant UART
+typedef struct {
+    UART_HandleTypeDef* huart;
+    int                 last_dma_count;
+    int                 dma_len;
+    uint8_t*            dma_buf;
+} dma_uart_t;
 
-bool pass_getchar(uint8_t* c) {
-    return HAL_UART_Receive(DebugSerial, c, 1, 0) == HAL_OK;
+dma_uart_t dma_uarts[2] = {
+    { &huart1, UART1_DMA_LEN, UART1_DMA_LEN, uart1_dma_buf },
+    { &huart2, UART2_DMA_LEN, UART2_DMA_LEN, uart2_dma_buf },
+};
+
+void init_dma_uart(int uart_num) {
+    dma_uart_t* dma_uart     = &dma_uarts[uart_num];
+    dma_uart->last_dma_count = dma_uart->dma_len;
+    HAL_UART_Receive_DMA(dma_uart->huart, dma_uart->dma_buf, dma_uart->dma_len);
+}
+
+void dma_print(int uart_num, const char* msg) {
+    HAL_UART_Transmit(dma_uarts[uart_num].huart, (uint8_t*)msg, strlen(msg), 1000);
+}
+void dma_putchar(int uart_num, uint8_t c) {
+    HAL_UART_Transmit(dma_uarts[uart_num].huart, &c, 1, HAL_MAX_DELAY);
+}
+int dma_getchar(int uart_num) {
+    dma_uart_t* dma_uart = &dma_uarts[uart_num];
+    // The DMA-mode HAL UART driver receives data to a ring buffer.
+    // We chase the buffer pointer and pull out the data.
+    int count = dma_uart->last_dma_count - __HAL_DMA_GET_COUNTER(dma_uart->huart->hdmarx);
+    if (count < 0) {
+        count += dma_uart->dma_len;
+    }
+    if (count) {
+        uint8_t c = dma_uart->dma_buf[dma_uart->dma_len - dma_uart->last_dma_count];
+        --dma_uart->last_dma_count;
+        if (dma_uart->last_dma_count < 0) {
+            dma_uart->last_dma_count += dma_uart->dma_len;
+        }
+        return c;
+    }
+    return -1;
+}
+
+int pass_getchar() {
+    return dma_getchar(1);
 }
 
 void pass_print(const char* msg) {
-    HAL_UART_Transmit(DebugSerial, (uint8_t*)msg, strlen(msg), 1000);
+    dma_print(1, msg);
 }
 
 void pass_println(const char* msg) {
@@ -42,26 +83,12 @@ void pass_println(const char* msg) {
 
 // Receive a byte from the serial port connected to FluidNC
 int fnc_getchar() {
-    // The DMA-mode HAL UART driver receives data to a ring buffer.
-    // We chase the buffer pointer and pull out the data.
-    int count = last_dma_count - __HAL_DMA_GET_COUNTER(FNCSerial->hdmarx);
-    if (count < 0) {
-        count += UART_DMA_LEN;
-    }
-    if (count) {
-        uint8_t c = dma_buf[UART_DMA_LEN - last_dma_count];
-        --last_dma_count;
-        if (last_dma_count < 0) {
-            last_dma_count += UART_DMA_LEN;
-        }
-        return c;
-    }
-    return -1;
+    return dma_getchar(0);
 }
 
 // Send a byte to the serial port connected to FluidNC
 void fnc_putchar(uint8_t c) {
-    HAL_UART_Transmit(FNCSerial, &c, 1, HAL_MAX_DELAY);
+    dma_putchar(0, c);
 }
 
 // Return a value that increments every millisecond
@@ -71,9 +98,11 @@ int milliseconds() {
 
 // Perform extra operations after the normal polling for input from FluidNC
 void poll_extra() {
-    uint8_t c;
-    while (pass_getchar(&c)) {
-        fnc_putchar(c);
+    int c;
+    while ((c = pass_getchar()) != -1) {
+        if (c != '\0') {  // Suppress nulls that can be caused by pendant startup messages at the wrong baud rate
+            fnc_putchar(c);
+        }
     }
 
     expander_poll();
@@ -96,8 +125,8 @@ void delay_ms(uint32_t ms) {
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
 // the basic driver setup code that CubeMX generated has finished.
 void setup() {
-    HAL_UART_Receive_DMA(FNCSerial, dma_buf, UART_DMA_LEN);
-    last_dma_count = UART_DMA_LEN;
+    init_dma_uart(0);
+    init_dma_uart(1);
 
 #ifdef STARTUP_DEBUG
     set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
