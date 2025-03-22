@@ -20,7 +20,7 @@
 #define UART1_DMA_LEN 4096
 uint8_t uart1_dma_buf[UART1_DMA_LEN];
 
-#define UART2_DMA_LEN 1024
+#define UART2_DMA_LEN 4096
 uint8_t uart2_dma_buf[UART2_DMA_LEN];
 
 typedef struct {
