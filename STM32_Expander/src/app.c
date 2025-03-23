@@ -127,6 +127,9 @@ void delay_ms(uint32_t ms) {
 void setup() {
     init_dma_uart(0);
     init_dma_uart(1);
+    while (dma_getchar(1) != -1) {
+        // Drain the pass-through buffer
+    }
 
 #ifdef STARTUP_DEBUG
     set_pin_mode(DEBUG_PIN, PIN_OUTPUT);
