@@ -3,10 +3,10 @@
 #include "gpiomap.h"
 
 #define MAX_TIMER_NUM 4
-TIM_HandleTypeDef* timer_handles[]                   = { NULL, &htim1, &htim2, &htim3, &htim4 };
-TIM_TypeDef*       timers[]                          = { 0, TIM1, TIM2, TIM3, TIM4 };
-uint32_t           timer_channels[]                  = { 0, TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4 };
-uint16_t           timer_divisors[MAX_TIMER_NUM + 1] = { 0 };
+TIM_HandleTypeDef timer_handles[MAX_TIMER_NUM + 1];
+TIM_TypeDef*      timers[]                          = { 0, TIM1, TIM2, TIM3, TIM4 };
+uint32_t          timer_channels[]                  = { 0, TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4 };
+uint16_t          timer_divisors[MAX_TIMER_NUM + 1] = { 0 };
 
 #define TIMER_CLOCK 60000000
 #define TIMER_RESOLUTION 999
@@ -14,6 +14,23 @@ uint16_t           timer_divisors[MAX_TIMER_NUM + 1] = { 0 };
 bool Timer_Init(int timer_num, int frequency) {
     if (timer_num < 1 || timer_num > 4) {
         return false;
+    }
+
+    switch (timer_num) {
+        case 1:
+            __HAL_RCC_TIM1_CLK_ENABLE();
+            break;
+        case 2:
+            __HAL_RCC_TIM2_CLK_ENABLE();
+            break;
+        case 3:
+            __HAL_RCC_TIM3_CLK_ENABLE();
+            break;
+        case 4:
+            __HAL_RCC_TIM4_CLK_ENABLE();
+            break;
+        default:
+            return false;
     }
 
     TIM_ClockConfigTypeDef  sClockSourceConfig = { 0 };
@@ -34,7 +51,7 @@ bool Timer_Init(int timer_num, int frequency) {
         return existing_divisor == divisor;
     }
 
-    TIM_HandleTypeDef* handle = timer_handles[timer_num];
+    TIM_HandleTypeDef* handle = &timer_handles[timer_num];
 
     handle->Instance               = timers[timer_num];
     handle->Init.Prescaler         = divisor - 1;
@@ -66,7 +83,7 @@ bool PWM_Init(gpio_pin_t* gpio, uint32_t frequency, bool invert) {
         return false;
     }
     uint32_t           channel = timer_channels[gpio->timer_channel];
-    TIM_HandleTypeDef* handle  = timer_handles[timer_num];
+    TIM_HandleTypeDef* handle  = &timer_handles[timer_num];
 
     HAL_TIM_PWM_Stop(handle, channel);
 
@@ -107,13 +124,13 @@ void deinit_pwm(gpio_pin_t* gpio) {
     uint8_t timer_num          = gpio->timer_num;
     timer_divisors[timer_num]  = 0;
     uint32_t           channel = timer_channels[gpio->timer_channel];
-    TIM_HandleTypeDef* handle  = timer_handles[timer_num];
+    TIM_HandleTypeDef* handle  = &timer_handles[timer_num];
     HAL_TIM_PWM_Stop(handle, channel);
 }
 
 void PWM_Duty(gpio_pin_t* gpio, uint32_t duty) {
     uint8_t            timer_num = gpio->timer_num;
-    TIM_HandleTypeDef* handle    = timer_handles[timer_num];
+    TIM_HandleTypeDef* handle    = &timer_handles[timer_num];
     switch (gpio->timer_channel) {
         case 1:
             handle->Instance->CCR1 = duty;

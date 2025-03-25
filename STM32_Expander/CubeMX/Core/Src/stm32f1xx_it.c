@@ -193,6 +193,7 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 1 */
 }
 
+#if 0
 /******************************************************************************/
 /* STM32F1xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
@@ -227,6 +228,7 @@ void DMA1_Channel6_IRQHandler(void)
 
   /* USER CODE END DMA1_Channel6_IRQn 1 */
 }
+#endif
 
 /**
   * @brief This function handles USART2 global interrupt.

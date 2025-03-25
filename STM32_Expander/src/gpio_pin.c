@@ -9,6 +9,7 @@
 
 #include "gpio_pin.h"
 #include "pwm_pin.h"
+#include "gpiomap.h"
 
 int set_gpio(gpio_pin_t* gpio, bool high) {
     GPIO_PinState pinstate = high ? GPIO_PIN_SET : GPIO_PIN_RESET;
@@ -77,4 +78,32 @@ bool set_gpio_mode(gpio_pin_t* gpio, pin_mode_t pinmode) {
         return true;
     }
     return false;
+}
+void gpio_clock_enable(GPIO_TypeDef* port) {
+    if (port == GPIOA) {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+    } else if (port == GPIOB) {
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+    } else if (port == GPIOC) {
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+    } else if (port == GPIOD) {
+        __HAL_RCC_GPIOD_CLK_ENABLE();
+    }
+}
+
+void init_gpio(gpio_pin_t* gpio) {
+    gpio_clock_enable(gpio->port);
+    if (gpio->capabilities & OUT) {
+        set_gpio_mode(gpio, PIN_OUTPUT);
+    } else if (gpio->capabilities & IN) {
+        set_gpio_mode(gpio, PIN_INPUT);
+    }
+}
+void init_from_gpiomap() {
+    for (int i = 0; i < n_pins; i++) {
+        gpio_pin_t* gpio = &(gpios[i].gpio);
+        if (gpio->capabilities & (IN | OUT)) {
+            init_gpio(gpio);
+        }
+    }
 }

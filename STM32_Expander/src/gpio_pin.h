@@ -23,3 +23,6 @@ int  set_pwm(gpio_pin_t* gpio, int32_t numerator, uint32_t denominator);
 void deinit_gpio(gpio_pin_t* gpio);
 void deinit_pwm(gpio_pin_t* gpio);
 bool set_gpio_mode(gpio_pin_t* gpio, pin_mode_t pinmode);
+void init_gpio(gpio_pin_t* gpio);
+void gpio_clock_enable(GPIO_TypeDef* port);
+void init_from_gpiomap();
