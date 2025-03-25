@@ -1,14 +1,13 @@
 // Copyright (c) 2023 Mitch Bradley
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
-#include "usart.h"
 #include "Expander.h"
 #include "stm32f1xx_hal.h"
 #include "string.h"
 #include "pwm_pin.h"
 #include "gpio_pin.h"
 #include "dma_uart.h"
-#include "clock.h"
+#include "system.h"
 #include "gpiomap.h"
 #ifdef STARTUP_DEBUG
 #    define DEBUG_PIN 8
@@ -75,6 +74,7 @@ void delay_ms(uint32_t ms) {
 // Application initialization, called from main() in CubeMX/Core/Src/main.c after
 // the basic driver setup code that CubeMX generated has finished.
 void setup() {
+    HAL_MspInit();
     SystemClock_Config();
     init_from_gpiomap();
     init_dma_uart(0, FNC_BAUD, GPIOA, GPIO_PIN_9, GPIOA, GPIO_PIN_10);

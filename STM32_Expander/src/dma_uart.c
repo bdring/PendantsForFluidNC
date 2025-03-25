@@ -15,25 +15,22 @@ uint8_t uart1_dma_buf[UART1_DMA_LEN];
 uint8_t uart2_dma_buf[UART2_DMA_LEN];
 
 typedef struct {
-    UART_HandleTypeDef* huart;
-    DMA_HandleTypeDef   hdma;
-    int                 last_dma_count;
-    int                 dma_len;
-    uint8_t*            dma_buf;
+    UART_HandleTypeDef huart;
+    DMA_HandleTypeDef  hdma;
+    int                last_dma_count;
+    int                dma_len;
+    uint8_t*           dma_buf;
 } dma_uart_t;
 
-UART_HandleTypeDef huart1 = { .Instance = USART1 };
-UART_HandleTypeDef huart2 = { .Instance = USART2 };
-
 dma_uart_t dma_uarts[2] = {
-    { .huart = &huart1, .last_dma_count = UART1_DMA_LEN, .dma_len = UART1_DMA_LEN, .dma_buf = uart1_dma_buf },
-    { .huart = &huart2, .last_dma_count = UART2_DMA_LEN, .dma_len = UART2_DMA_LEN, .dma_buf = uart2_dma_buf },
+    { .huart = { .Instance = USART1 }, .last_dma_count = UART1_DMA_LEN, .dma_len = UART1_DMA_LEN, .dma_buf = uart1_dma_buf },
+    { .huart = { .Instance = USART2 }, .last_dma_count = UART2_DMA_LEN, .dma_len = UART2_DMA_LEN, .dma_buf = uart2_dma_buf },
 };
 
 void init_dma_uart(int uart_num, int baud, GPIO_TypeDef* tx_port, uint16_t tx_pin, GPIO_TypeDef* rx_port, uint16_t rx_pin) {
     dma_uart_t* dma_uart = &dma_uarts[uart_num];
 
-    UART_HandleTypeDef* huart = dma_uart->huart;
+    UART_HandleTypeDef* huart = &(dma_uart->huart);
 
     __HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -99,21 +96,21 @@ void init_dma_uart(int uart_num, int baud, GPIO_TypeDef* tx_port, uint16_t tx_pi
     // __HAL_LINKDMA(huart, hdmarx, hdma);
 
     dma_uart->last_dma_count = dma_uart->dma_len;
-    HAL_UART_Receive_DMA(dma_uart->huart, dma_uart->dma_buf, dma_uart->dma_len);
+    HAL_UART_Receive_DMA(huart, dma_uart->dma_buf, dma_uart->dma_len);
 }
 
 void dma_print(int uart_num, const char* msg) {
-    HAL_UART_Transmit(dma_uarts[uart_num].huart, (uint8_t*)msg, strlen(msg), 1000);
+    HAL_UART_Transmit(&(dma_uarts[uart_num].huart), (uint8_t*)msg, strlen(msg), 1000);
 }
 void dma_putchar(int uart_num, uint8_t c) {
-    HAL_UART_Transmit(dma_uarts[uart_num].huart, &c, 1, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&(dma_uarts[uart_num].huart), &c, 1, HAL_MAX_DELAY);
 }
 int dma_getchar(int uart_num) {
     dma_uart_t* dma_uart = &dma_uarts[uart_num];
     // The DMA-mode HAL UART driver receives data to a ring buffer.
     // We chase the buffer pointer and pull out the data.
     int last  = dma_uart->last_dma_count;
-    int this  = __HAL_DMA_GET_COUNTER(dma_uart->huart->hdmarx);
+    int this  = __HAL_DMA_GET_COUNTER(dma_uart->huart.hdmarx);
     int count = last - this;
     if (count < 0) {
         count += dma_uart->dma_len;

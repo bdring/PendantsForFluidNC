@@ -1,12 +1,15 @@
 #include "stm32f1xx_hal.h"
 
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
 void Error_Handler(void) {
     __disable_irq();
     while (1) {}
+}
+
+void HAL_MspInit(void) {
+    __HAL_RCC_AFIO_CLK_ENABLE();
+    __HAL_RCC_PWR_CLK_ENABLE();
+
+    __HAL_AFIO_REMAP_SWJ_NOJTAG();
 }
 
 /**
@@ -41,4 +44,26 @@ void SystemClock_Config(void) {
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
         Error_Handler();
     }
+}
+
+void NMI_Handler(void) {
+    while (1) {}
+}
+void HardFault_Handler(void) {
+    while (1) {}
+}
+void MemManage_Handler(void) {
+    while (1) {}
+}
+void BusFault_Handler(void) {
+    while (1) {}
+}
+void UsageFault_Handler(void) {
+    while (1) {}
+}
+void SVC_Handler(void) {}
+void DebugMon_Handler(void) {}
+void PendSV_Handler(void) {}
+void SysTick_Handler(void) {
+    HAL_IncTick();
 }

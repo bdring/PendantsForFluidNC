@@ -1,4 +1,3 @@
-#include "tim.h"
 #include "pin.h"
 #include "gpiomap.h"
 
