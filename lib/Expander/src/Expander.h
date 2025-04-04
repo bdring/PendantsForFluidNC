@@ -28,19 +28,21 @@ extern void expander_poll();
 // MSG:RST
 extern bool expander_rst();
 
-// MSG:INI io.n=mode
+// MSG:EXP io.n=mode
 extern bool expander_ini(uint8_t pin_num, pin_mode_t pinmode);
 
-// MSG:GET io.*
-extern bool expander_get_all();
-
-// MSG::GET io.n
+// Automatic
 extern bool expander_get(uint8_t pin_num);
 
-// MSG:SET io.n=value
+// Invoked by Realtime code
 extern bool expander_set(uint8_t pin_num, int32_t numerator, uint32_t denominator);
 
 extern void expander_start();
+
+extern void expander_report_info();
+
+extern const char* fw_version;
+extern const char* board_name;
 
 #ifdef __cplusplus
 }

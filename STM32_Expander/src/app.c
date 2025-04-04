@@ -97,6 +97,7 @@ void setup() {
     GL;
 #endif
     expander_start();
+    ready();
     fnc_wait_ready();
 }
 

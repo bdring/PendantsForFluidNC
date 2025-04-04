@@ -8,3 +8,8 @@
 extern pin_t gpios[];
 
 extern const int n_pins;
+
+extern const char* fw_version;
+extern const char* board_name;
+
+void ready();
