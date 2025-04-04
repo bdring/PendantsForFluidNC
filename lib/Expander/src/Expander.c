@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include "pin.h"
 
 #ifdef __cplusplus
@@ -99,6 +100,21 @@ static void expander_ack_nak(bool okay, const char* errmsg) {
     }
 }
 
+void expander_feedback(const char* msg, int timeout_ms) {
+    char line[128] = "(EXP,";
+    strcat(line, msg);
+    strcat(line, ")");
+    fnc_send_line(line, timeout_ms);
+}
+
+void expander_report_info() {
+    char msg[120] = "BOARD:";
+    strcat(msg, board_name);
+    strcat(msg, ",FW:");
+    strcat(msg, fw_version);
+    expander_feedback(msg, 10);
+}
+
 #define PinLowFirst 0x100
 #define PinLowLast 0x13f
 #define PinHighFirst 0x140
@@ -140,11 +156,11 @@ bool expander_handle_command(char* command) {
         return false;
     }
 
-    // INI operation examples:
-    //   [INI: io.N=out,low]
-    //   [INI: io.N=inp,pu]
-    //   [INI: io.N=pwm]
-    if (strncmp(command, "[INI:", 5) != 0) {
+    // EXP operation examples:
+    //   [EXP: io.N=out,low]
+    //   [EXP: io.N=inp,pu]
+    //   [EXP: io.N=pwm]
+    if (strncmp(command, "[EXP:", 5) != 0) {
         return false;
     }
     // Now we know that the command is for the expander so it is okay to modify the string
@@ -152,6 +168,10 @@ bool expander_handle_command(char* command) {
 
     char* pinspec;
     split(command, &pinspec, ':');
+
+    if (strcmp(pinspec, "ID") == 0) {
+        expander_report_info();
+    }
 
     char* params;
     split(pinspec, &params, '=');
@@ -169,7 +189,7 @@ bool expander_handle_command(char* command) {
     int   pin_num = atoi(pin_str);  // Will be 0 if pin_str is "*"
 
     bool res = expander_ini(pin_num, parse_io_mode(params));
-    expander_ack_nak(res, "INI Error");
+    expander_ack_nak(res, "EXP Error");
     if (res) {
         expander_get(pin_num);
     }
