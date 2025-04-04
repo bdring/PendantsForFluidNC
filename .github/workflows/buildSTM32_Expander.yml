@@ -27,4 +27,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: airedale_v1_1_firmware
-          path: STM32_Expander/.pio/build/airedale_v1_1/firmware.*
+          path: STM32_Expander/.pio/build/airedale_v1_1
