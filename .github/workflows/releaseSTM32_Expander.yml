@@ -1,0 +1,53 @@
+name: STM32_Expander Release Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+      - name: Set release version
+        run: |
+          git config user.email "wmb@firmworks.com"
+          git config user.name "Mitch Bradley"
+          git tag "${{ github.event.inputs.tag }}" -a -m "Release test"
+      - name: Build PlatformIO Project
+        run: cd STM32_Expander && pio run
+      - name: Create zip archive
+        run: |
+          cd STM32_Expander
+          cat src/version.c
+          rm -rf release
+          mkdir release
+          cd .pio/build
+          for d in `ls -d */|sed -e s,/,,`; do zip -r ../../release/STM32_Expander_${{ github.event.inputs.tag }}.zip $d/firmware.bin; done
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          files: |
+            STM32_Expander/release/*
+          draft: True
+      #- name: Upload binary artifact
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: airedale_v1_1_firmware
+      #    path: STM32_Expander/.pio/build/airedale_v1_1/firmware.*
