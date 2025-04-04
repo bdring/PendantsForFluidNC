@@ -10,8 +10,10 @@
 typedef struct {
     // Implementation for STM32 HAL
     GPIO_TypeDef* port;
-    uint16_t       pin_num;
-    bool          pwm_capable;
+    uint16_t      pin_num;
+    uint8_t       capabilities;
+    uint8_t       timer_num;
+    uint8_t       timer_channel;
 } gpio_pin_t;
 
 // This API is MCU-independent
@@ -19,4 +21,8 @@ int  set_gpio(gpio_pin_t* gpio, bool high);
 bool get_gpio(gpio_pin_t* gpio);
 int  set_pwm(gpio_pin_t* gpio, int32_t numerator, uint32_t denominator);
 void deinit_gpio(gpio_pin_t* gpio);
+void deinit_pwm(gpio_pin_t* gpio);
 bool set_gpio_mode(gpio_pin_t* gpio, pin_mode_t pinmode);
+void init_gpio(gpio_pin_t* gpio);
+void gpio_clock_enable(GPIO_TypeDef* port);
+void init_from_gpiomap();

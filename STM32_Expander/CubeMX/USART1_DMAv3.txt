@@ -1,0 +1,128 @@
+Configuration	USART1_DMAv3
+STM32CubeMX 	6.10.0
+Date	02/21/2025
+MCU	STM32F103C8Tx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PD0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PD1-OSC_OUT
+SYS	Serial Wire	SYS_JTCK-SWCLK	PA14
+SYS	Serial Wire	SYS_JTMS-SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM1	Internal Clock	TIM1_VS_ClockSourceINT	VP_TIM1_VS_ClockSourceINT
+TIM1	PWM Generation CH1	TIM1_CH1	PA8
+TIM2	PWM Generation CH1	TIM2_CH1	PA0-WKUP
+TIM3	PWM Generation CH1	TIM3_CH1	PA6
+TIM4	PWM Generation CH4	TIM4_CH4	PB9
+USART1	Asynchronous	USART1_RX	PA10
+USART1	Asynchronous	USART1_TX	PA9
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+5	PD0-OSC_IN	RCC_OSC_IN	
+6	PD1-OSC_OUT	RCC_OSC_OUT	
+10	PA0-WKUP	TIM2_CH1	
+11	PA1	GPIO_Output	
+12	PA2	USART2_TX	
+13	PA3	USART2_RX	
+14	PA4	GPIO_Input	
+15	PA5	GPIO_Input	
+16	PA6	TIM3_CH1	
+17	PA7	GPIO_Output	
+18	PB0	GPIO_Output	
+19	PB1	GPIO_Input	
+21	PB10	GPIO_Input	
+22	PB11	GPIO_Input	
+26	PB13	GPIO_Input	
+27	PB14	GPIO_Input	
+28	PB15	GPIO_Input	
+29	PA8	TIM1_CH1	
+30	PA9	USART1_TX	
+31	PA10	USART1_RX	
+32	PA11	GPIO_Input	
+33	PA12	GPIO_Input	
+34	PA13	SYS_JTMS-SWDIO	
+37	PA14	SYS_JTCK-SWCLK	
+42	PB6	GPIO_Output	
+43	PB7	GPIO_Output	
+45	PB8	GPIO_Output	
+46	PB9	TIM4_CH4	
+PERIPHERALS	MODES	FUNCTIONS	PINS
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PD0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PD1-OSC_OUT
+SYS	Serial Wire	SYS_JTCK-SWCLK	PA14
+SYS	Serial Wire	SYS_JTMS-SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM1	Internal Clock	TIM1_VS_ClockSourceINT	VP_TIM1_VS_ClockSourceINT
+TIM1	PWM Generation CH1	TIM1_CH1	PA8
+TIM2	PWM Generation CH1	TIM2_CH1	PA0-WKUP
+TIM3	PWM Generation CH1	TIM3_CH1	PA6
+TIM4	PWM Generation CH4	TIM4_CH4	PB9
+USART1	Asynchronous	USART1_RX	PA10
+USART1	Asynchronous	USART1_TX	PA9
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+5	PD0-OSC_IN	RCC_OSC_IN	
+6	PD1-OSC_OUT	RCC_OSC_OUT	
+10	PA0-WKUP	TIM2_CH1	
+11	PA1	GPIO_Output	
+12	PA2	USART2_TX	
+13	PA3	USART2_RX	
+14	PA4	GPIO_Input	
+15	PA5	GPIO_Input	
+16	PA6	TIM3_CH1	
+17	PA7	GPIO_Output	
+18	PB0	GPIO_Output	
+19	PB1	GPIO_Input	
+21	PB10	GPIO_Input	
+22	PB11	GPIO_Input	
+26	PB13	GPIO_Input	
+27	PB14	GPIO_Input	
+28	PB15	GPIO_Input	
+29	PA8	TIM1_CH1	
+30	PA9	USART1_TX	
+31	PA10	USART1_RX	
+32	PA11	GPIO_Input	
+33	PA12	GPIO_Input	
+34	PA13	SYS_JTMS-SWDIO	
+37	PA14	SYS_JTCK-SWCLK	
+42	PB6	GPIO_Output	
+43	PB7	GPIO_Output	
+45	PB8	GPIO_Output	
+46	PB9	TIM4_CH4	
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : USART1_DMAv3
+Project Folder : C:\Users\wmb\Documents\PlatformIO\Projects\USART1_DMAv3
+Toolchain / IDE : Makefile
+Firmware Package Name and Version : STM32Cube FW_F1 V1.8.5
+
+
+Code Generation Settings : 
+STM32Cube MCU packages and embedded software packs : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+

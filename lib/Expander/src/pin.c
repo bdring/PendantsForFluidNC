@@ -10,6 +10,8 @@ extern "C" {
 
 extern int milliseconds();
 
+static int pin_limit = 0;
+
 void init_pin(uint8_t pin_num) {
     if (pin_num >= n_pins) {
         return;
@@ -82,13 +84,17 @@ void deinit_pin(uint8_t pin_num) {
     }
     pin_t* pin = &gpios[pin_num];
     if (pin->initialized) {
+        if (pin->type == pin_type_PWM) {
+            deinit_pwm(&pin->gpio);
+        } else {
+            deinit_gpio(&pin->gpio);
+        }
         pin->initialized        = false;
         pin->active_low         = false;
         pin->type               = pin_type_none;
         pin->last_value         = -1;   // unknown
         pin->debounce_ms        = 100;  // default
         pin->last_change_millis = 0;
-        deinit_gpio(&pin->gpio);
     }
 }
 
@@ -102,10 +108,10 @@ int set_pin_mode(uint8_t pin_num, pin_mode_t pinmode) {
 
     pin->active_low = pinmode & PIN_ACTIVELOW;
 
-    if (pinmode & PIN_OUTPUT) {
-        pin->type = pin_type_output;
-    } else if (pinmode & PIN_PWM) {
+    if (pinmode & PIN_PWM) {
         pin->type = pin_type_PWM;
+    } else if (pinmode & PIN_OUTPUT) {
+        pin->type = pin_type_output;
     } else if (pinmode & PIN_INPUT) {
         pin->last_value = -1;  // reset to unknown value
         pin->type       = pin_type_input;
@@ -114,18 +120,22 @@ int set_pin_mode(uint8_t pin_num, pin_mode_t pinmode) {
     }
     if (set_gpio_mode(&pin->gpio, pinmode)) {
         pin->initialized = true;
+        if (pin_num >= pin_limit) {
+            pin_limit = pin_num + 1;
+        }
         return fail_none;
     }
     return fail_not_capable;
 }
 
 void init_all_pins() {
+    pin_limit = 0;
     for (size_t pin_num = 0; pin_num < n_pins; pin_num++) {
         init_pin(pin_num);
     }
 }
 void update_all_pins() {
-    for (size_t pin_num = 0; pin_num < n_pins; pin_num++) {
+    for (size_t pin_num = 0; pin_num < pin_limit; pin_num++) {
         force_pin_update(pin_num);
     }
 }
@@ -135,7 +145,7 @@ void deinit_all_pins() {
     }
 }
 void read_pin(pin_msg_t send_msg, uint8_t pin_num) {
-    if (pin_num >= n_pins) {
+    if (pin_num >= pin_limit) {
         return;
     }
     pin_t* pin = &gpios[pin_num];
@@ -146,7 +156,7 @@ void read_pin(pin_msg_t send_msg, uint8_t pin_num) {
     }
 }
 void read_all_pins(pin_msg_t send_msg) {
-    for (size_t pin_num = 0; pin_num < n_pins; pin_num++) {
+    for (size_t pin_num = 0; pin_num < pin_limit; pin_num++) {
         read_pin(send_msg, pin_num);
     }
 }

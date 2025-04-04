@@ -12,9 +12,9 @@ extern "C" {
 
 // IO expander API
 
-// expander_handle_msg() handles IO Expander MSG: messages.
+// expander_handle_command() handles IO Expander MSG: messages.
 // The app must call it from the implementation of handle_msg()
-extern bool expander_handle_msg(char* command, char* arguments);
+extern bool expander_handle_command(char* command);
 
 // expander_poll() checks for GPIO input pin changes
 // The app must call it from poll_extra() unless GPIO changes
@@ -39,6 +39,8 @@ extern bool expander_get(uint8_t pin_num);
 
 // MSG:SET io.n=value
 extern bool expander_set(uint8_t pin_num, int32_t numerator, uint32_t denominator);
+
+extern void expander_start();
 
 #ifdef __cplusplus
 }
