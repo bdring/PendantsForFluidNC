@@ -1,5 +1,8 @@
 name: STM32_Expander Release Builder
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
